@@ -4,7 +4,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { EscunaForm } from "@/components/EscunaForm";
 import { ArraialForm } from "@/components/ArraialForm";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
-import { Anchor } from "lucide-react";
+import nathanProfile from "@/assets/nathan-profile.jpg";
 import arraialImg from "@/assets/arraial-do-cabo.jpg";
 import escunaImg from "@/assets/escuna.jpg";
 
@@ -33,8 +33,12 @@ const Index = () => {
         </div>
 
         <header className="text-center mb-12 animate-in fade-in slide-in-from-top-3 duration-700">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-turquoise to-turquoise-glow mb-5 turquoise-glow">
-            <Anchor className="h-10 w-10 text-night" strokeWidth={2.5} />
+          <div className="inline-flex items-center justify-center w-28 h-28 rounded-full bg-gradient-to-br from-turquoise to-turquoise-glow mb-5 turquoise-glow overflow-hidden p-1">
+            <img
+              src={nathanProfile}
+              alt="Nathan - Passeios e Turismo"
+              className="w-full h-full rounded-full object-cover"
+            />
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold mb-3 leading-tight">
             <span className="bg-gradient-to-r from-turquoise via-turquoise-glow to-turquoise bg-clip-text text-transparent">
@@ -45,7 +49,10 @@ const Index = () => {
               Passeios e Turismo
             </span>
           </h1>
-          <p className="text-muted-foreground italic">{t.tagline}</p>
+          <p className="text-muted-foreground italic mb-4">{t.tagline}</p>
+          <p className="text-sm text-foreground/85 leading-relaxed max-w-md mx-auto px-2">
+            {t.welcome}
+          </p>
         </header>
 
         <section>
