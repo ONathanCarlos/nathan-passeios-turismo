@@ -48,6 +48,7 @@ type Dict = {
   intro: string;
   pousadaName: string;
   roomNumber: string;
+  optional: string;
   pousadaAddress: string;
   introArraial: string;
   otherSoon: string;
