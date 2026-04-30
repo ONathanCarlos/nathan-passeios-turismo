@@ -230,11 +230,3 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
     {children}
   </div>
 );
-
-
-const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
-  <div className="space-y-2">
-    <Label className="text-foreground/90 font-medium">{label}</Label>
-    {children}
-  </div>
-);
