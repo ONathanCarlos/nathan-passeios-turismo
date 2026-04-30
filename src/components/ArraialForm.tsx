@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/select";
 import { PageShell } from "./PageShell";
 import { SummaryOutput } from "./SummaryOutput";
+import { WhatsAppFab } from "./WhatsAppFab";
+import { PhoneInput, PhoneValue, fullPhone } from "./PhoneInput";
 import { toast } from "sonner";
 
 type Payment = "cash" | "debit" | "credit" | "pix";
@@ -21,12 +23,12 @@ interface Props {
 }
 
 const fieldClass =
-  "bg-input/60 border-turquoise/25 text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-turquoise focus-visible:border-turquoise h-12";
+  "bg-night/70 backdrop-blur-sm border-turquoise/40 text-foreground placeholder:text-foreground/50 focus-visible:ring-turquoise focus-visible:border-turquoise h-12";
 
 export const ArraialForm = ({ lang, onLangChange, onBack }: Props) => {
   const t = dict[lang];
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState<PhoneValue>({ ddi: "+55", number: "" });
   const [pax, setPax] = useState("");
   const [hasKids, setHasKids] = useState<"yes" | "no" | "">("");
   const [kidsCount, setKidsCount] = useState("");
@@ -36,6 +38,7 @@ export const ArraialForm = ({ lang, onLangChange, onBack }: Props) => {
   const [address, setAddress] = useState("");
   const [payment, setPayment] = useState<Payment | "">("");
   const [output, setOutput] = useState<string | null>(null);
+
 
   const kidsN = Math.min(8, Math.max(0, parseInt(kidsCount) || 0));
 
@@ -76,7 +79,7 @@ export const ArraialForm = ({ lang, onLangChange, onBack }: Props) => {
     ({ cash: t.cash, debit: t.debit, credit: t.credit, pix: t.pix }[p]);
 
   const handleGenerate = () => {
-    if (!name || !phone || !pax || !hasKids || !pousada || !address || !payment) {
+    if (!name || !phone.number || !pax || !hasKids || !pousada || !address || !payment) {
       toast.error(t.required);
       return;
     }
@@ -85,7 +88,7 @@ export const ArraialForm = ({ lang, onLangChange, onBack }: Props) => {
       t.optArraial,
       "",
       `👤 ${t.sumName}: ${name}`,
-      `📞 ${t.sumPhone}: ${phone}`,
+      `📞 ${t.sumPhone}: ${fullPhone(phone)}`,
       `👥 ${t.sumPax}: ${pax}`,
     ];
     if (hasKids === "yes" && kidsN > 0) {
@@ -102,27 +105,31 @@ export const ArraialForm = ({ lang, onLangChange, onBack }: Props) => {
   };
 
   const reset = () => {
-    setName(""); setPhone(""); setPax(""); setHasKids(""); setKidsCount("");
+    setName(""); setPhone({ ddi: "+55", number: "" }); setPax(""); setHasKids(""); setKidsCount("");
     setAges([]); setPousada(""); setRoom(""); setAddress(""); setPayment(""); setOutput(null);
   };
 
   if (output) {
     return (
+      <>
       <PageShell title={t.optArraial} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={arraialBg}>
         <SummaryOutput text={output} lang={lang} onReset={reset} />
       </PageShell>
+      <WhatsAppFab lang={lang} />
+      </>
     );
   }
 
   return (
+    <>
     <PageShell title={t.optArraial} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={arraialBg}>
-      <p className="text-foreground/80 mb-6 text-sm leading-relaxed">{t.introArraial}</p>
+      <p className="text-foreground bg-night/50 backdrop-blur-sm rounded-lg p-3 mb-6 text-sm leading-relaxed font-medium">{t.introArraial}</p>
       <div className="space-y-5">
         <Field label={`✍️ ${t.fullName}`}>
           <Input value={name} onChange={(e) => setName(e.target.value)} className={fieldClass} />
         </Field>
         <Field label={`📞 ${t.phone}`}>
-          <Input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" className={fieldClass} />
+          <PhoneInput value={phone} onChange={setPhone} inputClassName={fieldClass} />
         </Field>
         <Field label={`👥 ${t.passengers}`}>
           <Input value={pax} onChange={(e) => setPax(e.target.value)} type="number" min={1} className={fieldClass} />
@@ -223,12 +230,15 @@ export const ArraialForm = ({ lang, onLangChange, onBack }: Props) => {
         </Button>
       </div>
     </PageShell>
+    <WhatsAppFab lang={lang} />
+    </>
   );
 };
 
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div className="space-y-2">
-    <Label className="text-foreground/90 font-medium">{label}</Label>
+    <Label className="text-foreground font-semibold drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)]">{label}</Label>
     {children}
   </div>
 );
+

@@ -16,44 +16,48 @@ interface Props {
 export const PageShell = ({ title, lang, onLangChange, onBack, children, backgroundImage }: Props) => {
   const t = dict[lang];
   return (
-    <div className="min-h-screen px-4 py-6 sm:py-10">
-      <div className="mx-auto max-w-xl relative">
-        {backgroundImage && (
+    <div className="relative min-h-screen">
+      {backgroundImage && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center overflow-hidden"
+        >
           <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 top-24 mx-auto rounded-3xl overflow-hidden border border-turquoise/30 shadow-[0_20px_60px_-15px_hsl(220_80%_3%/0.7)]"
+            className="h-full"
             style={{
               aspectRatio: "9 / 16",
-              maxHeight: "85vh",
-              width: "min(100%, calc(85vh * 9 / 16))",
+              maxWidth: "100vw",
               backgroundImage: `url(${backgroundImage})`,
               backgroundSize: "cover",
               backgroundPosition: "center",
+              opacity: 0.45, // 55% transparency
             }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-b from-deep-blue/40 via-deep-blue/55 to-deep-blue/85" />
-          </div>
-        )}
-        <div className="relative">
-        <header className="flex items-center justify-between mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onBack}
-            className="text-foreground/80 hover:text-turquoise hover:bg-turquoise/10 -ml-2"
-          >
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            {t.back}
-          </Button>
-          <LanguageSwitcher lang={lang} onChange={onLangChange} />
-        </header>
-        <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-1">
-          <span className="bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent">
-            {title}
-          </span>
-        </h1>
-        <p className="text-muted-foreground mb-8 text-sm">{t.brand}</p>
-        {children}
+          />
+          <div className="absolute inset-0 bg-deep-blue/40" />
+        </div>
+      )}
+
+      <div className="relative z-10 px-4 py-6 sm:py-10">
+        <div className="mx-auto max-w-xl">
+          <header className="flex items-center justify-between mb-6">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onBack}
+              className="text-foreground hover:text-turquoise hover:bg-turquoise/10 -ml-2 backdrop-blur-sm bg-night/30 rounded-lg"
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              {t.back}
+            </Button>
+            <LanguageSwitcher lang={lang} onChange={onLangChange} />
+          </header>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-1 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+            <span className="bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent">
+              {title}
+            </span>
+          </h1>
+          <p className="text-foreground/95 mb-8 text-sm font-medium drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">{t.brand}</p>
+          {children}
         </div>
       </div>
     </div>

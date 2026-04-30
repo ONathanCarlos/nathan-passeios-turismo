@@ -64,6 +64,8 @@ type Dict = {
   sumRoom: string;
   sumAddress: string;
   required: string;
+  whatsappSupport: string;
+  ddi: string;
 };
 
 export const dict: Record<Lang, Dict> = {
@@ -99,10 +101,10 @@ export const dict: Record<Lang, Dict> = {
     credit: "Cartão de crédito",
     pix: "Pix",
     creditWarning: "⚠️ Será adicionado um acréscimo de 5% referente à taxa da maquininha.",
-    generate: "Gerar resumo da reserva",
+    generate: "Reservar seu passeio",
     copy: "Copiar texto",
     copied: "Copiado!",
-    share: "Compartilhar",
+    share: "Enviar sua reserva",
     reset: "Nova reserva",
     intro: "🇧🇷 Para fazer sua reserva para o passeio preciso que você me mande os seguintes dados:",
     pousadaName: "Nome da pousada",
@@ -123,6 +125,8 @@ export const dict: Record<Lang, Dict> = {
     sumRoom: "Quarto",
     sumAddress: "Endereço",
     required: "Preencha todos os campos obrigatórios.",
+    whatsappSupport: "Suporte no WhatsApp",
+    ddi: "DDI",
   },
   es: {
     brand: "Nathan Paseos y Turismo",
@@ -156,10 +160,10 @@ export const dict: Record<Lang, Dict> = {
     credit: "Tarjeta de crédito",
     pix: "Pix",
     creditWarning: "⚠️ Se añadirá un recargo del 5% por la tasa de la terminal.",
-    generate: "Generar resumen de reserva",
+    generate: "Reservar tu paseo",
     copy: "Copiar texto",
     copied: "¡Copiado!",
-    share: "Compartir",
+    share: "Enviar tu reserva",
     reset: "Nueva reserva",
     intro: "🇪🇸 Para hacer tu reserva necesito que me envíes los siguientes datos:",
     pousadaName: "Nombre de la posada",
@@ -180,6 +184,8 @@ export const dict: Record<Lang, Dict> = {
     sumRoom: "Habitación",
     sumAddress: "Dirección",
     required: "Completa todos los campos obligatorios.",
+    whatsappSupport: "Soporte por WhatsApp",
+    ddi: "DDI",
   },
   en: {
     brand: "Nathan Tours & Tourism",
@@ -213,10 +219,10 @@ export const dict: Record<Lang, Dict> = {
     credit: "Credit card",
     pix: "Pix",
     creditWarning: "⚠️ A 5% surcharge will be added for the card machine fee.",
-    generate: "Generate booking summary",
+    generate: "Book your tour",
     copy: "Copy text",
     copied: "Copied!",
-    share: "Share",
+    share: "Send your booking",
     reset: "New booking",
     intro: "🇬🇧 To make your booking I need you to send me the following details:",
     pousadaName: "Hotel name",
@@ -237,6 +243,8 @@ export const dict: Record<Lang, Dict> = {
     sumRoom: "Room",
     sumAddress: "Address",
     required: "Please fill in all required fields.",
+    whatsappSupport: "WhatsApp Support",
+    ddi: "Country code",
   },
   fr: {
     brand: "Nathan Excursions & Tourisme",
@@ -270,10 +278,10 @@ export const dict: Record<Lang, Dict> = {
     credit: "Carte de crédit",
     pix: "Pix",
     creditWarning: "⚠️ Un supplément de 5% sera ajouté pour les frais du terminal.",
-    generate: "Générer le résumé",
+    generate: "Réserver votre excursion",
     copy: "Copier le texte",
     copied: "Copié !",
-    share: "Partager",
+    share: "Envoyer votre réservation",
     reset: "Nouvelle réservation",
     intro: "🇫🇷 Pour faire votre réservation, j'ai besoin des informations suivantes :",
     pousadaName: "Nom de l'hôtel",
@@ -294,6 +302,8 @@ export const dict: Record<Lang, Dict> = {
     sumRoom: "Chambre",
     sumAddress: "Adresse",
     required: "Veuillez remplir tous les champs obligatoires.",
+    whatsappSupport: "Support WhatsApp",
+    ddi: "Indicatif",
   },
   it: {
     brand: "Nathan Escursioni e Turismo",
@@ -327,10 +337,10 @@ export const dict: Record<Lang, Dict> = {
     credit: "Carta di credito",
     pix: "Pix",
     creditWarning: "⚠️ Verrà aggiunto un supplemento del 5% per la commissione del POS.",
-    generate: "Genera riepilogo",
+    generate: "Prenota la tua escursione",
     copy: "Copia testo",
     copied: "Copiato!",
-    share: "Condividi",
+    share: "Invia la tua prenotazione",
     reset: "Nuova prenotazione",
     intro: "🇮🇹 Per fare la prenotazione ho bisogno dei seguenti dati:",
     pousadaName: "Nome dell'hotel",
@@ -351,5 +361,7 @@ export const dict: Record<Lang, Dict> = {
     sumRoom: "Camera",
     sumAddress: "Indirizzo",
     required: "Compila tutti i campi obbligatori.",
+    whatsappSupport: "Supporto WhatsApp",
+    ddi: "Prefisso",
   },
 };

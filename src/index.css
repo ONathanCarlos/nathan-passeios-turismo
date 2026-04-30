@@ -128,4 +128,13 @@
       to { background-position: 300% 0; }
     }
   }
+
+  /* Subtle pulse for the WhatsApp floating button */
+  @keyframes wa-pulse {
+    0%, 100% { box-shadow: 0 8px 24px -4px rgba(37, 211, 102, 0.55), 0 0 0 0 rgba(37, 211, 102, 0.55); }
+    50% { box-shadow: 0 8px 24px -4px rgba(37, 211, 102, 0.7), 0 0 0 12px rgba(37, 211, 102, 0); }
+  }
+  .wa-pulse {
+    animation: wa-pulse 2.4s ease-in-out infinite;
+  }
 }
