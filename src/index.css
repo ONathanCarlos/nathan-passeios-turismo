@@ -96,4 +96,36 @@
   .turquoise-glow {
     box-shadow: var(--shadow-glow);
   }
+
+  /* RGB animated border for the language switcher */
+  .rgb-border {
+    position: relative;
+    border-radius: 0.75rem;
+    padding: 2px;
+    background: conic-gradient(
+      from var(--rgb-angle, 0deg),
+      #ff007a, #ff8a00, #ffe600, #00ff85, #00d4ff, #7a00ff, #ff007a
+    );
+    animation: rgb-spin 4s linear infinite;
+    box-shadow: 0 0 18px hsl(var(--turquoise) / 0.35);
+  }
+  @property --rgb-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+  }
+  @keyframes rgb-spin {
+    to { --rgb-angle: 360deg; }
+  }
+  /* Fallback for browsers without @property: rotate via background-position */
+  @supports not (background: conic-gradient(from 0deg, red, blue)) {
+    .rgb-border {
+      background: linear-gradient(90deg, #ff007a, #ff8a00, #ffe600, #00ff85, #00d4ff, #7a00ff, #ff007a);
+      background-size: 300% 100%;
+      animation: rgb-slide 4s linear infinite;
+    }
+    @keyframes rgb-slide {
+      to { background-position: 300% 0; }
+    }
+  }
 }

@@ -4,8 +4,9 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { EscunaForm } from "@/components/EscunaForm";
 import { ArraialForm } from "@/components/ArraialForm";
 import { PageShell } from "@/components/PageShell";
-import { Sailboat, Anchor } from "lucide-react";
+import { Anchor } from "lucide-react";
 import arraialImg from "@/assets/arraial-do-cabo.jpg";
+import escunaImg from "@/assets/escuna.jpg";
 
 type Screen = "menu" | "escuna" | "arraial";
 
@@ -20,7 +21,7 @@ const Index = () => {
     return <ArraialForm lang={lang} onLangChange={setLang} onBack={() => setScreen("menu")} />;
 
   const options = [
-    { key: "escuna" as const, icon: Sailboat, image: null, title: t.optEscuna, desc: t.optEscunaDesc },
+    { key: "escuna" as const, icon: null, image: escunaImg, title: t.optEscuna, desc: t.optEscunaDesc },
     { key: "arraial" as const, icon: null, image: arraialImg, title: t.optArraial, desc: t.optArraialDesc },
   ];
 

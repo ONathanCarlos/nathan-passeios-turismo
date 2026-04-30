@@ -14,6 +14,7 @@ import {
 import { PageShell } from "./PageShell";
 import { SummaryOutput } from "./SummaryOutput";
 import { toast } from "sonner";
+import escunaImg from "@/assets/escuna.jpg";
 
 type Payment = "cash" | "debit" | "credit" | "pix";
 
@@ -106,14 +107,14 @@ export const EscunaForm = ({ lang, onLangChange, onBack }: Props) => {
 
   if (output) {
     return (
-      <PageShell title={t.optEscuna} lang={lang} onLangChange={onLangChange} onBack={onBack}>
+      <PageShell title={t.optEscuna} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={escunaImg}>
         <SummaryOutput text={output} lang={lang} onReset={reset} />
       </PageShell>
     );
   }
 
   return (
-    <PageShell title={t.optEscuna} lang={lang} onLangChange={onLangChange} onBack={onBack}>
+    <PageShell title={t.optEscuna} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={escunaImg}>
       <p className="text-foreground/80 mb-6 text-sm leading-relaxed">{t.intro}</p>
       <div className="space-y-5">
         <Field label={t.fullName}>
