@@ -4,7 +4,8 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { EscunaForm } from "@/components/EscunaForm";
 import { ArraialForm } from "@/components/ArraialForm";
 import { PageShell } from "@/components/PageShell";
-import { Sailboat, MapPin, Anchor } from "lucide-react";
+import { Sailboat, Anchor } from "lucide-react";
+import arraialImg from "@/assets/arraial-do-cabo.jpg";
 
 type Screen = "menu" | "escuna" | "arraial";
 
@@ -19,8 +20,8 @@ const Index = () => {
     return <ArraialForm lang={lang} onLangChange={setLang} onBack={() => setScreen("menu")} />;
 
   const options = [
-    { key: "escuna" as const, icon: Sailboat, title: t.optEscuna, desc: t.optEscunaDesc },
-    { key: "arraial" as const, icon: MapPin, title: t.optArraial, desc: t.optArraialDesc },
+    { key: "escuna" as const, icon: Sailboat, image: null, title: t.optEscuna, desc: t.optEscunaDesc },
+    { key: "arraial" as const, icon: null, image: arraialImg, title: t.optArraial, desc: t.optArraialDesc },
   ];
 
   return (
@@ -59,8 +60,12 @@ const Index = () => {
                 className="group glass-card w-full rounded-2xl p-5 text-left transition-all duration-300 hover:border-turquoise/60 hover:translate-x-1 hover:turquoise-glow animate-in fade-in slide-in-from-bottom-3 fill-mode-both"
               >
                 <div className="flex items-center gap-4">
-                  <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-turquoise/15 border border-turquoise/30 flex items-center justify-center group-hover:bg-turquoise group-hover:text-night transition-all">
-                    <opt.icon className="h-7 w-7 text-turquoise group-hover:text-night transition-colors" />
+                  <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-turquoise/15 border border-turquoise/30 flex items-center justify-center overflow-hidden group-hover:bg-turquoise group-hover:text-night transition-all">
+                    {opt.image ? (
+                      <img src={opt.image} alt={opt.title} className="w-full h-full object-cover" />
+                    ) : opt.icon ? (
+                      <opt.icon className="h-7 w-7 text-turquoise group-hover:text-night transition-colors" />
+                    ) : null}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
