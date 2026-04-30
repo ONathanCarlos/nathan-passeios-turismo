@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Lang, dict } from "@/lib/i18n";
+import arraialBg from "@/assets/arraial-do-cabo.jpg";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -75,7 +76,7 @@ export const ArraialForm = ({ lang, onLangChange, onBack }: Props) => {
     ({ cash: t.cash, debit: t.debit, credit: t.credit, pix: t.pix }[p]);
 
   const handleGenerate = () => {
-    if (!name || !phone || !pax || !hasKids || !pousada || !room || !address || !payment) {
+    if (!name || !phone || !pax || !hasKids || !pousada || !address || !payment) {
       toast.error(t.required);
       return;
     }
@@ -93,7 +94,7 @@ export const ArraialForm = ({ lang, onLangChange, onBack }: Props) => {
       lines.push(`½ ${t.sumHalf}: ${halfCount}`);
     }
     lines.push(`🛌 ${t.sumPousada}: ${pousada}`);
-    lines.push(`🔢 ${t.sumRoom}: ${room}`);
+    if (room) lines.push(`🔢 ${t.sumRoom}: ${room}`);
     lines.push(`📍 ${t.sumAddress}: ${address}`);
     lines.push(`💳 ${t.sumPay}: ${paymentLabel(payment as Payment)}`);
     if (payment === "credit") lines.push(t.creditWarning);
@@ -107,14 +108,14 @@ export const ArraialForm = ({ lang, onLangChange, onBack }: Props) => {
 
   if (output) {
     return (
-      <PageShell title={t.optArraial} lang={lang} onLangChange={onLangChange} onBack={onBack}>
+      <PageShell title={t.optArraial} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={arraialBg}>
         <SummaryOutput text={output} lang={lang} onReset={reset} />
       </PageShell>
     );
   }
 
   return (
-    <PageShell title={t.optArraial} lang={lang} onLangChange={onLangChange} onBack={onBack}>
+    <PageShell title={t.optArraial} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={arraialBg}>
       <p className="text-foreground/80 mb-6 text-sm leading-relaxed">{t.introArraial}</p>
       <div className="space-y-5">
         <Field label={`✍️ ${t.fullName}`}>
@@ -188,7 +189,7 @@ export const ArraialForm = ({ lang, onLangChange, onBack }: Props) => {
         <Field label={`🛌 ${t.pousadaName}`}>
           <Input value={pousada} onChange={(e) => setPousada(e.target.value)} className={fieldClass} />
         </Field>
-        <Field label={`🔢 ${t.roomNumber}`}>
+        <Field label={`🔢 ${t.roomNumber} (${t.optional})`}>
           <Input value={room} onChange={(e) => setRoom(e.target.value)} className={fieldClass} />
         </Field>
         <Field label={`📍 ${t.pousadaAddress}`}>
