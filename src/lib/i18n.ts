@@ -66,6 +66,7 @@ type Dict = {
   required: string;
   whatsappSupport: string;
   ddi: string;
+  welcome: string;
 };
 
 export const dict: Record<Lang, Dict> = {
@@ -127,6 +128,7 @@ export const dict: Record<Lang, Dict> = {
     required: "Preencha todos os campos obrigatórios.",
     whatsappSupport: "Suporte no WhatsApp",
     ddi: "DDI",
+    welcome: "Bem-vindo ao nosso espaço oficial de reservas. Criei este espaço para tornar sua reserva mais prática, segura e organizada. Escolha seu passeio e, se precisar, estou disponível no WhatsApp para te ajudar.",
   },
   es: {
     brand: "Nathan Paseos y Turismo",
@@ -185,6 +187,8 @@ export const dict: Record<Lang, Dict> = {
     sumAddress: "Dirección",
     required: "Completa todos los campos obligatorios.",
     whatsappSupport: "Soporte por WhatsApp",
+    ddi: "DDI",
+    welcome: "Bienvenido a nuestro espacio oficial de reservas. Creé este espacio para hacer tu reserva más práctica, segura y organizada. Elige tu paseo y, si lo necesitas, estoy disponible en WhatsApp para ayudarte.",
     ddi: "DDI",
   },
   en: {
