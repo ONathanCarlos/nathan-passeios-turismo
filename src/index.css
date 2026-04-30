@@ -40,7 +40,7 @@
     --deep-blue: 215 70% 14%;
     --night: 220 50% 5%;
 
-    --gradient-ocean: linear-gradient(160deg, hsl(220 50% 5%) 0%, hsl(215 70% 14%) 50%, hsl(174 60% 22%) 100%);
+    --gradient-ocean: linear-gradient(170deg, hsl(215 75% 14%) 0%, hsl(200 70% 22%) 35%, hsl(185 65% 28%) 65%, hsl(174 70% 38%) 100%);
     --gradient-turquoise: linear-gradient(135deg, hsl(174 72% 48%) 0%, hsl(190 80% 55%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(215 50% 14% / 0.9), hsl(215 55% 10% / 0.9));
 
@@ -65,7 +65,20 @@
     @apply text-foreground;
     background: var(--gradient-ocean);
     background-attachment: fixed;
+    background-size: cover;
     font-family: 'Inter', system-ui, sans-serif;
+    position: relative;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background:
+      radial-gradient(circle at 18% 20%, hsl(174 90% 60% / 0.18), transparent 45%),
+      radial-gradient(circle at 82% 75%, hsl(190 85% 55% / 0.18), transparent 50%),
+      radial-gradient(circle at 50% 110%, hsl(174 80% 50% / 0.20), transparent 55%);
   }
   h1, h2, h3 {
     font-family: 'Playfair Display', Georgia, serif;

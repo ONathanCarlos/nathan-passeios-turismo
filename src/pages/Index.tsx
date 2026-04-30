@@ -4,9 +4,9 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { EscunaForm } from "@/components/EscunaForm";
 import { ArraialForm } from "@/components/ArraialForm";
 import { PageShell } from "@/components/PageShell";
-import { Sailboat, MapPin, Sparkles, Anchor } from "lucide-react";
+import { Sailboat, MapPin, Anchor } from "lucide-react";
 
-type Screen = "menu" | "escuna" | "arraial" | "other";
+type Screen = "menu" | "escuna" | "arraial";
 
 const Index = () => {
   const [lang, setLang] = useState<Lang>("pt");
@@ -17,20 +17,10 @@ const Index = () => {
     return <EscunaForm lang={lang} onLangChange={setLang} onBack={() => setScreen("menu")} />;
   if (screen === "arraial")
     return <ArraialForm lang={lang} onLangChange={setLang} onBack={() => setScreen("menu")} />;
-  if (screen === "other")
-    return (
-      <PageShell title={t.optOther} lang={lang} onLangChange={setLang} onBack={() => setScreen("menu")}>
-        <div className="glass-card rounded-2xl p-8 text-center">
-          <Sparkles className="h-12 w-12 text-turquoise mx-auto mb-4" />
-          <p className="text-foreground/90 text-lg">{t.otherSoon}</p>
-        </div>
-      </PageShell>
-    );
 
   const options = [
     { key: "escuna" as const, icon: Sailboat, title: t.optEscuna, desc: t.optEscunaDesc },
     { key: "arraial" as const, icon: MapPin, title: t.optArraial, desc: t.optArraialDesc },
-    { key: "other" as const, icon: Sparkles, title: t.optOther, desc: t.optOtherDesc },
   ];
 
   return (
