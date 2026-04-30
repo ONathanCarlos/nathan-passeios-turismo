@@ -219,8 +219,18 @@ export const EscunaForm = ({ lang, onLangChange, onBack }: Props) => {
         </Button>
       </div>
     </PageShell>
+    <WhatsAppFab lang={lang} />
+    </>
   );
 };
+
+const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <div className="space-y-2">
+    <Label className="text-foreground font-semibold drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)]">{label}</Label>
+    {children}
+  </div>
+);
+
 
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div className="space-y-2">
