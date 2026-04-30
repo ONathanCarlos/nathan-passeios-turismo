@@ -54,6 +54,7 @@ export const PageShell = ({ title, lang, onLangChange, onBack, children, backgro
         </h1>
         <p className="text-muted-foreground mb-8 text-sm">{t.brand}</p>
         {children}
+        </div>
       </div>
     </div>
   );
