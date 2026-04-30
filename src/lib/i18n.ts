@@ -64,6 +64,8 @@ type Dict = {
   sumRoom: string;
   sumAddress: string;
   required: string;
+  whatsappSupport: string;
+  ddi: string;
 };
 
 export const dict: Record<Lang, Dict> = {
