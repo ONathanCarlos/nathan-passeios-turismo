@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Lang, dict } from "@/lib/i18n";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -24,17 +25,57 @@ const fieldClass =
 export const ArraialForm = ({ lang, onLangChange, onBack }: Props) => {
   const t = dict[lang];
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [pax, setPax] = useState("");
+  const [hasKids, setHasKids] = useState<"yes" | "no" | "">("");
+  const [kidsCount, setKidsCount] = useState("");
+  const [ages, setAges] = useState<string[]>([]);
   const [pousada, setPousada] = useState("");
   const [room, setRoom] = useState("");
   const [address, setAddress] = useState("");
   const [payment, setPayment] = useState<Payment | "">("");
   const [output, setOutput] = useState<string | null>(null);
 
+  const kidsN = Math.min(8, Math.max(0, parseInt(kidsCount) || 0));
+
+  if (ages.length !== kidsN && hasKids === "yes") {
+    const next = [...ages];
+    while (next.length < kidsN) next.push("");
+    next.length = kidsN;
+    setAges(next);
+  }
+
+  const setAge = (i: number, v: string) => {
+    const next = [...ages];
+    next[i] = v;
+    setAges(next);
+  };
+
+  const ageBadge = (raw: string) => {
+    const a = parseInt(raw);
+    if (isNaN(a)) return null;
+    if (a <= 5) return { text: t.free, cls: "text-emerald-300" };
+    if (a >= 6 && a <= 10) return { text: t.half, cls: "text-amber-300" };
+    return null;
+  };
+
+  const { freeCount, halfCount } = useMemo(() => {
+    if (hasKids !== "yes") return { freeCount: 0, halfCount: 0 };
+    let f = 0, h = 0;
+    ages.forEach((r) => {
+      const a = parseInt(r);
+      if (isNaN(a)) return;
+      if (a <= 5) f++;
+      else if (a <= 10) h++;
+    });
+    return { freeCount: f, halfCount: h };
+  }, [ages, hasKids]);
+
   const paymentLabel = (p: Payment) =>
     ({ cash: t.cash, debit: t.debit, credit: t.credit, pix: t.pix }[p]);
 
   const handleGenerate = () => {
-    if (!name || !pousada || !room || !address || !payment) {
+    if (!name || !phone || !pax || !hasKids || !pousada || !room || !address || !payment) {
       toast.error(t.required);
       return;
     }
@@ -42,18 +83,26 @@ export const ArraialForm = ({ lang, onLangChange, onBack }: Props) => {
       t.sumTitle,
       t.optArraial,
       "",
-      `✍️ ${t.sumName}: ${name}`,
-      `🛌 ${t.sumPousada}: ${pousada}`,
-      `🔢 ${t.sumRoom}: ${room}`,
-      `📍 ${t.sumAddress}: ${address}`,
-      `💳 ${t.sumPay}: ${paymentLabel(payment as Payment)}`,
+      `👤 ${t.sumName}: ${name}`,
+      `📞 ${t.sumPhone}: ${phone}`,
+      `👥 ${t.sumPax}: ${pax}`,
     ];
+    if (hasKids === "yes" && kidsN > 0) {
+      lines.push(`🧒 ${t.sumChildren}: ${kidsN} (${ages.filter(Boolean).map((a) => `${a} ${t.ageYears}`).join(", ")})`);
+      lines.push(`🆓 ${t.sumFree}: ${freeCount}`);
+      lines.push(`½ ${t.sumHalf}: ${halfCount}`);
+    }
+    lines.push(`🛌 ${t.sumPousada}: ${pousada}`);
+    lines.push(`🔢 ${t.sumRoom}: ${room}`);
+    lines.push(`📍 ${t.sumAddress}: ${address}`);
+    lines.push(`💳 ${t.sumPay}: ${paymentLabel(payment as Payment)}`);
     if (payment === "credit") lines.push(t.creditWarning);
     setOutput(lines.join("\n"));
   };
 
   const reset = () => {
-    setName(""); setPousada(""); setRoom(""); setAddress(""); setPayment(""); setOutput(null);
+    setName(""); setPhone(""); setPax(""); setHasKids(""); setKidsCount("");
+    setAges([]); setPousada(""); setRoom(""); setAddress(""); setPayment(""); setOutput(null);
   };
 
   if (output) {
@@ -71,6 +120,71 @@ export const ArraialForm = ({ lang, onLangChange, onBack }: Props) => {
         <Field label={`✍️ ${t.fullName}`}>
           <Input value={name} onChange={(e) => setName(e.target.value)} className={fieldClass} />
         </Field>
+        <Field label={`📞 ${t.phone}`}>
+          <Input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" className={fieldClass} />
+        </Field>
+        <Field label={`👥 ${t.passengers}`}>
+          <Input value={pax} onChange={(e) => setPax(e.target.value)} type="number" min={1} className={fieldClass} />
+        </Field>
+
+        <Field label={t.hasChildren}>
+          <RadioGroup
+            value={hasKids}
+            onValueChange={(v) => setHasKids(v as "yes" | "no")}
+            className="flex gap-3"
+          >
+            {(["yes", "no"] as const).map((v) => (
+              <label
+                key={v}
+                className={`flex-1 cursor-pointer rounded-xl border-2 p-3 text-center transition-all ${
+                  hasKids === v
+                    ? "border-turquoise bg-turquoise/10 text-turquoise"
+                    : "border-border bg-card/40 hover:border-turquoise/50"
+                }`}
+              >
+                <RadioGroupItem value={v} className="sr-only" />
+                {v === "yes" ? t.yes : t.no}
+              </label>
+            ))}
+          </RadioGroup>
+        </Field>
+
+        {hasKids === "yes" && (
+          <div className="space-y-5 rounded-2xl border border-turquoise/25 bg-card/40 p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+            <Field label={t.childrenCount}>
+              <Input
+                type="number"
+                min={1}
+                max={8}
+                value={kidsCount}
+                onChange={(e) => setKidsCount(e.target.value)}
+                className={fieldClass}
+              />
+            </Field>
+            {Array.from({ length: kidsN }).map((_, i) => {
+              const badge = ageBadge(ages[i] || "");
+              return (
+                <Field key={i} label={t.childAge(i + 1)}>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={17}
+                    value={ages[i] || ""}
+                    onChange={(e) => setAge(i, e.target.value)}
+                    className={fieldClass}
+                  />
+                  {badge && <p className={`mt-2 text-sm font-semibold ${badge.cls}`}>{badge.text}</p>}
+                </Field>
+              );
+            })}
+            {kidsN > 0 && (
+              <div className="text-sm text-muted-foreground border-t border-border/50 pt-3">
+                {t.freePassengers}: <span className="font-semibold text-turquoise">{freeCount}</span>
+              </div>
+            )}
+          </div>
+        )}
+
         <Field label={`🛌 ${t.pousadaName}`}>
           <Input value={pousada} onChange={(e) => setPousada(e.target.value)} className={fieldClass} />
         </Field>
