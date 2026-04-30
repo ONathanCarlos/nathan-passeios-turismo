@@ -66,6 +66,7 @@ type Dict = {
   required: string;
   whatsappSupport: string;
   ddi: string;
+  welcome: string;
 };
 
 export const dict: Record<Lang, Dict> = {
@@ -127,6 +128,7 @@ export const dict: Record<Lang, Dict> = {
     required: "Preencha todos os campos obrigatórios.",
     whatsappSupport: "Suporte no WhatsApp",
     ddi: "DDI",
+    welcome: "Bem-vindo ao nosso espaço oficial de reservas. Criei este espaço para tornar sua reserva mais prática, segura e organizada. Escolha seu passeio e, se precisar, estou disponível no WhatsApp para te ajudar.",
   },
   es: {
     brand: "Nathan Paseos y Turismo",
@@ -186,6 +188,7 @@ export const dict: Record<Lang, Dict> = {
     required: "Completa todos los campos obligatorios.",
     whatsappSupport: "Soporte por WhatsApp",
     ddi: "DDI",
+    welcome: "Bienvenido a nuestro espacio oficial de reservas. Creé este espacio para hacer tu reserva más práctica, segura y organizada. Elige tu paseo y, si lo necesitas, estoy disponible en WhatsApp para ayudarte.",
   },
   en: {
     brand: "Nathan Tours & Tourism",
@@ -245,6 +248,7 @@ export const dict: Record<Lang, Dict> = {
     required: "Please fill in all required fields.",
     whatsappSupport: "WhatsApp Support",
     ddi: "Country code",
+    welcome: "Welcome to our official booking space. I created this space to make your reservation more practical, secure and organized. Choose your tour and, if you need, I'm available on WhatsApp to help you.",
   },
   fr: {
     brand: "Nathan Excursions & Tourisme",
@@ -304,6 +308,7 @@ export const dict: Record<Lang, Dict> = {
     required: "Veuillez remplir tous les champs obligatoires.",
     whatsappSupport: "Support WhatsApp",
     ddi: "Indicatif",
+    welcome: "Bienvenue dans notre espace officiel de réservation. J'ai créé cet espace pour rendre votre réservation plus pratique, sûre et organisée. Choisissez votre excursion et, si besoin, je suis disponible sur WhatsApp pour vous aider.",
   },
   it: {
     brand: "Nathan Escursioni e Turismo",
@@ -363,5 +368,6 @@ export const dict: Record<Lang, Dict> = {
     required: "Compila tutti i campi obbligatori.",
     whatsappSupport: "Supporto WhatsApp",
     ddi: "Prefisso",
+    welcome: "Benvenuto nel nostro spazio ufficiale di prenotazione. Ho creato questo spazio per rendere la tua prenotazione più pratica, sicura e organizzata. Scegli la tua escursione e, se hai bisogno, sono disponibile su WhatsApp per aiutarti.",
   },
 };

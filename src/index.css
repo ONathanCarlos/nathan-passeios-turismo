@@ -66,7 +66,7 @@
     background: var(--gradient-ocean);
     background-attachment: fixed;
     background-size: cover;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Comfortaa', system-ui, sans-serif;
     position: relative;
   }
   body::before {
@@ -81,8 +81,8 @@
       radial-gradient(circle at 50% 110%, hsl(174 80% 50% / 0.20), transparent 55%);
   }
   h1, h2, h3 {
-    font-family: 'Playfair Display', Georgia, serif;
-    letter-spacing: -0.02em;
+    font-family: 'Comfortaa', system-ui, sans-serif;
+    letter-spacing: -0.01em;
   }
 }
 
