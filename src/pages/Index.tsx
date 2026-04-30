@@ -3,7 +3,7 @@ import { Lang, dict } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { EscunaForm } from "@/components/EscunaForm";
 import { ArraialForm } from "@/components/ArraialForm";
-import { PageShell } from "@/components/PageShell";
+import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { Anchor } from "lucide-react";
 import arraialImg from "@/assets/arraial-do-cabo.jpg";
 import escunaImg from "@/assets/escuna.jpg";
@@ -90,6 +90,7 @@ const Index = () => {
           © Nathan Passeios e Turismo · Arraial do Cabo
         </footer>
       </div>
+      <WhatsAppFab lang={lang} />
     </main>
   );
 };
