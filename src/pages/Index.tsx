@@ -90,7 +90,7 @@ const Index = () => {
               Passeios e Turismo
             </span>
           </h1>
-          <p className="text-muted-foreground italic mb-4">{t.tagline}</p>
+          {t.tagline && <p className="text-muted-foreground italic mb-4">{t.tagline}</p>}
           <p className="text-sm text-foreground/85 leading-relaxed max-w-md mx-auto px-2">
             {t.welcome}
           </p>
