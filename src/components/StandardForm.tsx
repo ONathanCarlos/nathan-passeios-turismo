@@ -133,8 +133,13 @@ export const StandardForm = ({
       <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage}>
         <p className="text-foreground bg-night/50 backdrop-blur-sm rounded-lg p-3 mb-4 text-sm leading-relaxed font-medium">{t.intro}</p>
         {notice && (
-          <div className="mb-6 rounded-lg border border-amber-400/50 bg-amber-500/15 backdrop-blur-sm p-3 text-sm font-semibold text-amber-200">
-            ⚠️ {notice}
+          <div className="mb-6 rounded-xl border-2 border-amber-400/70 bg-gradient-to-r from-amber-500/25 via-amber-400/20 to-amber-500/25 backdrop-blur-md p-4 shadow-[0_0_24px_rgba(251,191,36,0.35)] animate-in fade-in zoom-in-95 duration-500">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">🔞</span>
+              <p className="text-base font-bold text-amber-100 tracking-wide drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] uppercase">
+                {notice}
+              </p>
+            </div>
           </div>
         )}
         <div className="space-y-5">
