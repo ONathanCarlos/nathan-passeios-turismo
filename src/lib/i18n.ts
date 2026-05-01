@@ -67,6 +67,19 @@ type Dict = {
   whatsappSupport: string;
   ddi: string;
   welcome: string;
+  optBuggy: string;
+  optBuggyDesc: string;
+  optCatamara: string;
+  optCatamaraDesc: string;
+  optJardineira: string;
+  optJardineiraDesc: string;
+  optMergulho: string;
+  optMergulhoDesc: string;
+  optLancha: string;
+  optLanchaDesc: string;
+  cpfResponsible: string;
+  adultsOnly: string;
+  adultsOnlyNotice: string;
 };
 
 export const dict: Record<Lang, Dict> = {
