@@ -47,8 +47,25 @@ const Index = () => {
   ];
 
   return (
-    <main className="min-h-screen px-4 py-6 sm:py-10">
-      <div className="mx-auto max-w-xl">
+    <main className="relative min-h-screen px-4 py-6 sm:py-10 overflow-hidden">
+      {/* Background video */}
+      <video
+        className="pointer-events-none fixed inset-0 z-0 w-full h-full object-cover"
+        src="/videos/ocean-bg.mp4"
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        aria-hidden="true"
+      />
+      {/* Dark overlay for legibility */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-night/80 via-deep-blue/70 to-night/85"
+      />
+
+      <div className="relative z-10 mx-auto max-w-xl">
         <div className="flex justify-end mb-8">
           <LanguageSwitcher lang={lang} onChange={setLang} />
         </div>
