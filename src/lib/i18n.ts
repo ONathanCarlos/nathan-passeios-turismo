@@ -67,6 +67,19 @@ type Dict = {
   whatsappSupport: string;
   ddi: string;
   welcome: string;
+  optBuggy: string;
+  optBuggyDesc: string;
+  optCatamara: string;
+  optCatamaraDesc: string;
+  optJardineira: string;
+  optJardineiraDesc: string;
+  optMergulho: string;
+  optMergulhoDesc: string;
+  optLancha: string;
+  optLanchaDesc: string;
+  cpfResponsible: string;
+  adultsOnly: string;
+  adultsOnlyNotice: string;
 };
 
 export const dict: Record<Lang, Dict> = {
@@ -129,6 +142,19 @@ export const dict: Record<Lang, Dict> = {
     whatsappSupport: "Suporte no WhatsApp",
     ddi: "DDI",
     welcome: "Bem-vindo ao nosso espaço oficial de reservas. Criei este espaço para tornar sua reserva mais prática, segura e organizada. Escolha seu passeio e, se precisar, estou disponível no WhatsApp para te ajudar.",
+    optBuggy: "Passeio de Buggy",
+    optBuggyDesc: "Aventura nas dunas e praias",
+    optCatamara: "Passeio de Catamarã",
+    optCatamaraDesc: "Conforto e visual privilegiado no mar",
+    optJardineira: "Passeio de Jardineira",
+    optJardineiraDesc: "Tour terrestre pelos pontos turísticos",
+    optMergulho: "Mergulho no Parque dos Corais",
+    optMergulhoDesc: "Mergulho em águas cristalinas",
+    optLancha: "Lancha Privada",
+    optLanchaDesc: "Experiência exclusiva e privativa",
+    cpfResponsible: "CPF do responsável",
+    adultsOnly: "Apenas maiores de 18 anos",
+    adultsOnlyNotice: "Passeio permitido apenas para maiores de 18 anos.",
   },
   es: {
     brand: "Nathan Paseos y Turismo",
@@ -189,6 +215,19 @@ export const dict: Record<Lang, Dict> = {
     whatsappSupport: "Soporte por WhatsApp",
     ddi: "DDI",
     welcome: "Bienvenido a nuestro espacio oficial de reservas. Creé este espacio para hacer tu reserva más práctica, segura y organizada. Elige tu paseo y, si lo necesitas, estoy disponible en WhatsApp para ayudarte.",
+    optBuggy: "Paseo en Buggy",
+    optBuggyDesc: "Aventura en dunas y playas",
+    optCatamara: "Paseo en Catamarán",
+    optCatamaraDesc: "Confort y vistas privilegiadas",
+    optJardineira: "Paseo en Jardinera",
+    optJardineiraDesc: "Tour terrestre por los puntos turísticos",
+    optMergulho: "Buceo en el Parque de los Corales",
+    optMergulhoDesc: "Buceo en aguas cristalinas",
+    optLancha: "Lancha Privada",
+    optLanchaDesc: "Experiencia exclusiva y privada",
+    cpfResponsible: "CPF del responsable",
+    adultsOnly: "Solo mayores de 18 años",
+    adultsOnlyNotice: "Paseo permitido solo para mayores de 18 años.",
   },
   en: {
     brand: "Nathan Tours & Tourism",
@@ -249,6 +288,19 @@ export const dict: Record<Lang, Dict> = {
     whatsappSupport: "WhatsApp Support",
     ddi: "Country code",
     welcome: "Welcome to our official booking space. I created this space to make your reservation more practical, secure and organized. Choose your tour and, if you need, I'm available on WhatsApp to help you.",
+    optBuggy: "Buggy Tour",
+    optBuggyDesc: "Adventure on dunes and beaches",
+    optCatamara: "Catamaran Tour",
+    optCatamaraDesc: "Comfort and privileged sea views",
+    optJardineira: "Open-Bus Tour",
+    optJardineiraDesc: "Land tour around the highlights",
+    optMergulho: "Coral Park Diving",
+    optMergulhoDesc: "Dive in crystal-clear waters",
+    optLancha: "Private Speedboat",
+    optLanchaDesc: "Exclusive and private experience",
+    cpfResponsible: "CPF of person in charge",
+    adultsOnly: "18+ only",
+    adultsOnlyNotice: "Tour permitted only for guests over 18 years old.",
   },
   fr: {
     brand: "Nathan Excursions & Tourisme",
@@ -309,6 +361,19 @@ export const dict: Record<Lang, Dict> = {
     whatsappSupport: "Support WhatsApp",
     ddi: "Indicatif",
     welcome: "Bienvenue dans notre espace officiel de réservation. J'ai créé cet espace pour rendre votre réservation plus pratique, sûre et organisée. Choisissez votre excursion et, si besoin, je suis disponible sur WhatsApp pour vous aider.",
+    optBuggy: "Excursion en Buggy",
+    optBuggyDesc: "Aventure sur les dunes et les plages",
+    optCatamara: "Excursion en Catamaran",
+    optCatamaraDesc: "Confort et vues privilégiées sur la mer",
+    optJardineira: "Excursion en Bus Découvert",
+    optJardineiraDesc: "Tour terrestre des points d'intérêt",
+    optMergulho: "Plongée au Parc des Coraux",
+    optMergulhoDesc: "Plongée en eaux cristallines",
+    optLancha: "Bateau Privé",
+    optLanchaDesc: "Expérience exclusive et privée",
+    cpfResponsible: "CPF du responsable",
+    adultsOnly: "Réservé aux +18 ans",
+    adultsOnlyNotice: "Excursion autorisée uniquement aux personnes de plus de 18 ans.",
   },
   it: {
     brand: "Nathan Escursioni e Turismo",
@@ -369,5 +434,18 @@ export const dict: Record<Lang, Dict> = {
     whatsappSupport: "Supporto WhatsApp",
     ddi: "Prefisso",
     welcome: "Benvenuto nel nostro spazio ufficiale di prenotazione. Ho creato questo spazio per rendere la tua prenotazione più pratica, sicura e organizzata. Scegli la tua escursione e, se hai bisogno, sono disponibile su WhatsApp per aiutarti.",
+    optBuggy: "Tour in Buggy",
+    optBuggyDesc: "Avventura tra dune e spiagge",
+    optCatamara: "Tour in Catamarano",
+    optCatamaraDesc: "Comfort e vista privilegiata sul mare",
+    optJardineira: "Tour in Bus Aperto",
+    optJardineiraDesc: "Tour terrestre dei punti turistici",
+    optMergulho: "Immersione al Parco dei Coralli",
+    optMergulhoDesc: "Immersione in acque cristalline",
+    optLancha: "Motoscafo Privato",
+    optLanchaDesc: "Esperienza esclusiva e privata",
+    cpfResponsible: "CPF del responsabile",
+    adultsOnly: "Solo per maggiori di 18 anni",
+    adultsOnlyNotice: "Escursione consentita solo ai maggiori di 18 anni.",
   },
 };
