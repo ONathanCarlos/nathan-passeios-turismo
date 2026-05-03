@@ -4,7 +4,9 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { EscunaForm } from "@/components/EscunaForm";
 import { ArraialForm } from "@/components/ArraialForm";
 import { StandardForm } from "@/components/StandardForm";
+import { TourDetails } from "@/components/TourDetails";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
+import { TourKey } from "@/lib/tours";
 import nathanProfile from "@/assets/nathan-profile.jpg";
 import arraialImg from "@/assets/arraial-do-cabo.jpg";
 import escunaImg from "@/assets/escuna.jpg";
@@ -14,7 +16,8 @@ import jardineiraImg from "@/assets/jardineira.jpg";
 import mergulhoImg from "@/assets/mergulho.jpg";
 import lanchaImg from "@/assets/lancha.jpg";
 
-type Screen = "menu" | "escuna" | "arraial" | "buggy" | "catamara" | "jardineira" | "mergulho" | "lancha";
+type FormScreen = "form-escuna" | "form-arraial" | "form-buggy" | "form-catamara" | "form-jardineira" | "form-mergulho" | "form-lancha" | "form-cabofrio";
+type Screen = "menu" | { details: TourKey } | FormScreen;
 
 const Index = () => {
   const [lang, setLang] = useState<Lang>("pt");
@@ -22,28 +25,47 @@ const Index = () => {
   const t = dict[lang];
 
   const back = () => setScreen("menu");
+  const openDetails = (key: TourKey) => setScreen({ details: key });
+  const openForm = (key: TourKey) => setScreen(`form-${key}` as FormScreen);
 
-  if (screen === "escuna") return <EscunaForm lang={lang} onLangChange={setLang} onBack={back} />;
-  if (screen === "arraial") return <ArraialForm lang={lang} onLangChange={setLang} onBack={back} />;
-  if (screen === "buggy")
+  // Details screen
+  if (typeof screen === "object" && "details" in screen) {
+    return (
+      <TourDetails
+        tourKey={screen.details}
+        lang={lang}
+        onLangChange={setLang}
+        onBack={back}
+        onBook={() => openForm(screen.details)}
+      />
+    );
+  }
+
+  // Booking forms
+  if (screen === "form-escuna") return <EscunaForm lang={lang} onLangChange={setLang} onBack={back} />;
+  if (screen === "form-arraial") return <ArraialForm lang={lang} onLangChange={setLang} onBack={back} />;
+  if (screen === "form-buggy")
     return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optBuggy} backgroundImage={buggyImg} />;
-  if (screen === "catamara")
+  if (screen === "form-cabofrio")
+    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title="Passeio em Cabo Frio" backgroundImage={arraialImg} />;
+  if (screen === "form-catamara")
     return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optCatamara} backgroundImage={catamaraImg} requireCpf />;
-  if (screen === "jardineira")
+  if (screen === "form-jardineira")
     return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optJardineira} backgroundImage={jardineiraImg} />;
-  if (screen === "mergulho")
+  if (screen === "form-mergulho")
     return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optMergulho} backgroundImage={mergulhoImg} adultsOnly notice={t.adultsOnlyNotice} />;
-  if (screen === "lancha")
+  if (screen === "form-lancha")
     return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optLancha} backgroundImage={lanchaImg} />;
 
-  const options = [
-    { key: "escuna" as const, image: escunaImg, title: t.optEscuna, desc: t.optEscunaDesc },
-    { key: "arraial" as const, image: arraialImg, title: t.optArraial, desc: t.optArraialDesc },
-    { key: "buggy" as const, image: buggyImg, title: t.optBuggy, desc: t.optBuggyDesc },
-    { key: "catamara" as const, image: catamaraImg, title: t.optCatamara, desc: t.optCatamaraDesc },
-    { key: "jardineira" as const, image: jardineiraImg, title: t.optJardineira, desc: t.optJardineiraDesc },
-    { key: "mergulho" as const, image: mergulhoImg, title: t.optMergulho, desc: t.optMergulhoDesc },
-    { key: "lancha" as const, image: lanchaImg, title: t.optLancha, desc: t.optLanchaDesc },
+  const options: { key: TourKey; image: string; title: string; desc: string }[] = [
+    { key: "escuna", image: escunaImg, title: t.optEscuna, desc: t.optEscunaDesc },
+    { key: "arraial", image: arraialImg, title: t.optArraial, desc: t.optArraialDesc },
+    { key: "buggy", image: buggyImg, title: t.optBuggy, desc: t.optBuggyDesc },
+    { key: "cabofrio", image: arraialImg, title: "Passeio em Cabo Frio", desc: "Praias, gastronomia e lazer" },
+    { key: "catamara", image: catamaraImg, title: t.optCatamara, desc: t.optCatamaraDesc },
+    { key: "jardineira", image: jardineiraImg, title: t.optJardineira, desc: t.optJardineiraDesc },
+    { key: "mergulho", image: mergulhoImg, title: t.optMergulho, desc: t.optMergulhoDesc },
+    { key: "lancha", image: lanchaImg, title: t.optLancha, desc: t.optLanchaDesc },
   ];
 
   return (
@@ -104,7 +126,7 @@ const Index = () => {
             {options.map((opt, i) => (
               <button
                 key={opt.key}
-                onClick={() => setScreen(opt.key)}
+                onClick={() => openDetails(opt.key)}
                 style={{ animationDelay: `${i * 80}ms` }}
                 className="group glass-card w-full rounded-2xl p-5 text-left transition-all duration-300 hover:border-turquoise/60 hover:translate-x-1 hover:turquoise-glow animate-in fade-in slide-in-from-bottom-3 fill-mode-both"
               >
