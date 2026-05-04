@@ -52,7 +52,7 @@ export const StandardForm = ({
   const [kidsCount, setKidsCount] = useState("");
   const [ages, setAges] = useState<string[]>([]);
   const [payment, setPayment] = useState<Payment | "">("");
-  const [output, setOutput] = useState<string | null>(null);
+  const [output, setOutput] = useState<{ text: string; rows: { label: string; value: string }[] } | null>(null);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [shake, setShake] = useState(0);
   const requiredMsg = lang === "pt" ? "Preenchimento obrigatório" : lang === "es" ? "Campo obligatorio" : "Required field";
@@ -118,16 +118,30 @@ export const StandardForm = ({
       return;
     }
     setErrors({});
-    const lines = [
-      t.sumTitle,
-      title,
-      "",
-      `👤 ${t.sumName}: ${name}`,
-    ];
+    const dateStr = date!.toLocaleDateString(lang === "pt" ? "pt-BR" : lang === "es" ? "es-ES" : lang === "fr" ? "fr-FR" : lang === "it" ? "it-IT" : "en-GB");
+    const rows: { label: string; value: string }[] = [];
+    rows.push({ label: t.sumName, value: name });
+    if (requireCpf) rows.push({ label: "CPF", value: cpf });
+    rows.push({ label: t.sumPhone, value: fullPhone(phone) });
+    rows.push({ label: t.sumDate, value: dateStr });
+    rows.push({ label: t.sumPax, value: pax });
+    if (!adultsOnly && hasKids === "yes" && kidsN > 0) {
+      rows.push({ label: t.sumChildren, value: `${kidsN} (${ages.filter(Boolean).map((a) => `${a} ${t.ageYears}`).join(", ")})` });
+      rows.push({ label: t.sumFree, value: String(freeCount) });
+      rows.push({ label: t.sumHalf, value: String(halfCount) });
+    }
+    if (requirePousada) {
+      rows.push({ label: t.sumPousada, value: pousada });
+      rows.push({ label: t.sumRoom, value: room });
+      rows.push({ label: t.sumAddress, value: address });
+    }
+    rows.push({ label: t.sumPay, value: paymentLabel(payment as Payment) });
+
+    const lines = [t.sumTitle, title, "", `👤 ${t.sumName}: ${name}`];
     if (requireCpf) lines.push(`🪪 CPF: ${cpf}`);
     lines.push(
       `📞 ${t.sumPhone}: ${fullPhone(phone)}`,
-      `📅 ${t.sumDate}: ${date!.toLocaleDateString(lang === "pt" ? "pt-BR" : lang === "es" ? "es-ES" : lang === "fr" ? "fr-FR" : lang === "it" ? "it-IT" : "en-GB")}`,
+      `📅 ${t.sumDate}: ${dateStr}`,
       `👥 ${t.sumPax}: ${pax}`,
     );
     if (!adultsOnly && hasKids === "yes" && kidsN > 0) {
@@ -143,7 +157,7 @@ export const StandardForm = ({
     if (adultsOnly) lines.push(`🔞 ${t.adultsOnly}`);
     lines.push(`💳 ${t.sumPay}: ${paymentLabel(payment as Payment)}`);
     if (payment === "credit") lines.push(t.creditWarning);
-    setOutput(lines.join("\n"));
+    setOutput({ text: lines.join("\n"), rows });
   };
 
   const clearErr = (k: string) => {
@@ -160,7 +174,7 @@ export const StandardForm = ({
     return (
       <>
         <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage}>
-          <SummaryOutput text={output} lang={lang} onReset={reset} />
+          <SummaryOutput text={output.text} rows={output.rows} tourTitle={title} lang={lang} onReset={onBack} />
         </PageShell>
         <WhatsAppFab lang={lang} />
       </>
@@ -302,12 +316,15 @@ export const StandardForm = ({
             )}
           </Field>
 
-          <Button
+          <button
+            type="button"
             onClick={handleGenerate}
-            className="w-full h-14 bg-gradient-to-r from-turquoise to-turquoise-glow text-night font-bold text-base hover:opacity-90 turquoise-glow"
+            className="rgb-border w-full block"
           >
-            {t.generate}
-          </Button>
+            <span className="flex items-center justify-center w-full h-[calc(3.5rem-4px)] rounded-[0.65rem] bg-gradient-to-r from-turquoise to-turquoise-glow text-night font-bold text-base">
+              {t.generate}
+            </span>
+          </button>
         </div>
       </PageShell>
       <WhatsAppFab lang={lang} />
