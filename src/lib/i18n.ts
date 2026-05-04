@@ -80,6 +80,9 @@ type Dict = {
   cpfResponsible: string;
   adultsOnly: string;
   adultsOnlyNotice: string;
+  tourDate: string;
+  pickDate: string;
+  sumDate: string;
 };
 
 export const dict: Record<Lang, Dict> = {
@@ -155,6 +158,9 @@ export const dict: Record<Lang, Dict> = {
     cpfResponsible: "CPF do responsável",
     adultsOnly: "Apenas maiores de 18 anos",
     adultsOnlyNotice: "Experiência exclusiva para maiores de 18 anos.",
+    tourDate: "Data do passeio",
+    pickDate: "Selecione a data",
+    sumDate: "Data",
   },
   es: {
     brand: "Nathan Paseos y Turismo",
@@ -228,6 +234,9 @@ export const dict: Record<Lang, Dict> = {
     cpfResponsible: "CPF del responsable",
     adultsOnly: "Solo mayores de 18 años",
     adultsOnlyNotice: "Experiencia exclusiva para mayores de 18 años.",
+    tourDate: "Fecha del paseo",
+    pickDate: "Selecciona la fecha",
+    sumDate: "Fecha",
   },
   en: {
     brand: "Nathan Tours & Tourism",
@@ -301,6 +310,9 @@ export const dict: Record<Lang, Dict> = {
     cpfResponsible: "CPF of person in charge",
     adultsOnly: "18+ only",
     adultsOnlyNotice: "Exclusive experience for guests over 18 years old.",
+    tourDate: "Tour date",
+    pickDate: "Pick the date",
+    sumDate: "Date",
   },
   fr: {
     brand: "Nathan Excursions & Tourisme",
@@ -374,6 +386,9 @@ export const dict: Record<Lang, Dict> = {
     cpfResponsible: "CPF du responsable",
     adultsOnly: "Réservé aux +18 ans",
     adultsOnlyNotice: "Expérience exclusive réservée aux personnes de plus de 18 ans.",
+    tourDate: "Date de l'excursion",
+    pickDate: "Choisissez la date",
+    sumDate: "Date",
   },
   it: {
     brand: "Nathan Escursioni e Turismo",
@@ -447,5 +462,8 @@ export const dict: Record<Lang, Dict> = {
     cpfResponsible: "CPF del responsabile",
     adultsOnly: "Solo per maggiori di 18 anni",
     adultsOnlyNotice: "Esperienza esclusiva per i maggiori di 18 anni.",
+    tourDate: "Data del tour",
+    pickDate: "Seleziona la data",
+    sumDate: "Data",
   },
 };

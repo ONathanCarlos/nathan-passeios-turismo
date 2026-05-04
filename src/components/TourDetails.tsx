@@ -122,7 +122,7 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook }: Pro
             <button
               type="button"
               onClick={onBook}
-              className="rgb-border w-full block wa-pulse"
+              className="rgb-border w-full block"
               aria-label={L.bookNow}
             >
               <span className="flex items-center justify-center gap-2 rounded-[0.7rem] bg-gradient-to-r from-deep-blue to-night px-6 py-4 text-base font-bold text-foreground tracking-wide hover:from-night hover:to-deep-blue transition-colors">

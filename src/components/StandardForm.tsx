@@ -12,6 +12,7 @@ import { SummaryOutput } from "./SummaryOutput";
 import { WhatsAppFab } from "./WhatsAppFab";
 import { PhoneInput, PhoneValue, fullPhone } from "./PhoneInput";
 import { toast } from "sonner";
+import { TourDatePicker } from "./TourDatePicker";
 
 type Payment = "cash" | "debit" | "credit" | "pix";
 
@@ -27,6 +28,8 @@ interface Props {
   requireCpf?: boolean;
   /** banner text shown above form (e.g. age restriction notice) */
   notice?: string;
+  /** require pousada fields (Arraial / Cabo Frio) */
+  requirePousada?: boolean;
 }
 
 const fieldClass =
@@ -34,13 +37,17 @@ const fieldClass =
 
 export const StandardForm = ({
   lang, onLangChange, onBack, title, backgroundImage,
-  adultsOnly = false, requireCpf = false, notice,
+  adultsOnly = false, requireCpf = false, notice, requirePousada = false,
 }: Props) => {
   const t = dict[lang];
   const [name, setName] = useState("");
   const [cpf, setCpf] = useState("");
   const [phone, setPhone] = useState<PhoneValue>({ ddi: "+55", number: "" });
   const [pax, setPax] = useState("");
+  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [pousada, setPousada] = useState("");
+  const [room, setRoom] = useState("");
+  const [address, setAddress] = useState("");
   const [hasKids, setHasKids] = useState<"yes" | "no" | "">("");
   const [kidsCount, setKidsCount] = useState("");
   const [ages, setAges] = useState<string[]>([]);
@@ -91,6 +98,10 @@ export const StandardForm = ({
     if (requireCpf && !cpf) newErrors.cpf = true;
     if (!phone.number) newErrors.phone = true;
     if (!pax) newErrors.pax = true;
+    if (!date) newErrors.date = true;
+    if (requirePousada && !pousada) newErrors.pousada = true;
+    if (requirePousada && !room) newErrors.room = true;
+    if (requirePousada && !address) newErrors.address = true;
     if (!adultsOnly && !hasKids) newErrors.hasKids = true;
     if (!payment) newErrors.payment = true;
 
@@ -100,7 +111,7 @@ export const StandardForm = ({
       toast.error(t.required);
       // Focus first invalid field
       requestAnimationFrame(() => {
-        const el = document.querySelector<HTMLElement>(".field-error input, .field-error [role='combobox'], .field-error button[role='radio']");
+        const el = document.querySelector<HTMLElement>(".field-error input, .field-error [role='combobox'], .field-error button[role='radio'], .field-error button");
         el?.focus();
         el?.scrollIntoView({ behavior: "smooth", block: "center" });
       });
@@ -116,12 +127,18 @@ export const StandardForm = ({
     if (requireCpf) lines.push(`🪪 CPF: ${cpf}`);
     lines.push(
       `📞 ${t.sumPhone}: ${fullPhone(phone)}`,
+      `📅 ${t.sumDate}: ${date!.toLocaleDateString(lang === "pt" ? "pt-BR" : lang === "es" ? "es-ES" : lang === "fr" ? "fr-FR" : lang === "it" ? "it-IT" : "en-GB")}`,
       `👥 ${t.sumPax}: ${pax}`,
     );
     if (!adultsOnly && hasKids === "yes" && kidsN > 0) {
       lines.push(`🧒 ${t.sumChildren}: ${kidsN} (${ages.filter(Boolean).map((a) => `${a} ${t.ageYears}`).join(", ")})`);
       lines.push(`🆓 ${t.sumFree}: ${freeCount}`);
       lines.push(`½ ${t.sumHalf}: ${halfCount}`);
+    }
+    if (requirePousada) {
+      lines.push(`🛌 ${t.sumPousada}: ${pousada}`);
+      lines.push(`🔢 ${t.sumRoom}: ${room}`);
+      lines.push(`📍 ${t.sumAddress}: ${address}`);
     }
     if (adultsOnly) lines.push(`🔞 ${t.adultsOnly}`);
     lines.push(`💳 ${t.sumPay}: ${paymentLabel(payment as Payment)}`);
@@ -135,6 +152,7 @@ export const StandardForm = ({
 
   const reset = () => {
     setName(""); setCpf(""); setPhone({ ddi: "+55", number: "" }); setPax("");
+    setDate(undefined); setPousada(""); setRoom(""); setAddress("");
     setHasKids(""); setKidsCount(""); setAges([]); setPayment(""); setOutput(null);
   };
 
@@ -154,9 +172,9 @@ export const StandardForm = ({
       <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage}>
         <p className="text-foreground bg-night/50 backdrop-blur-sm rounded-lg p-3 mb-4 text-sm leading-relaxed font-medium">{t.intro}</p>
         {notice && (
-          <div className="mb-4 flex items-center gap-2 rounded-md border border-amber-400/30 bg-amber-500/5 px-3 py-2">
-            <span className="text-sm opacity-80">🔞</span>
-            <p className="text-xs font-normal text-amber-200/90 italic">
+          <div className="mb-4 flex items-start gap-2 rounded-md border border-amber-400/30 bg-amber-500/5 px-3 py-2">
+            <span className="text-sm opacity-80 mt-0.5">{adultsOnly ? "🔞" : "ℹ️"}</span>
+            <p className="text-xs font-normal text-amber-200/90 italic leading-relaxed">
               {notice}
             </p>
           </div>
@@ -184,6 +202,28 @@ export const StandardForm = ({
             <Input value={pax} onChange={(e) => { setPax(e.target.value); clearErr("pax"); }} type="number" min={1} className={fieldClass} />
           </Field>
 
+          <Field label={`📅 ${t.tourDate}`} error={errors.date} errorMsg={requiredMsg}>
+            <TourDatePicker
+              lang={lang}
+              value={date}
+              onChange={(d) => { setDate(d); if (d) clearErr("date"); }}
+              error={errors.date}
+            />
+          </Field>
+
+          {requirePousada && (
+            <>
+              <Field label={`🛌 ${t.pousadaName}`} error={errors.pousada} errorMsg={requiredMsg}>
+                <Input value={pousada} onChange={(e) => { setPousada(e.target.value); clearErr("pousada"); }} className={fieldClass} />
+              </Field>
+              <Field label={`🔢 ${t.roomNumber}`} error={errors.room} errorMsg={requiredMsg}>
+                <Input value={room} onChange={(e) => { setRoom(e.target.value); clearErr("room"); }} className={fieldClass} />
+              </Field>
+              <Field label={`📍 ${t.pousadaAddress}`} error={errors.address} errorMsg={requiredMsg}>
+                <Input value={address} onChange={(e) => { setAddress(e.target.value); clearErr("address"); }} className={fieldClass} />
+              </Field>
+            </>
+          )}
 
           {!adultsOnly && (
             <>

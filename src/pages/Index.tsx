@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Lang, dict } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { EscunaForm } from "@/components/EscunaForm";
-import { ArraialForm } from "@/components/ArraialForm";
+
+
 import { StandardForm } from "@/components/StandardForm";
 import { TourDetails } from "@/components/TourDetails";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
@@ -71,14 +71,16 @@ const Index = () => {
   }
 
   // Booking forms
-  if (screen === "form-escuna") return <EscunaForm lang={lang} onLangChange={setLang} onBack={back} />;
-  if (screen === "form-arraial") return <ArraialForm lang={lang} onLangChange={setLang} onBack={back} />;
+  if (screen === "form-escuna")
+    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optEscuna} backgroundImage={escunaImg} />;
+  if (screen === "form-arraial")
+    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optArraial} backgroundImage={arraialImg} requirePousada notice="Taxas de Jardineira e de Embarque, bebidas e sobremesas não inclusas." />;
   if (screen === "form-buggy")
     return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optBuggy} backgroundImage={buggyImg} />;
   if (screen === "form-cabofrio")
-    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title="Passeio em Cabo Frio" backgroundImage={caboFrioImg} />;
+    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title="Passeio em Cabo Frio" backgroundImage={caboFrioImg} requirePousada notice="Barco táxi até a Ilha do Japonês, bebidas e sobremesas do almoço não inclusos." />;
   if (screen === "form-catamara")
-    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optCatamara} backgroundImage={catamaraImg} requireCpf />;
+    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optCatamara} backgroundImage={catamaraImg} requireCpf notice="Não é permitido levar coolers, caixas ou bolsas térmicas para a embarcação." />;
   if (screen === "form-jardineira")
     return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optJardineira} backgroundImage={jardineiraImg} />;
   if (screen === "form-mergulho")
@@ -206,7 +208,7 @@ const Index = () => {
                     <button
                       type="button"
                       onClick={() => openForm(opt.key)}
-                      className="rgb-border w-full block wa-pulse"
+                      className="rgb-border w-full block"
                       aria-label={`Reservar agora — ${opt.title}`}
                     >
                       <span className="flex items-center justify-center gap-1.5 rounded-[0.65rem] bg-gradient-to-r from-deep-blue to-night px-4 py-2.5 text-sm font-bold text-foreground">
