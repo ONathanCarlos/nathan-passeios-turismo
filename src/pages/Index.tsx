@@ -71,7 +71,8 @@ const Index = () => {
   }
 
   // Booking forms
-  if (screen === "form-escuna") return <EscunaForm lang={lang} onLangChange={setLang} onBack={back} />;
+  if (screen === "form-escuna")
+    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optEscuna} backgroundImage={escunaImg} />;
   if (screen === "form-arraial")
     return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optArraial} backgroundImage={arraialImg} requirePousada notice="Taxas de Jardineira e de Embarque, bebidas e sobremesas não inclusas." />;
   if (screen === "form-buggy")
