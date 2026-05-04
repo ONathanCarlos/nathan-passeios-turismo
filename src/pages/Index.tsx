@@ -202,16 +202,6 @@ const Index = () => {
                     >
                       Ver Detalhes
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => openForm(opt.key)}
-                      className="rgb-border w-full block wa-pulse"
-                      aria-label={`Reservar agora — ${opt.title}`}
-                    >
-                      <span className="flex items-center justify-center gap-1.5 rounded-[0.65rem] bg-gradient-to-r from-deep-blue to-night px-4 py-2.5 text-sm font-bold text-foreground">
-                        ✨ Reservar agora
-                      </span>
-                    </button>
                   </div>
                 </div>
               </article>
