@@ -187,10 +187,10 @@ export const StandardForm = ({
 
           {!adultsOnly && (
             <>
-              <Field label={t.hasChildren}>
+              <Field label={t.hasChildren} error={errors.hasKids} errorMsg={requiredMsg}>
                 <RadioGroup
                   value={hasKids}
-                  onValueChange={(v) => setHasKids(v as "yes" | "no")}
+                  onValueChange={(v) => { setHasKids(v as "yes" | "no"); clearErr("hasKids"); }}
                   className="flex gap-3"
                 >
                   {(["yes", "no"] as const).map((v) => (
