@@ -37,13 +37,17 @@ const fieldClass =
 
 export const StandardForm = ({
   lang, onLangChange, onBack, title, backgroundImage,
-  adultsOnly = false, requireCpf = false, notice,
+  adultsOnly = false, requireCpf = false, notice, requirePousada = false,
 }: Props) => {
   const t = dict[lang];
   const [name, setName] = useState("");
   const [cpf, setCpf] = useState("");
   const [phone, setPhone] = useState<PhoneValue>({ ddi: "+55", number: "" });
   const [pax, setPax] = useState("");
+  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [pousada, setPousada] = useState("");
+  const [room, setRoom] = useState("");
+  const [address, setAddress] = useState("");
   const [hasKids, setHasKids] = useState<"yes" | "no" | "">("");
   const [kidsCount, setKidsCount] = useState("");
   const [ages, setAges] = useState<string[]>([]);
