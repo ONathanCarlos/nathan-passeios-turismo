@@ -97,18 +97,25 @@
     box-shadow: var(--shadow-glow);
   }
 
-  /* Static elegant gradient border (no continuous animation) */
+  /* Animated rainbow/RGB pulsing border */
+  @keyframes rgb-spin {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 300% 50%; }
+  }
+  @keyframes rgb-glow-pulse {
+    0%, 100% { box-shadow: 0 0 12px hsl(0 90% 60% / 0.5), 0 0 22px hsl(280 90% 60% / 0.35); }
+    50%      { box-shadow: 0 0 22px hsl(190 95% 55% / 0.7), 0 0 36px hsl(130 90% 55% / 0.45); }
+  }
   .rgb-border {
     position: relative;
     border-radius: 0.75rem;
     padding: 2px;
     background: linear-gradient(
-      135deg,
-      hsl(var(--turquoise-glow)) 0%,
-      hsl(var(--turquoise)) 50%,
-      hsl(190 80% 55%) 100%
+      90deg,
+      #ff004c, #ff8a00, #ffe600, #00d26a, #00b3ff, #6a00ff, #ff00d4, #ff004c
     );
-    box-shadow: 0 0 14px hsl(var(--turquoise) / 0.3);
+    background-size: 300% 300%;
+    animation: rgb-spin 6s linear infinite, rgb-glow-pulse 2.6s ease-in-out infinite;
   }
 
   /* WhatsApp FAB — static elegant glow, animation only on press */
