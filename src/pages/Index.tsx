@@ -20,7 +20,7 @@ import lanchaImg from "@/assets/lancha.jpg";
 type FormScreen = `form-${TourKey}`;
 type Screen = "menu" | { details: TourKey } | FormScreen;
 
-const WA_NUMBER = "5522998216796";
+
 
 const serialize = (s: Screen): string => (typeof s === "string" ? s : `details-${s.details}`);
 const deserialize = (s: string): Screen => {
@@ -97,7 +97,7 @@ const Index = () => {
     { key: "lancha", image: lanchaImg, title: "Lancha Privada", desc: "Experiência privativa premium com 10 praias, 3 ilhas e churrasco." },
   ];
 
-  const waUrl = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent("Olá! Vim pelo site e gostaria de informações sobre os passeios.")}`;
+  
 
   return (
     <main className="relative min-h-screen px-4 py-6 sm:py-10 overflow-hidden">
