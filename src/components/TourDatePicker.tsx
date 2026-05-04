@@ -8,7 +8,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Lang, dict } from "@/lib/i18n";
 
-const locales: Record<Lang, Locale> = { pt: ptBR, es, en: enUS, fr, it };
+const locales: Record<Lang, typeof ptBR> = { pt: ptBR, es, en: enUS, fr, it };
 
 interface Props {
   lang: Lang;
