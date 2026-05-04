@@ -20,7 +20,7 @@ import lanchaImg from "@/assets/lancha.jpg";
 type FormScreen = `form-${TourKey}`;
 type Screen = "menu" | { details: TourKey } | FormScreen;
 
-const WA_NUMBER = "5522998216796";
+
 
 const serialize = (s: Screen): string => (typeof s === "string" ? s : `details-${s.details}`);
 const deserialize = (s: string): Screen => {
@@ -97,7 +97,7 @@ const Index = () => {
     { key: "lancha", image: lanchaImg, title: "Lancha Privada", desc: "Experiência privativa premium com 10 praias, 3 ilhas e churrasco." },
   ];
 
-  const waUrl = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent("Olá! Vim pelo site e gostaria de informações sobre os passeios.")}`;
+  
 
   return (
     <main className="relative min-h-screen px-4 py-6 sm:py-10 overflow-hidden">
@@ -126,21 +126,10 @@ const Index = () => {
             </div>
             <div className="leading-tight">
               <div className="text-sm font-bold text-foreground">Nathan</div>
-              <div className="text-[11px] text-muted-foreground">Búzios &amp; Região dos Lagos</div>
+              <div className="text-[11px] text-muted-foreground">Passeios e Turismo</div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <a
-              href={waUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden sm:inline-flex items-center gap-2 rounded-xl bg-[#25D366] px-3 py-2 text-sm font-semibold text-white shadow-[0_6px_18px_-4px_rgba(37,211,102,0.6)] hover:bg-[#1ebe5a] transition-colors"
-            >
-              <svg viewBox="0 0 32 32" className="w-4 h-4 fill-white" aria-hidden><path d="M16.066 6.733c-5.244 0-9.553 4.31-9.553 9.554 0 1.79.5 3.532 1.46 5.05L6 26.067l4.818-1.502a9.482 9.482 0 0 0 5.266 1.59h.014c5.252 0 9.561-4.309 9.561-9.553 0-2.55-1.075-4.945-2.864-6.756a9.49 9.49 0 0 0-6.729-2.713z"/></svg>
-              WhatsApp
-            </a>
-            <LanguageSwitcher lang={lang} onChange={setLang} />
-          </div>
+          <LanguageSwitcher lang={lang} onChange={setLang} />
         </div>
 
         {/* Hero */}
@@ -160,32 +149,10 @@ const Index = () => {
               Nathan
             </span>
           </h1>
-          <p className="text-turquoise-glow text-base sm:text-lg font-medium mb-5">Búzios &amp; Região dos Lagos</p>
+          <p className="text-turquoise-glow text-base sm:text-lg font-medium mb-5">Passeios e Turismo</p>
           <p className="text-sm sm:text-base text-foreground/80 leading-relaxed max-w-xl mx-auto px-2">
             {t.welcome}
           </p>
-
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-            <button
-              type="button"
-              onClick={() => document.getElementById("tours")?.scrollIntoView({ behavior: "smooth" })}
-              className="rgb-border wa-pulse"
-              aria-label="Reservar Agora"
-            >
-              <span className="flex items-center gap-2 rounded-[0.65rem] bg-gradient-to-r from-deep-blue to-night px-6 py-3 text-sm font-bold text-foreground tracking-wide">
-                ✨ Reservar Agora
-              </span>
-            </button>
-            <a
-              href={waUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl bg-[#25D366] px-5 py-3 text-sm font-bold text-white shadow-[0_8px_22px_-4px_rgba(37,211,102,0.6)] hover:bg-[#1ebe5a] transition-colors"
-            >
-              <svg viewBox="0 0 32 32" className="w-4 h-4 fill-white" aria-hidden><path d="M16.066 6.733c-5.244 0-9.553 4.31-9.553 9.554 0 1.79.5 3.532 1.46 5.05L6 26.067l4.818-1.502a9.482 9.482 0 0 0 5.266 1.59h.014c5.252 0 9.561-4.309 9.561-9.553 0-2.55-1.075-4.945-2.864-6.756a9.49 9.49 0 0 0-6.729-2.713z"/></svg>
-              WhatsApp
-            </a>
-          </div>
         </header>
 
         {/* Tours */}
@@ -234,16 +201,6 @@ const Index = () => {
                       className="w-full rounded-xl border border-turquoise/40 bg-turquoise/10 px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-turquoise/20 hover:border-turquoise/70 transition-colors"
                     >
                       Ver Detalhes
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => openForm(opt.key)}
-                      className="rgb-border w-full block wa-pulse"
-                      aria-label={`Reservar agora — ${opt.title}`}
-                    >
-                      <span className="flex items-center justify-center gap-1.5 rounded-[0.65rem] bg-gradient-to-r from-deep-blue to-night px-4 py-2.5 text-sm font-bold text-foreground">
-                        ✨ Reservar agora
-                      </span>
                     </button>
                   </div>
                 </div>
