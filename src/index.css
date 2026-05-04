@@ -137,4 +137,59 @@
   .wa-pulse {
     animation: wa-pulse 2.4s ease-in-out infinite;
   }
+
+  /* Premium ocean ripple + press feedback for all interactive buttons */
+  button, [role="button"], a.btn, .btn-press {
+    position: relative;
+    overflow: hidden;
+    transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+  }
+  button:active, [role="button"]:active, a.btn:active, .btn-press:active {
+    transform: scale(0.97);
+    filter: brightness(0.95);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.25);
+  }
+  @keyframes ocean-ripple {
+    0%   { transform: translate(-50%, -50%) scale(0);   opacity: 0.55; }
+    70%  { opacity: 0.25; }
+    100% { transform: translate(-50%, -50%) scale(2.6); opacity: 0; }
+  }
+  button::after, [role="button"]::after, a.btn::after, .btn-press::after {
+    content: "";
+    position: absolute;
+    top: var(--ripple-y, 50%);
+    left: var(--ripple-x, 50%);
+    width: 120%;
+    aspect-ratio: 1 / 1;
+    border-radius: 9999px;
+    background: radial-gradient(circle,
+      hsl(var(--turquoise-glow) / 0.55) 0%,
+      hsl(var(--turquoise) / 0.25) 40%,
+      transparent 70%);
+    transform: translate(-50%, -50%) scale(0);
+    pointer-events: none;
+    opacity: 0;
+  }
+  button:active::after, [role="button"]:active::after, a.btn:active::after, .btn-press:active::after {
+    animation: ocean-ripple 650ms ease-out;
+  }
+
+  /* Form field error state */
+  @keyframes field-shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-5px); }
+    40% { transform: translateX(5px); }
+    60% { transform: translateX(-3px); }
+    80% { transform: translateX(3px); }
+  }
+  .field-error,
+  .field-error input,
+  .field-error [role="combobox"],
+  .field-error button[role="radio"] {
+    border-color: hsl(0 80% 60%) !important;
+    box-shadow: 0 0 0 1px hsl(0 80% 60% / 0.5), 0 0 12px hsl(0 80% 60% / 0.35) !important;
+  }
+  .field-error-shake {
+    animation: field-shake 0.4s ease-in-out;
+  }
 }
