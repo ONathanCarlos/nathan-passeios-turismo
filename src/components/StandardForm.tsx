@@ -202,6 +202,28 @@ export const StandardForm = ({
             <Input value={pax} onChange={(e) => { setPax(e.target.value); clearErr("pax"); }} type="number" min={1} className={fieldClass} />
           </Field>
 
+          <Field label={`📅 ${t.tourDate}`} error={errors.date} errorMsg={requiredMsg}>
+            <TourDatePicker
+              lang={lang}
+              value={date}
+              onChange={(d) => { setDate(d); if (d) clearErr("date"); }}
+              error={errors.date}
+            />
+          </Field>
+
+          {requirePousada && (
+            <>
+              <Field label={`🛌 ${t.pousadaName}`} error={errors.pousada} errorMsg={requiredMsg}>
+                <Input value={pousada} onChange={(e) => { setPousada(e.target.value); clearErr("pousada"); }} className={fieldClass} />
+              </Field>
+              <Field label={`🔢 ${t.roomNumber}`} error={errors.room} errorMsg={requiredMsg}>
+                <Input value={room} onChange={(e) => { setRoom(e.target.value); clearErr("room"); }} className={fieldClass} />
+              </Field>
+              <Field label={`📍 ${t.pousadaAddress}`} error={errors.address} errorMsg={requiredMsg}>
+                <Input value={address} onChange={(e) => { setAddress(e.target.value); clearErr("address"); }} className={fieldClass} />
+              </Field>
+            </>
+          )}
 
           {!adultsOnly && (
             <>
