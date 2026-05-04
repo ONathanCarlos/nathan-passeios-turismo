@@ -46,6 +46,9 @@ export const StandardForm = ({
   const [ages, setAges] = useState<string[]>([]);
   const [payment, setPayment] = useState<Payment | "">("");
   const [output, setOutput] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [shake, setShake] = useState(0);
+  const requiredMsg = lang === "pt" ? "Preenchimento obrigatório" : lang === "es" ? "Campo obligatorio" : "Required field";
 
   const kidsN = Math.min(8, Math.max(0, parseInt(kidsCount) || 0));
 
@@ -83,13 +86,27 @@ export const StandardForm = ({
     ({ cash: t.cash, debit: t.debit, credit: t.credit, pix: t.pix }[p]);
 
   const handleGenerate = () => {
-    const baseMissing = !name || !phone.number || !pax || !payment;
-    const kidsMissing = !adultsOnly && !hasKids;
-    const cpfMissing = requireCpf && !cpf;
-    if (baseMissing || kidsMissing || cpfMissing) {
+    const newErrors: Record<string, boolean> = {};
+    if (!name) newErrors.name = true;
+    if (requireCpf && !cpf) newErrors.cpf = true;
+    if (!phone.number) newErrors.phone = true;
+    if (!pax) newErrors.pax = true;
+    if (!adultsOnly && !hasKids) newErrors.hasKids = true;
+    if (!payment) newErrors.payment = true;
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setShake((s) => s + 1);
       toast.error(t.required);
+      // Focus first invalid field
+      requestAnimationFrame(() => {
+        const el = document.querySelector<HTMLElement>(".field-error input, .field-error [role='combobox'], .field-error button[role='radio']");
+        el?.focus();
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
       return;
     }
+    setErrors({});
     const lines = [
       t.sumTitle,
       title,
@@ -110,6 +127,10 @@ export const StandardForm = ({
     lines.push(`💳 ${t.sumPay}: ${paymentLabel(payment as Payment)}`);
     if (payment === "credit") lines.push(t.creditWarning);
     setOutput(lines.join("\n"));
+  };
+
+  const clearErr = (k: string) => {
+    if (errors[k]) setErrors((e) => { const n = { ...e }; delete n[k]; return n; });
   };
 
   const reset = () => {
