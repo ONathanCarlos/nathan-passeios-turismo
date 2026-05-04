@@ -172,9 +172,9 @@ export const StandardForm = ({
       <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage}>
         <p className="text-foreground bg-night/50 backdrop-blur-sm rounded-lg p-3 mb-4 text-sm leading-relaxed font-medium">{t.intro}</p>
         {notice && (
-          <div className="mb-4 flex items-center gap-2 rounded-md border border-amber-400/30 bg-amber-500/5 px-3 py-2">
-            <span className="text-sm opacity-80">🔞</span>
-            <p className="text-xs font-normal text-amber-200/90 italic">
+          <div className="mb-4 flex items-start gap-2 rounded-md border border-amber-400/30 bg-amber-500/5 px-3 py-2">
+            <span className="text-sm opacity-80 mt-0.5">{adultsOnly ? "🔞" : "ℹ️"}</span>
+            <p className="text-xs font-normal text-amber-200/90 italic leading-relaxed">
               {notice}
             </p>
           </div>
