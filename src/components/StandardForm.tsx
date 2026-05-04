@@ -46,6 +46,9 @@ export const StandardForm = ({
   const [ages, setAges] = useState<string[]>([]);
   const [payment, setPayment] = useState<Payment | "">("");
   const [output, setOutput] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, boolean>>({});
+  const [shake, setShake] = useState(0);
+  const requiredMsg = lang === "pt" ? "Preenchimento obrigatório" : lang === "es" ? "Campo obligatorio" : "Required field";
 
   const kidsN = Math.min(8, Math.max(0, parseInt(kidsCount) || 0));
 
@@ -83,13 +86,27 @@ export const StandardForm = ({
     ({ cash: t.cash, debit: t.debit, credit: t.credit, pix: t.pix }[p]);
 
   const handleGenerate = () => {
-    const baseMissing = !name || !phone.number || !pax || !payment;
-    const kidsMissing = !adultsOnly && !hasKids;
-    const cpfMissing = requireCpf && !cpf;
-    if (baseMissing || kidsMissing || cpfMissing) {
+    const newErrors: Record<string, boolean> = {};
+    if (!name) newErrors.name = true;
+    if (requireCpf && !cpf) newErrors.cpf = true;
+    if (!phone.number) newErrors.phone = true;
+    if (!pax) newErrors.pax = true;
+    if (!adultsOnly && !hasKids) newErrors.hasKids = true;
+    if (!payment) newErrors.payment = true;
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setShake((s) => s + 1);
       toast.error(t.required);
+      // Focus first invalid field
+      requestAnimationFrame(() => {
+        const el = document.querySelector<HTMLElement>(".field-error input, .field-error [role='combobox'], .field-error button[role='radio']");
+        el?.focus();
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
       return;
     }
+    setErrors({});
     const lines = [
       t.sumTitle,
       title,
@@ -110,6 +127,10 @@ export const StandardForm = ({
     lines.push(`💳 ${t.sumPay}: ${paymentLabel(payment as Payment)}`);
     if (payment === "credit") lines.push(t.creditWarning);
     setOutput(lines.join("\n"));
+  };
+
+  const clearErr = (k: string) => {
+    if (errors[k]) setErrors((e) => { const n = { ...e }; delete n[k]; return n; });
   };
 
   const reset = () => {
@@ -140,35 +161,36 @@ export const StandardForm = ({
             </p>
           </div>
         )}
-        <div className="space-y-5">
-          <Field label={`✍️ ${t.fullName}`}>
-            <Input value={name} onChange={(e) => setName(e.target.value)} className={fieldClass} />
+        <div className="space-y-5" key={shake}>
+          <Field label={`✍️ ${t.fullName}`} error={errors.name} errorMsg={requiredMsg}>
+            <Input value={name} onChange={(e) => { setName(e.target.value); clearErr("name"); }} className={fieldClass} />
           </Field>
 
           {requireCpf && (
-            <Field label={`🪪 ${t.cpfResponsible}`}>
+            <Field label={`🪪 ${t.cpfResponsible}`} error={errors.cpf} errorMsg={requiredMsg}>
               <Input
                 value={cpf}
-                onChange={(e) => setCpf(e.target.value)}
+                onChange={(e) => { setCpf(e.target.value); clearErr("cpf"); }}
                 placeholder="000.000.000-00"
                 className={fieldClass}
               />
             </Field>
           )}
 
-          <Field label={`📞 ${t.phone}`}>
-            <PhoneInput value={phone} onChange={setPhone} inputClassName={fieldClass} />
+          <Field label={`📞 ${t.phone}`} error={errors.phone} errorMsg={requiredMsg}>
+            <PhoneInput value={phone} onChange={(v) => { setPhone(v); if (v.number) clearErr("phone"); }} inputClassName={fieldClass} />
           </Field>
-          <Field label={`👥 ${t.passengers}`}>
-            <Input value={pax} onChange={(e) => setPax(e.target.value)} type="number" min={1} className={fieldClass} />
+          <Field label={`👥 ${t.passengers}`} error={errors.pax} errorMsg={requiredMsg}>
+            <Input value={pax} onChange={(e) => { setPax(e.target.value); clearErr("pax"); }} type="number" min={1} className={fieldClass} />
           </Field>
+
 
           {!adultsOnly && (
             <>
-              <Field label={t.hasChildren}>
+              <Field label={t.hasChildren} error={errors.hasKids} errorMsg={requiredMsg}>
                 <RadioGroup
                   value={hasKids}
-                  onValueChange={(v) => setHasKids(v as "yes" | "no")}
+                  onValueChange={(v) => { setHasKids(v as "yes" | "no"); clearErr("hasKids"); }}
                   className="flex gap-3"
                 >
                   {(["yes", "no"] as const).map((v) => (
@@ -221,8 +243,8 @@ export const StandardForm = ({
             </>
           )}
 
-          <Field label={t.payment}>
-            <Select value={payment} onValueChange={(v) => setPayment(v as Payment)}>
+          <Field label={t.payment} error={errors.payment} errorMsg={requiredMsg}>
+            <Select value={payment} onValueChange={(v) => { setPayment(v as Payment); clearErr("payment"); }}>
               <SelectTrigger className={fieldClass}>
                 <SelectValue placeholder="—" />
               </SelectTrigger>
@@ -253,9 +275,10 @@ export const StandardForm = ({
   );
 };
 
-const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
-  <div className="space-y-2">
+const Field = ({ label, children, error, errorMsg }: { label: string; children: React.ReactNode; error?: boolean; errorMsg?: string }) => (
+  <div className={`space-y-2 ${error ? "field-error field-error-shake" : ""}`}>
     <Label className="text-foreground font-semibold drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)]">{label}</Label>
     {children}
+    {error && errorMsg && <p className="text-xs text-rose-400 mt-1">{errorMsg}</p>}
   </div>
 );
