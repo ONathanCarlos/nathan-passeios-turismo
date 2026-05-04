@@ -98,6 +98,10 @@ export const StandardForm = ({
     if (requireCpf && !cpf) newErrors.cpf = true;
     if (!phone.number) newErrors.phone = true;
     if (!pax) newErrors.pax = true;
+    if (!date) newErrors.date = true;
+    if (requirePousada && !pousada) newErrors.pousada = true;
+    if (requirePousada && !room) newErrors.room = true;
+    if (requirePousada && !address) newErrors.address = true;
     if (!adultsOnly && !hasKids) newErrors.hasKids = true;
     if (!payment) newErrors.payment = true;
 
@@ -107,7 +111,7 @@ export const StandardForm = ({
       toast.error(t.required);
       // Focus first invalid field
       requestAnimationFrame(() => {
-        const el = document.querySelector<HTMLElement>(".field-error input, .field-error [role='combobox'], .field-error button[role='radio']");
+        const el = document.querySelector<HTMLElement>(".field-error input, .field-error [role='combobox'], .field-error button[role='radio'], .field-error button");
         el?.focus();
         el?.scrollIntoView({ behavior: "smooth", block: "center" });
       });
@@ -123,12 +127,18 @@ export const StandardForm = ({
     if (requireCpf) lines.push(`🪪 CPF: ${cpf}`);
     lines.push(
       `📞 ${t.sumPhone}: ${fullPhone(phone)}`,
+      `📅 ${t.sumDate}: ${date!.toLocaleDateString(lang === "pt" ? "pt-BR" : lang === "es" ? "es-ES" : lang === "fr" ? "fr-FR" : lang === "it" ? "it-IT" : "en-GB")}`,
       `👥 ${t.sumPax}: ${pax}`,
     );
     if (!adultsOnly && hasKids === "yes" && kidsN > 0) {
       lines.push(`🧒 ${t.sumChildren}: ${kidsN} (${ages.filter(Boolean).map((a) => `${a} ${t.ageYears}`).join(", ")})`);
       lines.push(`🆓 ${t.sumFree}: ${freeCount}`);
       lines.push(`½ ${t.sumHalf}: ${halfCount}`);
+    }
+    if (requirePousada) {
+      lines.push(`🛌 ${t.sumPousada}: ${pousada}`);
+      lines.push(`🔢 ${t.sumRoom}: ${room}`);
+      lines.push(`📍 ${t.sumAddress}: ${address}`);
     }
     if (adultsOnly) lines.push(`🔞 ${t.adultsOnly}`);
     lines.push(`💳 ${t.sumPay}: ${paymentLabel(payment as Payment)}`);
@@ -142,6 +152,7 @@ export const StandardForm = ({
 
   const reset = () => {
     setName(""); setCpf(""); setPhone({ ddi: "+55", number: "" }); setPax("");
+    setDate(undefined); setPousada(""); setRoom(""); setAddress("");
     setHasKids(""); setKidsCount(""); setAges([]); setPayment(""); setOutput(null);
   };
 
