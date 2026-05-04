@@ -53,16 +53,20 @@ export const LanguageSwitcher = ({ lang, onChange }: Props) => {
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="bg-card/95 backdrop-blur border-turquoise/30">
-          {(Object.keys(LANG_LABELS) as Lang[]).map((l) => (
-            <DropdownMenuItem
-              key={l}
-              onClick={() => onChange(l)}
-              className="gap-2 cursor-pointer focus:bg-turquoise/15 focus:text-turquoise"
-            >
-              <span className="text-lg">{LANG_LABELS[l].flag}</span>
-              <span>{LANG_LABELS[l].name}</span>
-            </DropdownMenuItem>
-          ))}
+          {(Object.keys(LANG_LABELS) as Lang[]).map((l) => {
+            const selected = l === lang;
+            return (
+              <DropdownMenuItem
+                key={l}
+                onClick={() => onChange(l)}
+                className={`gap-2 cursor-pointer focus:bg-turquoise/15 focus:text-turquoise ${selected ? "bg-turquoise/10 text-turquoise font-semibold" : ""}`}
+              >
+                <span className="text-lg">{LANG_LABELS[l].flag}</span>
+                <span className="flex-1">{LANG_LABELS[l].name}</span>
+                {selected && <span className="text-xs text-turquoise">✓</span>}
+              </DropdownMenuItem>
+            );
+          })}
         </DropdownMenuContent>
       </DropdownMenu>
       <span

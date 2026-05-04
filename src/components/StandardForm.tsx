@@ -316,12 +316,15 @@ export const StandardForm = ({
             )}
           </Field>
 
-          <Button
+          <button
+            type="button"
             onClick={handleGenerate}
-            className="w-full h-14 bg-gradient-to-r from-turquoise to-turquoise-glow text-night font-bold text-base hover:opacity-90 turquoise-glow"
+            className="rgb-border w-full block"
           >
-            {t.generate}
-          </Button>
+            <span className="flex items-center justify-center w-full h-[calc(3.5rem-4px)] rounded-[0.65rem] bg-gradient-to-r from-turquoise to-turquoise-glow text-night font-bold text-base">
+              {t.generate}
+            </span>
+          </button>
         </div>
       </PageShell>
       <WhatsAppFab lang={lang} />
