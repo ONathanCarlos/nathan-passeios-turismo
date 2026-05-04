@@ -12,6 +12,7 @@ import { SummaryOutput } from "./SummaryOutput";
 import { WhatsAppFab } from "./WhatsAppFab";
 import { PhoneInput, PhoneValue, fullPhone } from "./PhoneInput";
 import { toast } from "sonner";
+import { TourDatePicker } from "./TourDatePicker";
 
 type Payment = "cash" | "debit" | "credit" | "pix";
 
@@ -27,6 +28,8 @@ interface Props {
   requireCpf?: boolean;
   /** banner text shown above form (e.g. age restriction notice) */
   notice?: string;
+  /** require pousada fields (Arraial / Cabo Frio) */
+  requirePousada?: boolean;
 }
 
 const fieldClass =
