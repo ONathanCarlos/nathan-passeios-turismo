@@ -161,28 +161,29 @@ export const StandardForm = ({
             </p>
           </div>
         )}
-        <div className="space-y-5">
-          <Field label={`✍️ ${t.fullName}`}>
-            <Input value={name} onChange={(e) => setName(e.target.value)} className={fieldClass} />
+        <div className="space-y-5" key={shake}>
+          <Field label={`✍️ ${t.fullName}`} error={errors.name} errorMsg={requiredMsg}>
+            <Input value={name} onChange={(e) => { setName(e.target.value); clearErr("name"); }} className={fieldClass} />
           </Field>
 
           {requireCpf && (
-            <Field label={`🪪 ${t.cpfResponsible}`}>
+            <Field label={`🪪 ${t.cpfResponsible}`} error={errors.cpf} errorMsg={requiredMsg}>
               <Input
                 value={cpf}
-                onChange={(e) => setCpf(e.target.value)}
+                onChange={(e) => { setCpf(e.target.value); clearErr("cpf"); }}
                 placeholder="000.000.000-00"
                 className={fieldClass}
               />
             </Field>
           )}
 
-          <Field label={`📞 ${t.phone}`}>
-            <PhoneInput value={phone} onChange={setPhone} inputClassName={fieldClass} />
+          <Field label={`📞 ${t.phone}`} error={errors.phone} errorMsg={requiredMsg}>
+            <PhoneInput value={phone} onChange={(v) => { setPhone(v); if (v.number) clearErr("phone"); }} inputClassName={fieldClass} />
           </Field>
-          <Field label={`👥 ${t.passengers}`}>
-            <Input value={pax} onChange={(e) => setPax(e.target.value)} type="number" min={1} className={fieldClass} />
+          <Field label={`👥 ${t.passengers}`} error={errors.pax} errorMsg={requiredMsg}>
+            <Input value={pax} onChange={(e) => { setPax(e.target.value); clearErr("pax"); }} type="number" min={1} className={fieldClass} />
           </Field>
+
 
           {!adultsOnly && (
             <>
