@@ -243,8 +243,8 @@ export const StandardForm = ({
             </>
           )}
 
-          <Field label={t.payment}>
-            <Select value={payment} onValueChange={(v) => setPayment(v as Payment)}>
+          <Field label={t.payment} error={errors.payment} errorMsg={requiredMsg}>
+            <Select value={payment} onValueChange={(v) => { setPayment(v as Payment); clearErr("payment"); }}>
               <SelectTrigger className={fieldClass}>
                 <SelectValue placeholder="—" />
               </SelectTrigger>
