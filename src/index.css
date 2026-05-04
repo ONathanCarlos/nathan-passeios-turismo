@@ -97,45 +97,23 @@
     box-shadow: var(--shadow-glow);
   }
 
-  /* RGB animated border for the language switcher */
+  /* Static elegant gradient border (no continuous animation) */
   .rgb-border {
     position: relative;
     border-radius: 0.75rem;
     padding: 2px;
-    background: conic-gradient(
-      from var(--rgb-angle, 0deg),
-      #ff007a, #ff8a00, #ffe600, #00ff85, #00d4ff, #7a00ff, #ff007a
+    background: linear-gradient(
+      135deg,
+      hsl(var(--turquoise-glow)) 0%,
+      hsl(var(--turquoise)) 50%,
+      hsl(190 80% 55%) 100%
     );
-    animation: rgb-spin 4s linear infinite;
-    box-shadow: 0 0 18px hsl(var(--turquoise) / 0.35);
-  }
-  @property --rgb-angle {
-    syntax: '<angle>';
-    initial-value: 0deg;
-    inherits: false;
-  }
-  @keyframes rgb-spin {
-    to { --rgb-angle: 360deg; }
-  }
-  /* Fallback for browsers without @property: rotate via background-position */
-  @supports not (background: conic-gradient(from 0deg, red, blue)) {
-    .rgb-border {
-      background: linear-gradient(90deg, #ff007a, #ff8a00, #ffe600, #00ff85, #00d4ff, #7a00ff, #ff007a);
-      background-size: 300% 100%;
-      animation: rgb-slide 4s linear infinite;
-    }
-    @keyframes rgb-slide {
-      to { background-position: 300% 0; }
-    }
+    box-shadow: 0 0 14px hsl(var(--turquoise) / 0.3);
   }
 
-  /* Subtle pulse for the WhatsApp floating button */
-  @keyframes wa-pulse {
-    0%, 100% { box-shadow: 0 8px 24px -4px rgba(37, 211, 102, 0.55), 0 0 0 0 rgba(37, 211, 102, 0.55); }
-    50% { box-shadow: 0 8px 24px -4px rgba(37, 211, 102, 0.7), 0 0 0 12px rgba(37, 211, 102, 0); }
-  }
+  /* WhatsApp FAB — static elegant glow, animation only on press */
   .wa-pulse {
-    animation: wa-pulse 2.4s ease-in-out infinite;
+    box-shadow: 0 8px 24px -4px rgba(37, 211, 102, 0.55);
   }
 
   /* Premium ocean ripple + press feedback for all interactive buttons */
