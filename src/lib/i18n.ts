@@ -80,6 +80,9 @@ type Dict = {
   cpfResponsible: string;
   adultsOnly: string;
   adultsOnlyNotice: string;
+  tourDate: string;
+  pickDate: string;
+  sumDate: string;
 };
 
 export const dict: Record<Lang, Dict> = {
