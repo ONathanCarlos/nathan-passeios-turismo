@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Lang, dict } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { EscunaForm } from "@/components/EscunaForm";
-import { ArraialForm } from "@/components/ArraialForm";
+
 import { StandardForm } from "@/components/StandardForm";
 import { TourDetails } from "@/components/TourDetails";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
