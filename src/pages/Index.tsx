@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Lang, dict } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { EscunaForm } from "@/components/EscunaForm";
+
 
 import { StandardForm } from "@/components/StandardForm";
 import { TourDetails } from "@/components/TourDetails";
