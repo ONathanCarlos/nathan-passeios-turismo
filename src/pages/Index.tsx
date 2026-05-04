@@ -16,6 +16,7 @@ import catamaraImg from "@/assets/catamara.jpg";
 import jardineiraImg from "@/assets/jardineira.jpg";
 import mergulhoImg from "@/assets/mergulho.jpg";
 import lanchaImg from "@/assets/lancha.jpg";
+import caboFrioImg from "@/assets/cabo-frio.jpg";
 
 type FormScreen = `form-${TourKey}`;
 type Screen = "menu" | { details: TourKey } | FormScreen;
@@ -75,7 +76,7 @@ const Index = () => {
   if (screen === "form-buggy")
     return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optBuggy} backgroundImage={buggyImg} />;
   if (screen === "form-cabofrio")
-    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title="Passeio em Cabo Frio" backgroundImage={arraialImg} />;
+    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title="Passeio em Cabo Frio" backgroundImage={caboFrioImg} />;
   if (screen === "form-catamara")
     return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optCatamara} backgroundImage={catamaraImg} requireCpf />;
   if (screen === "form-jardineira")
@@ -90,7 +91,7 @@ const Index = () => {
     { key: "escuna", image: escunaImg, title: "Passeio de Escuna", desc: "Dois decks, dois toboáguas, 11 praias e 3 ilhas em 2h30 de puro lazer." },
     { key: "arraial", image: arraialImg, title: "Arraial do Cabo", desc: "Dia completo com translado, escuna 3h30 e almoço buffet livre." },
     { key: "buggy", image: buggyImg, title: "Passeio de Buggy", desc: "8 praias e 3 mirantes em 1h30 de aventura pelas dunas de Búzios." },
-    { key: "cabofrio", image: arraialImg, title: "Cabo Frio", desc: "Passeio terrestre com guia bilíngue, almoço e Shopping Park Lagos." },
+    { key: "cabofrio", image: caboFrioImg, title: "Cabo Frio", desc: "Passeio terrestre com guia bilíngue, almoço e Shopping Park Lagos." },
     { key: "jardineira", image: jardineiraImg, title: "Passeio de Jardineira", desc: "12 praias, 2 mirantes e banho na Praia do Forno em 2 horas." },
     { key: "catamara", image: catamaraImg, title: "Passeio de Catamarã", desc: "12 praias, 3 ilhas, DJ a bordo e 3 paradas para banho em 2h30." },
     { key: "mergulho", image: mergulhoImg, title: "Mergulho", desc: "Experiência de mergulho com instrutor certificado. Fotos e vídeo inclusos.", adultsOnly: true },
