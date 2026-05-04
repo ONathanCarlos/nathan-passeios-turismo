@@ -74,13 +74,13 @@ const Index = () => {
   if (screen === "form-escuna")
     return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optEscuna} backgroundImage={escunaImg} />;
   if (screen === "form-arraial")
-    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optArraial} backgroundImage={arraialImg} requirePousada notice="Taxas de Jardineira e de Embarque, bebidas e sobremesas não inclusas." />;
+    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optArraial} backgroundImage={arraialImg} requirePousada notice={t.noticeArraial} />;
   if (screen === "form-buggy")
     return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optBuggy} backgroundImage={buggyImg} />;
   if (screen === "form-cabofrio")
-    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title="Passeio em Cabo Frio" backgroundImage={caboFrioImg} requirePousada notice="Barco táxi até a Ilha do Japonês, bebidas e sobremesas do almoço não inclusos." />;
+    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optCaboFrio} backgroundImage={caboFrioImg} requirePousada notice={t.noticeCaboFrio} />;
   if (screen === "form-catamara")
-    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optCatamara} backgroundImage={catamaraImg} requireCpf notice="Não é permitido levar coolers, caixas ou bolsas térmicas para a embarcação." />;
+    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optCatamara} backgroundImage={catamaraImg} requireCpf notice={t.noticeCatamara} />;
   if (screen === "form-jardineira")
     return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optJardineira} backgroundImage={jardineiraImg} />;
   if (screen === "form-mergulho")
@@ -90,14 +90,14 @@ const Index = () => {
 
   type Opt = { key: TourKey; image: string; title: string; desc: string; adultsOnly?: boolean };
   const options: Opt[] = [
-    { key: "escuna", image: escunaImg, title: "Passeio de Escuna", desc: "Dois decks, dois toboáguas, 11 praias e 3 ilhas em 2h30 de puro lazer." },
-    { key: "arraial", image: arraialImg, title: "Arraial do Cabo", desc: "Dia completo com translado, escuna 3h30 e almoço buffet livre." },
-    { key: "buggy", image: buggyImg, title: "Passeio de Buggy", desc: "8 praias e 3 mirantes em 1h30 de aventura pelas dunas de Búzios." },
-    { key: "cabofrio", image: caboFrioImg, title: "Cabo Frio", desc: "Passeio terrestre com guia bilíngue, almoço e Shopping Park Lagos." },
-    { key: "jardineira", image: jardineiraImg, title: "Passeio de Jardineira", desc: "12 praias, 2 mirantes e banho na Praia do Forno em 2 horas." },
-    { key: "catamara", image: catamaraImg, title: "Passeio de Catamarã", desc: "12 praias, 3 ilhas, DJ a bordo e 3 paradas para banho em 2h30." },
-    { key: "mergulho", image: mergulhoImg, title: "Mergulho", desc: "Experiência de mergulho com instrutor certificado. Fotos e vídeo inclusos.", adultsOnly: true },
-    { key: "lancha", image: lanchaImg, title: "Lancha Privada", desc: "Experiência privativa premium com 10 praias, 3 ilhas e churrasco." },
+    { key: "escuna", image: escunaImg, title: t.optEscuna, desc: t.descEscuna },
+    { key: "arraial", image: arraialImg, title: t.optArraial, desc: t.descArraial },
+    { key: "buggy", image: buggyImg, title: t.optBuggy, desc: t.descBuggy },
+    { key: "cabofrio", image: caboFrioImg, title: t.optCaboFrio, desc: t.descCaboFrio },
+    { key: "jardineira", image: jardineiraImg, title: t.optJardineira, desc: t.descJardineira },
+    { key: "catamara", image: catamaraImg, title: t.optCatamara, desc: t.descCatamara },
+    { key: "mergulho", image: mergulhoImg, title: t.optMergulho, desc: t.descMergulho, adultsOnly: true },
+    { key: "lancha", image: lanchaImg, title: t.optLancha, desc: t.descLancha },
   ];
 
   
@@ -129,7 +129,7 @@ const Index = () => {
             </div>
             <div className="leading-tight">
               <div className="text-sm font-bold text-foreground">Nathan</div>
-              <div className="text-[11px] text-muted-foreground">Passeios e Turismo</div>
+              <div className="text-[11px] text-muted-foreground">{t.brandSubtitle}</div>
             </div>
           </div>
           <LanguageSwitcher lang={lang} onChange={setLang} />
@@ -152,7 +152,7 @@ const Index = () => {
               Nathan
             </span>
           </h1>
-          <p className="text-turquoise-glow text-base sm:text-lg font-medium mb-5">Passeios e Turismo</p>
+          <p className="text-turquoise-glow text-base sm:text-lg font-medium mb-5">{t.brandSubtitle}</p>
           <p className="text-sm sm:text-base text-foreground/80 leading-relaxed max-w-xl mx-auto px-2">
             {t.welcome}
           </p>
@@ -162,7 +162,7 @@ const Index = () => {
         <section id="tours">
           <div className="flex items-center gap-2 mb-6">
             <span className="text-turquoise text-xl">≋</span>
-            <h2 className="text-2xl font-bold text-foreground">Nossos Passeios</h2>
+            <h2 className="text-2xl font-bold text-foreground">{t.ourTours}</h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -203,16 +203,16 @@ const Index = () => {
                       onClick={() => openDetails(opt.key)}
                       className="w-full rounded-xl border border-turquoise/40 bg-turquoise/10 px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-turquoise/20 hover:border-turquoise/70 transition-colors"
                     >
-                      Ver Detalhes
+                      {t.viewDetails}
                     </button>
                     <button
                       type="button"
                       onClick={() => openForm(opt.key)}
                       className="rgb-border w-full block"
-                      aria-label={`Reservar agora — ${opt.title}`}
+                      aria-label={`${t.bookNowBtn} — ${opt.title}`}
                     >
                       <span className="flex items-center justify-center gap-1.5 rounded-[0.65rem] bg-gradient-to-r from-deep-blue to-night px-4 py-2.5 text-sm font-bold text-foreground">
-                        ✨ Reservar agora
+                        ✨ {t.bookNowBtn}
                       </span>
                     </button>
                   </div>
@@ -223,7 +223,7 @@ const Index = () => {
         </section>
 
         <footer className="text-center mt-14 text-xs text-muted-foreground/70">
-          © Nathan Passeios e Turismo · Búzios &amp; Região dos Lagos
+          © Nathan {t.brandSubtitle} · {t.footerRegion}
         </footer>
       </div>
       <WhatsAppFab lang={lang} />
