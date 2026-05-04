@@ -83,6 +83,28 @@ type Dict = {
   tourDate: string;
   pickDate: string;
   sumDate: string;
+  // Home page
+  brandSubtitle: string;
+  ourTours: string;
+  viewDetails: string;
+  bookNowBtn: string;
+  footerRegion: string;
+  // Cabo Frio tour
+  optCaboFrio: string;
+  optCaboFrioDesc: string;
+  // Card descriptions (short)
+  descEscuna: string;
+  descArraial: string;
+  descBuggy: string;
+  descCaboFrio: string;
+  descJardineira: string;
+  descCatamara: string;
+  descMergulho: string;
+  descLancha: string;
+  // Form notices
+  noticeArraial: string;
+  noticeCaboFrio: string;
+  noticeCatamara: string;
 };
 
 export const dict: Record<Lang, Dict> = {
