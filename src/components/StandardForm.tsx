@@ -35,6 +35,8 @@ interface Props {
   notice?: string;
   /** require pousada fields (Arraial / Cabo Frio) */
   requirePousada?: boolean;
+  /** tour key for price + coupon application */
+  tourKey?: TourKey;
 }
 
 const fieldClass =
@@ -42,7 +44,7 @@ const fieldClass =
 
 export const StandardForm = ({
   lang, onLangChange, onBack, title, backgroundImage,
-  adultsOnly = false, requireCpf = false, notice, requirePousada = false,
+  adultsOnly = false, requireCpf = false, notice, requirePousada = false, tourKey,
 }: Props) => {
   const t = dict[lang];
   const [name, setName] = useState("");
