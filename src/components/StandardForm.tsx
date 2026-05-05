@@ -277,6 +277,45 @@ export const StandardForm = ({
             </p>
           </div>
         )}
+
+        {/* Preço + Aplicar Cupom */}
+        {tourKey && (
+          <div className="mb-5 glass-card rounded-2xl p-4 flex items-center justify-between gap-3">
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                {appliedCoupon ? (lang === "pt" ? "Com desconto" : "With discount") : (lang === "pt" ? "Valor" : "Price")}
+              </div>
+              {appliedCoupon && priceInfo ? (
+                <>
+                  <div className="text-xs text-muted-foreground line-through">{formatBRL(priceInfo.original)}</div>
+                  <div className="text-2xl font-extrabold bg-gradient-to-r from-emerald-300 to-turquoise-glow bg-clip-text text-transparent">
+                    {formatBRL(priceInfo.final)}
+                  </div>
+                  <div className="text-[11px] text-emerald-300 font-semibold">
+                    {appliedCoupon.cupom} · -{appliedCoupon.percentualDesconto}%
+                  </div>
+                </>
+              ) : (
+                <div className="text-2xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent">
+                  {tourPriceLabel(tourKey, lang)}
+                </div>
+              )}
+            </div>
+            {!appliedCoupon && (
+              <button
+                type="button"
+                onClick={tryApplyCoupon}
+                className="rgb-border shrink-0"
+              >
+                <span className="flex items-center gap-1.5 rounded-[0.55rem] bg-gradient-to-r from-turquoise to-turquoise-glow text-night font-bold text-xs px-3 py-2">
+                  <Tag className="h-3.5 w-3.5" />
+                  {lang === "pt" ? "Aplicar Cupom" : "Apply Coupon"}
+                </span>
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="space-y-5" key={shake}>
           <Field label={`✍️ ${t.fullName}`} error={errors.name} errorMsg={requiredMsg}>
             <Input value={name} onChange={(e) => { setName(e.target.value); clearErr("name"); }} className={fieldClass} />
