@@ -89,7 +89,7 @@ export const StandardForm = ({
       setCouponPromptOpen(true);
       return;
     }
-    if (p.cupomUsado) {
+    if (p.cupomUsado && !isTester(p)) {
       toast.error(lang === "pt" ? "Você já utilizou este cupom promocional." : "Coupon already used.");
       return;
     }
