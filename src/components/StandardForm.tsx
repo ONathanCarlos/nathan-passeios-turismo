@@ -200,6 +200,16 @@ export const StandardForm = ({
     }
     rows.push({ label: t.sumPay, value: paymentLabel(payment as Payment) });
 
+    // Preço + cupom
+    if (priceInfo) {
+      rows.push({ label: lang === "pt" ? "Valor original" : "Original value", value: formatBRL(priceInfo.original) });
+      if (appliedCoupon) {
+        rows.push({ label: "Cupom", value: `${appliedCoupon.cupom} (-${appliedCoupon.percentualDesconto}%)` });
+        rows.push({ label: lang === "pt" ? "Economia" : "Savings", value: formatBRL(priceInfo.discount) });
+        rows.push({ label: lang === "pt" ? "Valor com desconto" : "Final price", value: formatBRL(priceInfo.final) });
+      }
+    }
+
     const lines = [t.sumTitle, title, "", `👤 ${t.sumName}: ${name}`];
     if (requireCpf) lines.push(`🪪 CPF: ${cpf}`);
     lines.push(
@@ -220,6 +230,17 @@ export const StandardForm = ({
     if (adultsOnly) lines.push(`🔞 ${t.adultsOnly}`);
     lines.push(`💳 ${t.sumPay}: ${paymentLabel(payment as Payment)}`);
     if (payment === "credit") lines.push(t.creditWarning);
+    if (priceInfo) {
+      lines.push("", `💰 Valor original: ${formatBRL(priceInfo.original)}`);
+      if (appliedCoupon) {
+        lines.push(
+          `🎟️ Cupom ${appliedCoupon.cupom}`,
+          `Desconto: ${appliedCoupon.percentualDesconto}%`,
+          `✅ Valor com desconto aplicado: ${formatBRL(priceInfo.final)}`,
+        );
+      }
+    }
+    if (appliedCoupon) markCouponUsed();
     setOutput({ text: lines.join("\n"), rows });
   };
 
