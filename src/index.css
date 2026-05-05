@@ -183,6 +183,7 @@
   }
   .field-error-shake {
     animation: field-shake 0.4s ease-in-out;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -192,5 +193,4 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-}
 }
