@@ -284,21 +284,6 @@ const PromoModal = ({ lang, open, onOpenChange, existing, onCreated }: ModalProp
     return ddd >= 11 && ddd <= 99;
   };
 
-  const submit = () => {
-    const e: typeof errors = {};
-    if (nome.trim().length < 3) e.nome = t.errName;
-    if (!validBrPhone(phone.number)) e.whats = t.errWhats;
-    setErrors(e);
-    if (Object.keys(e).length) return;
-
-    const p = require && undefined; // noop
-    const created = (await import("@/lib/promo")).createPromo
-      ? null : null;
-    // simpler: import top-level
-    void p; void created;
-  };
-
-  // simpler synchronous handler (avoid the dynamic-import dance above)
   const handleSubmit = () => {
     const e: typeof errors = {};
     if (nome.trim().length < 3) e.nome = t.errName;
