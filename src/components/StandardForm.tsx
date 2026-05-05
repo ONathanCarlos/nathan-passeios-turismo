@@ -258,9 +258,12 @@ export const StandardForm = ({
   if (output) {
     return (
       <>
-        <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage}>
-          <SummaryOutput text={output.text} rows={output.rows} tourTitle={title} lang={lang} onReset={onBack} />
-        </PageShell>
+        <PromoBanner lang={lang} />
+        <div className="pt-12">
+          <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage}>
+            <SummaryOutput text={output.text} rows={output.rows} tourTitle={title} lang={lang} onReset={onBack} />
+          </PageShell>
+        </div>
         <WhatsAppFab lang={lang} />
       </>
     );
@@ -268,6 +271,22 @@ export const StandardForm = ({
 
   return (
     <>
+      <PromoBanner
+        lang={lang}
+        forceOpen={couponPromptOpen}
+        onForceOpenChange={setCouponPromptOpen}
+        onPromoCreated={(p) => {
+          // Auto-aplica e preenche
+          setAppliedCoupon(p);
+          if (!name) setName(p.nome);
+          if (!phone.number) {
+            const m = p.whatsapp.match(/^(\+\d+)\s*(.*)$/);
+            if (m) setPhone({ ddi: m[1], number: m[2].replace(/\D/g, "") });
+          }
+          toast.success(`Cupom ${p.cupom} aplicado · -${p.percentualDesconto}%`);
+        }}
+      />
+      <div className="pt-12">
       <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage}>
         <p className="text-foreground bg-night/50 backdrop-blur-sm rounded-lg p-3 mb-4 text-sm leading-relaxed font-medium">{t.intro}</p>
         {notice && (
