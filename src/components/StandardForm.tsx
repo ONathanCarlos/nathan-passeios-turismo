@@ -17,7 +17,7 @@ import { PromoBanner } from "./PromoBanner";
 
 import { TourKey } from "@/lib/tours";
 import { TOUR_PRICES, formatBRL, tourPriceLabel } from "@/lib/prices";
-import { isExpired, loadPromo, markCouponUsed, PromoData } from "@/lib/promo";
+import { isExpired, isTester, loadPromo, markCouponUsed, PromoData } from "@/lib/promo";
 import { Tag } from "lucide-react";
 
 type Payment = "cash" | "debit" | "credit" | "pix";
