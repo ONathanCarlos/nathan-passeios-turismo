@@ -215,12 +215,21 @@ const Index = () => {
                     <Star className="w-3 h-3 fill-amber-300 text-amber-300" />
                     4.8
                   </span>
+                  {COUPON_ELIGIBLE.has(opt.key) && (
+                    <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-md bg-amber-400/95 px-2 py-0.5 text-[10px] font-extrabold text-night uppercase tracking-wider shadow-lg coupon-blink">
+                      <Tag className="w-3 h-3" /> Cupom de desconto aplicável!!
+                    </span>
+                  )}
                 </div>
 
                 {/* Content */}
                 <div className="p-4 flex flex-col flex-1">
                   <h3 className="text-lg font-bold text-foreground leading-tight">{opt.title}</h3>
                   <p className="mt-1.5 text-sm text-muted-foreground leading-snug flex-1">{opt.desc}</p>
+
+                  <p className="float-soft mt-3 text-2xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+                    {tourPriceLabel(opt.key, lang)}
+                  </p>
 
                   <div className="mt-4 flex flex-col gap-2">
                     <button
