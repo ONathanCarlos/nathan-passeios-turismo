@@ -8,6 +8,7 @@ import { TourDetails } from "@/components/TourDetails";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { TourKey } from "@/lib/tours";
 import { Star } from "lucide-react";
+import { PageTransition } from "@/components/PageTransition";
 import nathanProfile from "@/assets/nathan-profile.jpg";
 import arraialImg from "@/assets/arraial-do-cabo.jpg";
 import escunaImg from "@/assets/escuna.jpg";
@@ -60,33 +61,39 @@ const Index = () => {
   // Details screen
   if (typeof screen === "object" && "details" in screen) {
     return (
-      <TourDetails
-        tourKey={screen.details}
-        lang={lang}
-        onLangChange={setLang}
-        onBack={back}
-        onBook={() => openForm(screen.details)}
-      />
+      <PageTransition key={`details-${screen.details}`}>
+        <TourDetails
+          tourKey={screen.details}
+          lang={lang}
+          onLangChange={setLang}
+          onBack={back}
+          onBook={() => openForm(screen.details)}
+        />
+      </PageTransition>
     );
   }
 
   // Booking forms
-  if (screen === "form-escuna")
-    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optEscuna} backgroundImage={escunaImg} />;
-  if (screen === "form-arraial")
-    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optArraial} backgroundImage={arraialImg} requirePousada notice={t.noticeArraial} />;
-  if (screen === "form-buggy")
-    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optBuggy} backgroundImage={buggyImg} />;
-  if (screen === "form-cabofrio")
-    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optCaboFrio} backgroundImage={caboFrioImg} requirePousada notice={t.noticeCaboFrio} />;
-  if (screen === "form-catamara")
-    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optCatamara} backgroundImage={catamaraImg} requireCpf notice={t.noticeCatamara} />;
-  if (screen === "form-jardineira")
-    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optJardineira} backgroundImage={jardineiraImg} />;
-  if (screen === "form-mergulho")
-    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optMergulho} backgroundImage={mergulhoImg} adultsOnly notice={t.adultsOnlyNotice} />;
-  if (screen === "form-lancha")
-    return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optLancha} backgroundImage={lanchaImg} />;
+  const formNode = (() => {
+    if (screen === "form-escuna")
+      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optEscuna} backgroundImage={escunaImg} />;
+    if (screen === "form-arraial")
+      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optArraial} backgroundImage={arraialImg} requirePousada notice={t.noticeArraial} />;
+    if (screen === "form-buggy")
+      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optBuggy} backgroundImage={buggyImg} />;
+    if (screen === "form-cabofrio")
+      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optCaboFrio} backgroundImage={caboFrioImg} requirePousada notice={t.noticeCaboFrio} />;
+    if (screen === "form-catamara")
+      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optCatamara} backgroundImage={catamaraImg} requireCpf notice={t.noticeCatamara} />;
+    if (screen === "form-jardineira")
+      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optJardineira} backgroundImage={jardineiraImg} />;
+    if (screen === "form-mergulho")
+      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optMergulho} backgroundImage={mergulhoImg} adultsOnly notice={t.adultsOnlyNotice} />;
+    if (screen === "form-lancha")
+      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optLancha} backgroundImage={lanchaImg} />;
+    return null;
+  })();
+  if (formNode) return <PageTransition key={screen as string}>{formNode}</PageTransition>;
 
   type Opt = { key: TourKey; image: string; title: string; desc: string; adultsOnly?: boolean };
   const options: Opt[] = [
@@ -103,7 +110,7 @@ const Index = () => {
   
 
   return (
-    <main className="relative min-h-screen px-4 py-6 sm:py-10 overflow-hidden">
+    <PageTransition key="menu"><main className="relative min-h-screen px-4 py-6 sm:py-10 overflow-hidden">
       {/* Background video */}
       <video
         className="pointer-events-none fixed inset-0 z-0 w-full h-full object-cover"
@@ -227,7 +234,7 @@ const Index = () => {
         </footer>
       </div>
       <WhatsAppFab lang={lang} />
-    </main>
+    </main></PageTransition>
   );
 };
 
