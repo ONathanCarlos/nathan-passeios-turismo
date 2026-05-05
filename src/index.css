@@ -253,6 +253,16 @@
       -webkit-backdrop-filter: blur(6px);
     }
   }
+
+  /* Subtle floating motion for external (non-card/non-button) texts */
+  @keyframes float-soft {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    50%      { transform: translate3d(0, -3px, 0); }
+  }
+  .float-soft {
+    animation: float-soft 6s ease-in-out infinite;
+    will-change: transform;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

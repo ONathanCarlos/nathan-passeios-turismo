@@ -163,8 +163,8 @@ const Index = () => {
               Nathan
             </span>
           </h1>
-          <p className="text-turquoise-glow text-base sm:text-lg font-medium mb-5">{t.brandSubtitle}</p>
-          <p className="text-sm sm:text-base text-foreground/80 leading-relaxed max-w-xl mx-auto px-2">
+          <p className="float-soft text-turquoise-glow text-base sm:text-lg font-medium mb-5">{t.brandSubtitle}</p>
+          <p className="float-soft text-sm sm:text-base text-foreground/80 leading-relaxed max-w-xl mx-auto px-2" style={{ animationDelay: "1.2s" }}>
             {t.welcome}
           </p>
         </header>

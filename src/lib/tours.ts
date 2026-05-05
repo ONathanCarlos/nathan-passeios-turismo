@@ -242,10 +242,10 @@ const T: Record<TourKey, Record<Lang, Texts>> = {
   },
   cabofrio: {
     pt: { title: "Passeio em Cabo Frio", hook: "Um dia completo explorando praias incríveis, gastronomia e lazer." },
-    es: { title: "Paseo en Cabo Frio", hook: "Un día completo explorando playas increíbles, gastronomía y ocio." },
-    en: { title: "Cabo Frio Tour", hook: "A full day exploring stunning beaches, gastronomy and leisure." },
-    fr: { title: "Excursion à Cabo Frio", hook: "Une journée complète à explorer plages incroyables, gastronomie et loisirs." },
-    it: { title: "Tour a Cabo Frio", hook: "Una giornata intera esplorando spiagge incredibili, gastronomia e svago." },
+    es: { title: "Passeio em Cabo Frio", hook: "Un día completo explorando playas increíbles, gastronomía y ocio." },
+    en: { title: "Passeio em Cabo Frio", hook: "A full day exploring stunning beaches, gastronomy and leisure." },
+    fr: { title: "Passeio em Cabo Frio", hook: "Une journée complète à explorer plages incroyables, gastronomie et loisirs." },
+    it: { title: "Passeio em Cabo Frio", hook: "Una giornata intera esplorando spiagge incredibili, gastronomia e svago." },
   },
   jardineira: {
     pt: { title: "Passeio de Jardineira", hook: "Explore os cenários mais belos de Búzios com conforto e segurança." },
