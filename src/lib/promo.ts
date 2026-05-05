@@ -82,9 +82,32 @@ export const formatCountdown = (p: PromoData): string => {
   return `${d}d ${pad(h)}:${pad(m)}:${pad(s)}`;
 };
 
+// ------------------------------------------------------------
+// WHITELIST DE TESTADORES (cupons ilimitados)
+// ------------------------------------------------------------
+// Apenas dígitos, sem DDI. Comparação ignora formatação.
+export const TESTER_PHONES: string[] = [
+  "22998216796", // Nathan (admin/teste)
+];
+
+const onlyDigits = (s: string) => (s || "").replace(/\D/g, "");
+
+export const isTesterPhone = (whatsapp: string): boolean => {
+  const d = onlyDigits(whatsapp);
+  return TESTER_PHONES.some((t) => {
+    const td = onlyDigits(t);
+    return d === td || d.endsWith(td) || td.endsWith(d);
+  });
+};
+
+export const isTester = (p: PromoData | null): boolean =>
+  !!p && isTesterPhone(p.whatsapp);
+
 export const markCouponUsed = () => {
   const p = loadPromo();
   if (!p) return;
+  // Testadores não consomem o cupom — uso ilimitado.
+  if (isTester(p)) return;
   savePromo({ ...p, cupomUsado: true });
 };
 
