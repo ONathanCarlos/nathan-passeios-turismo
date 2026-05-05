@@ -253,6 +253,7 @@ const Index = () => {
       </div>
       <WhatsAppFab lang={lang} />
     </main></PageTransition>
+    </>
   );
 };
 
