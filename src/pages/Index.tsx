@@ -104,12 +104,7 @@ const Index = () => {
       return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optLancha} backgroundImage={lanchaImg} />;
     return null;
   })();
-  if (formNode) return (
-    <>
-      <PromoBanner lang={lang} />
-      <div className="pt-12"><PageTransition key={screen as string}>{formNode}</PageTransition></div>
-    </>
-  );
+  if (formNode) return <PageTransition key={screen as string}>{formNode}</PageTransition>;
 
   type Opt = { key: TourKey; image: string; title: string; desc: string; adultsOnly?: boolean };
   const options: Opt[] = [
