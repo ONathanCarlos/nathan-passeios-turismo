@@ -7,8 +7,10 @@ import { StandardForm } from "@/components/StandardForm";
 import { TourDetails } from "@/components/TourDetails";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { TourKey } from "@/lib/tours";
-import { Star } from "lucide-react";
+import { Star, Tag } from "lucide-react";
 import { PageTransition } from "@/components/PageTransition";
+import { PromoBanner } from "@/components/PromoBanner";
+import { COUPON_ELIGIBLE, tourPriceLabel } from "@/lib/prices";
 import nathanProfile from "@/assets/nathan-profile.jpg";
 import arraialImg from "@/assets/arraial-do-cabo.jpg";
 import escunaImg from "@/assets/escuna.jpg";
@@ -65,36 +67,41 @@ const Index = () => {
   // Details screen
   if (typeof screen === "object" && "details" in screen) {
     return (
-      <PageTransition key={`details-${screen.details}`}>
-        <TourDetails
-          tourKey={screen.details}
-          lang={lang}
-          onLangChange={setLang}
-          onBack={back}
-          onBook={() => openForm(screen.details)}
-        />
-      </PageTransition>
+      <>
+        <PromoBanner lang={lang} />
+        <div className="pt-12">
+          <PageTransition key={`details-${screen.details}`}>
+            <TourDetails
+              tourKey={screen.details}
+              lang={lang}
+              onLangChange={setLang}
+              onBack={back}
+              onBook={() => openForm(screen.details)}
+            />
+          </PageTransition>
+        </div>
+      </>
     );
   }
 
   // Booking forms
   const formNode = (() => {
     if (screen === "form-escuna")
-      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optEscuna} backgroundImage={escunaImg} />;
+      return <StandardForm tourKey="escuna" lang={lang} onLangChange={setLang} onBack={back} title={t.optEscuna} backgroundImage={escunaImg} />;
     if (screen === "form-arraial")
-      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optArraial} backgroundImage={arraialImg} requirePousada notice={t.noticeArraial} />;
+      return <StandardForm tourKey="arraial" lang={lang} onLangChange={setLang} onBack={back} title={t.optArraial} backgroundImage={arraialImg} requirePousada notice={t.noticeArraial} />;
     if (screen === "form-buggy")
-      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optBuggy} backgroundImage={buggyImg} />;
+      return <StandardForm tourKey="buggy" lang={lang} onLangChange={setLang} onBack={back} title={t.optBuggy} backgroundImage={buggyImg} />;
     if (screen === "form-cabofrio")
-      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optCaboFrio} backgroundImage={caboFrioImg} requirePousada notice={t.noticeCaboFrio} />;
+      return <StandardForm tourKey="cabofrio" lang={lang} onLangChange={setLang} onBack={back} title={t.optCaboFrio} backgroundImage={caboFrioImg} requirePousada notice={t.noticeCaboFrio} />;
     if (screen === "form-catamara")
-      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optCatamara} backgroundImage={catamaraImg} requireCpf notice={t.noticeCatamara} />;
+      return <StandardForm tourKey="catamara" lang={lang} onLangChange={setLang} onBack={back} title={t.optCatamara} backgroundImage={catamaraImg} requireCpf notice={t.noticeCatamara} />;
     if (screen === "form-jardineira")
-      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optJardineira} backgroundImage={jardineiraImg} />;
+      return <StandardForm tourKey="jardineira" lang={lang} onLangChange={setLang} onBack={back} title={t.optJardineira} backgroundImage={jardineiraImg} />;
     if (screen === "form-mergulho")
-      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optMergulho} backgroundImage={mergulhoImg} adultsOnly notice={t.adultsOnlyNotice} />;
+      return <StandardForm tourKey="mergulho" lang={lang} onLangChange={setLang} onBack={back} title={t.optMergulho} backgroundImage={mergulhoImg} adultsOnly notice={t.adultsOnlyNotice} />;
     if (screen === "form-lancha")
-      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optLancha} backgroundImage={lanchaImg} />;
+      return <StandardForm tourKey="lancha" lang={lang} onLangChange={setLang} onBack={back} title={t.optLancha} backgroundImage={lanchaImg} />;
     return null;
   })();
   if (formNode) return <PageTransition key={screen as string}>{formNode}</PageTransition>;
@@ -114,7 +121,9 @@ const Index = () => {
   
 
   return (
-    <PageTransition key="menu"><main className="relative min-h-screen px-4 py-6 sm:py-10 overflow-hidden">
+    <>
+    <PromoBanner lang={lang} />
+    <PageTransition key="menu"><main className="relative min-h-screen px-4 pt-16 sm:pt-20 py-6 sm:py-10 overflow-hidden">
       {/* Background video */}
       <video
         className="pointer-events-none fixed inset-0 z-0 w-full h-full object-cover"
@@ -201,12 +210,21 @@ const Index = () => {
                     <Star className="w-3 h-3 fill-amber-300 text-amber-300" />
                     4.8
                   </span>
+                  {COUPON_ELIGIBLE.has(opt.key) && (
+                    <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-md bg-amber-400/95 px-2 py-0.5 text-[10px] font-extrabold text-night uppercase tracking-wider shadow-lg coupon-blink">
+                      <Tag className="w-3 h-3" /> Cupom de desconto aplicável!!
+                    </span>
+                  )}
                 </div>
 
                 {/* Content */}
                 <div className="p-4 flex flex-col flex-1">
                   <h3 className="text-lg font-bold text-foreground leading-tight">{opt.title}</h3>
                   <p className="mt-1.5 text-sm text-muted-foreground leading-snug flex-1">{opt.desc}</p>
+
+                  <p className="float-soft mt-3 text-2xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+                    {tourPriceLabel(opt.key, lang)}
+                  </p>
 
                   <div className="mt-4 flex flex-col gap-2">
                     <button
@@ -239,6 +257,7 @@ const Index = () => {
       </div>
       <WhatsAppFab lang={lang} />
     </main></PageTransition>
+    </>
   );
 };
 

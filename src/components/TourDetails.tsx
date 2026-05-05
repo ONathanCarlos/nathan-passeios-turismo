@@ -2,8 +2,9 @@ import { Lang } from "@/lib/i18n";
 import { TourKey, getTour, sectionLabels } from "@/lib/tours";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Button } from "./ui/button";
-import { ArrowLeft, Star, Clock, MapPin, Users, Languages, Check, AlertCircle } from "lucide-react";
+import { ArrowLeft, Star, Clock, MapPin, Users, Check, AlertCircle } from "lucide-react";
 import { dict } from "@/lib/i18n";
+import { TOUR_PRICES, tourPriceLabel } from "@/lib/prices";
 
 interface Props {
   tourKey: TourKey;
@@ -80,12 +81,23 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook }: Pro
             </div>
           </div>
 
-          {/* Quick cards */}
+          {/* Quick cards (Languages removido nessa página) */}
           <div className="mt-4 grid grid-cols-2 gap-3">
             <QuickCard icon={<Clock className="h-4 w-4" />} label={L.duration} value={tour.duration} />
             <QuickCard icon={<MapPin className="h-4 w-4" />} label={L.location} value={tour.location} />
             <QuickCard icon={<Users className="h-4 w-4" />} label={L.capacity} value={tour.capacity} />
-            <QuickCard icon={<Languages className="h-4 w-4" />} label={L.languages} value={tour.languages} />
+          </div>
+
+          {/* Price */}
+          <div className="mt-4 glass-card rounded-2xl p-4 text-center">
+            <p className="float-soft text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent">
+              {tourPriceLabel(tourKey, lang)}
+            </p>
+            {TOUR_PRICES[tourKey].note && (
+              <p className="mt-1 text-xs text-amber-200/80 italic">
+                {TOUR_PRICES[tourKey].note![lang]}
+              </p>
+            )}
           </div>
 
           {/* Adults-only badge */}

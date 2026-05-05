@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Lang, dict } from "@/lib/i18n";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,12 @@ import { WhatsAppFab } from "./WhatsAppFab";
 import { PhoneInput, PhoneValue, fullPhone } from "./PhoneInput";
 import { toast } from "sonner";
 import { TourDatePicker } from "./TourDatePicker";
+import { PromoBanner } from "./PromoBanner";
+
+import { TourKey } from "@/lib/tours";
+import { TOUR_PRICES, formatBRL, tourPriceLabel } from "@/lib/prices";
+import { isExpired, loadPromo, markCouponUsed, PromoData } from "@/lib/promo";
+import { Tag } from "lucide-react";
 
 type Payment = "cash" | "debit" | "credit" | "pix";
 
@@ -30,6 +36,8 @@ interface Props {
   notice?: string;
   /** require pousada fields (Arraial / Cabo Frio) */
   requirePousada?: boolean;
+  /** tour key for price + coupon application */
+  tourKey?: TourKey;
 }
 
 const fieldClass =
@@ -37,7 +45,7 @@ const fieldClass =
 
 export const StandardForm = ({
   lang, onLangChange, onBack, title, backgroundImage,
-  adultsOnly = false, requireCpf = false, notice, requirePousada = false,
+  adultsOnly = false, requireCpf = false, notice, requirePousada = false, tourKey,
 }: Props) => {
   const t = dict[lang];
   const [name, setName] = useState("");
@@ -55,7 +63,63 @@ export const StandardForm = ({
   const [output, setOutput] = useState<{ text: string; rows: { label: string; value: string }[] } | null>(null);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [shake, setShake] = useState(0);
+  const [appliedCoupon, setAppliedCoupon] = useState<PromoData | null>(null);
+  const [couponPromptOpen, setCouponPromptOpen] = useState(false);
   const requiredMsg = lang === "pt" ? "Preenchimento obrigatório" : lang === "es" ? "Campo obligatorio" : "Required field";
+
+  // Autopreenchimento: nome, whatsapp, email do mini cadastro
+  useEffect(() => {
+    const p = loadPromo();
+    if (!p) return;
+    if (!name) setName(p.nome);
+    // whatsapp já vem como "+55 22 99999 9999" — extrair DDI/digits
+    if (!phone.number) {
+      const m = p.whatsapp.match(/^(\+\d+)\s*(.*)$/);
+      if (m) {
+        setPhone({ ddi: m[1], number: m[2].replace(/\D/g, "") });
+      }
+    }
+    // (email não há campo no form base; mantido em localStorage)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const tryApplyCoupon = () => {
+    const p = loadPromo();
+    if (!p) {
+      setCouponPromptOpen(true);
+      return;
+    }
+    if (p.cupomUsado) {
+      toast.error(lang === "pt" ? "Você já utilizou este cupom promocional." : "Coupon already used.");
+      return;
+    }
+    if (isExpired(p)) {
+      toast.error(lang === "pt" ? "Cupom expirado." : "Coupon expired.");
+      return;
+    }
+    setAppliedCoupon(p);
+    toast.success(`Cupom ${p.cupom} aplicado · -${p.percentualDesconto}%`);
+  };
+
+  // Cálculo de preço (quando aplicável)
+  const priceInfo = useMemo(() => {
+    if (!tourKey) return null;
+    const meta = TOUR_PRICES[tourKey];
+    const paxN = Math.max(1, parseInt(pax) || 1);
+    const halfN = (!adultsOnly && hasKids === "yes")
+      ? ages.filter((a) => { const n = parseInt(a); return n >= 6 && n <= 10; }).length
+      : 0;
+    const freeN = (!adultsOnly && hasKids === "yes")
+      ? ages.filter((a) => { const n = parseInt(a); return !isNaN(n) && n <= 5; }).length
+      : 0;
+    // Lancha: valor fixo "a partir de" (não multiplica por pax)
+    const original = meta.from
+      ? meta.value
+      : (paxN - freeN - halfN) * meta.value + halfN * (meta.value / 2);
+    const discount = appliedCoupon ? (original * appliedCoupon.percentualDesconto) / 100 : 0;
+    const final = original - discount;
+    return { original, discount, final, meta };
+  }, [tourKey, pax, hasKids, ages, adultsOnly, appliedCoupon]);
 
   const kidsN = Math.min(8, Math.max(0, parseInt(kidsCount) || 0));
 
@@ -137,6 +201,16 @@ export const StandardForm = ({
     }
     rows.push({ label: t.sumPay, value: paymentLabel(payment as Payment) });
 
+    // Preço + cupom
+    if (priceInfo) {
+      rows.push({ label: lang === "pt" ? "Valor original" : "Original value", value: formatBRL(priceInfo.original) });
+      if (appliedCoupon) {
+        rows.push({ label: "Cupom", value: `${appliedCoupon.cupom} (-${appliedCoupon.percentualDesconto}%)` });
+        rows.push({ label: lang === "pt" ? "Economia" : "Savings", value: formatBRL(priceInfo.discount) });
+        rows.push({ label: lang === "pt" ? "Valor com desconto" : "Final price", value: formatBRL(priceInfo.final) });
+      }
+    }
+
     const lines = [t.sumTitle, title, "", `👤 ${t.sumName}: ${name}`];
     if (requireCpf) lines.push(`🪪 CPF: ${cpf}`);
     lines.push(
@@ -157,6 +231,17 @@ export const StandardForm = ({
     if (adultsOnly) lines.push(`🔞 ${t.adultsOnly}`);
     lines.push(`💳 ${t.sumPay}: ${paymentLabel(payment as Payment)}`);
     if (payment === "credit") lines.push(t.creditWarning);
+    if (priceInfo) {
+      lines.push("", `💰 Valor original: ${formatBRL(priceInfo.original)}`);
+      if (appliedCoupon) {
+        lines.push(
+          `🎟️ Cupom ${appliedCoupon.cupom}`,
+          `Desconto: ${appliedCoupon.percentualDesconto}%`,
+          `✅ Valor com desconto aplicado: ${formatBRL(priceInfo.final)}`,
+        );
+      }
+    }
+    if (appliedCoupon) markCouponUsed();
     setOutput({ text: lines.join("\n"), rows });
   };
 
@@ -173,9 +258,12 @@ export const StandardForm = ({
   if (output) {
     return (
       <>
-        <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage}>
-          <SummaryOutput text={output.text} rows={output.rows} tourTitle={title} lang={lang} onReset={onBack} />
-        </PageShell>
+        <PromoBanner lang={lang} />
+        <div className="pt-12">
+          <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage}>
+            <SummaryOutput text={output.text} rows={output.rows} tourTitle={title} lang={lang} onReset={onBack} />
+          </PageShell>
+        </div>
         <WhatsAppFab lang={lang} />
       </>
     );
@@ -183,6 +271,22 @@ export const StandardForm = ({
 
   return (
     <>
+      <PromoBanner
+        lang={lang}
+        forceOpen={couponPromptOpen}
+        onForceOpenChange={setCouponPromptOpen}
+        onPromoCreated={(p) => {
+          // Auto-aplica e preenche
+          setAppliedCoupon(p);
+          if (!name) setName(p.nome);
+          if (!phone.number) {
+            const m = p.whatsapp.match(/^(\+\d+)\s*(.*)$/);
+            if (m) setPhone({ ddi: m[1], number: m[2].replace(/\D/g, "") });
+          }
+          toast.success(`Cupom ${p.cupom} aplicado · -${p.percentualDesconto}%`);
+        }}
+      />
+      <div className="pt-12">
       <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage}>
         <p className="text-foreground bg-night/50 backdrop-blur-sm rounded-lg p-3 mb-4 text-sm leading-relaxed font-medium">{t.intro}</p>
         {notice && (
@@ -193,6 +297,45 @@ export const StandardForm = ({
             </p>
           </div>
         )}
+
+        {/* Preço + Aplicar Cupom */}
+        {tourKey && (
+          <div className="mb-5 glass-card rounded-2xl p-4 flex items-center justify-between gap-3">
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                {appliedCoupon ? (lang === "pt" ? "Com desconto" : "With discount") : (lang === "pt" ? "Valor" : "Price")}
+              </div>
+              {appliedCoupon && priceInfo ? (
+                <>
+                  <div className="text-xs text-muted-foreground line-through">{formatBRL(priceInfo.original)}</div>
+                  <div className="text-2xl font-extrabold bg-gradient-to-r from-emerald-300 to-turquoise-glow bg-clip-text text-transparent">
+                    {formatBRL(priceInfo.final)}
+                  </div>
+                  <div className="text-[11px] text-emerald-300 font-semibold">
+                    {appliedCoupon.cupom} · -{appliedCoupon.percentualDesconto}%
+                  </div>
+                </>
+              ) : (
+                <div className="text-2xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent">
+                  {tourPriceLabel(tourKey, lang)}
+                </div>
+              )}
+            </div>
+            {!appliedCoupon && (
+              <button
+                type="button"
+                onClick={tryApplyCoupon}
+                className="rgb-border shrink-0"
+              >
+                <span className="flex items-center gap-1.5 rounded-[0.55rem] bg-gradient-to-r from-turquoise to-turquoise-glow text-night font-bold text-xs px-3 py-2">
+                  <Tag className="h-3.5 w-3.5" />
+                  {lang === "pt" ? "Aplicar Cupom" : "Apply Coupon"}
+                </span>
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="space-y-5" key={shake}>
           <Field label={`✍️ ${t.fullName}`} error={errors.name} errorMsg={requiredMsg}>
             <Input value={name} onChange={(e) => { setName(e.target.value); clearErr("name"); }} className={fieldClass} />
@@ -327,6 +470,7 @@ export const StandardForm = ({
           </button>
         </div>
       </PageShell>
+      </div>
       <WhatsAppFab lang={lang} />
     </>
   );

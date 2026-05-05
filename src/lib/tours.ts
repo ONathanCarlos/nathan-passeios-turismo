@@ -386,7 +386,7 @@ export const getTour = (key: TourKey, lang: Lang): TourDetail => {
           { title: l.stops, items: ["Azeda","João Fernandes","Tartaruga","Ilha Feia"] },
           { title: l.included, items: ["Snorkel","Espaguetes flutuantes","Gelo","Música ambiente"] },
         ],
-        notice: "Valor varia conforme grupo e embarcação.",
+        notice: "Valor variável conforme o modelo da lancha.",
       };
   }
 };
