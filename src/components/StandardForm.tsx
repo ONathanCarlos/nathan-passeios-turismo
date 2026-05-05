@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Lang, dict } from "@/lib/i18n";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,11 @@ import { WhatsAppFab } from "./WhatsAppFab";
 import { PhoneInput, PhoneValue, fullPhone } from "./PhoneInput";
 import { toast } from "sonner";
 import { TourDatePicker } from "./TourDatePicker";
+import { PromoBanner } from "./PromoBanner";
+import { TourKey } from "@/lib/tours";
+import { TOUR_PRICES, formatBRL, tourPriceLabel } from "@/lib/prices";
+import { isExpired, loadPromo, markCouponUsed, PromoData } from "@/lib/promo";
+import { Tag } from "lucide-react";
 
 type Payment = "cash" | "debit" | "credit" | "pix";
 
