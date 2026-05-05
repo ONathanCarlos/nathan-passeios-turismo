@@ -87,21 +87,21 @@ const Index = () => {
   // Booking forms
   const formNode = (() => {
     if (screen === "form-escuna")
-      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optEscuna} backgroundImage={escunaImg} />;
+      return <StandardForm tourKey="escuna" lang={lang} onLangChange={setLang} onBack={back} title={t.optEscuna} backgroundImage={escunaImg} />;
     if (screen === "form-arraial")
-      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optArraial} backgroundImage={arraialImg} requirePousada notice={t.noticeArraial} />;
+      return <StandardForm tourKey="arraial" lang={lang} onLangChange={setLang} onBack={back} title={t.optArraial} backgroundImage={arraialImg} requirePousada notice={t.noticeArraial} />;
     if (screen === "form-buggy")
-      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optBuggy} backgroundImage={buggyImg} />;
+      return <StandardForm tourKey="buggy" lang={lang} onLangChange={setLang} onBack={back} title={t.optBuggy} backgroundImage={buggyImg} />;
     if (screen === "form-cabofrio")
-      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optCaboFrio} backgroundImage={caboFrioImg} requirePousada notice={t.noticeCaboFrio} />;
+      return <StandardForm tourKey="cabofrio" lang={lang} onLangChange={setLang} onBack={back} title={t.optCaboFrio} backgroundImage={caboFrioImg} requirePousada notice={t.noticeCaboFrio} />;
     if (screen === "form-catamara")
-      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optCatamara} backgroundImage={catamaraImg} requireCpf notice={t.noticeCatamara} />;
+      return <StandardForm tourKey="catamara" lang={lang} onLangChange={setLang} onBack={back} title={t.optCatamara} backgroundImage={catamaraImg} requireCpf notice={t.noticeCatamara} />;
     if (screen === "form-jardineira")
-      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optJardineira} backgroundImage={jardineiraImg} />;
+      return <StandardForm tourKey="jardineira" lang={lang} onLangChange={setLang} onBack={back} title={t.optJardineira} backgroundImage={jardineiraImg} />;
     if (screen === "form-mergulho")
-      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optMergulho} backgroundImage={mergulhoImg} adultsOnly notice={t.adultsOnlyNotice} />;
+      return <StandardForm tourKey="mergulho" lang={lang} onLangChange={setLang} onBack={back} title={t.optMergulho} backgroundImage={mergulhoImg} adultsOnly notice={t.adultsOnlyNotice} />;
     if (screen === "form-lancha")
-      return <StandardForm lang={lang} onLangChange={setLang} onBack={back} title={t.optLancha} backgroundImage={lanchaImg} />;
+      return <StandardForm tourKey="lancha" lang={lang} onLangChange={setLang} onBack={back} title={t.optLancha} backgroundImage={lanchaImg} />;
     return null;
   })();
   if (formNode) return <PageTransition key={screen as string}>{formNode}</PageTransition>;
