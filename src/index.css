@@ -97,7 +97,7 @@
     box-shadow: var(--shadow-glow);
   }
 
-  /* Animated rainbow/RGB pulsing border */
+  /* Animated rainbow/RGB pulsing border (GPU-accelerated) */
   @keyframes rgb-spin {
     0%   { background-position: 0% 50%; }
     100% { background-position: 300% 50%; }
@@ -116,6 +116,9 @@
     );
     background-size: 300% 300%;
     animation: rgb-spin 6s linear infinite, rgb-glow-pulse 2.6s ease-in-out infinite;
+    will-change: background-position, box-shadow;
+    transform: translateZ(0);
+    backface-visibility: hidden;
   }
 
   /* WhatsApp FAB — static elegant glow, animation only on press */
@@ -123,21 +126,24 @@
     box-shadow: 0 8px 24px -4px rgba(37, 211, 102, 0.55);
   }
 
-  /* Premium ocean ripple + press feedback for all interactive buttons */
+  /* Premium ocean ripple + press feedback for all interactive buttons (GPU layer) */
   button, [role="button"], a.btn, .btn-press {
     position: relative;
     overflow: hidden;
     transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+    transform: translateZ(0);
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
   button:active, [role="button"]:active, a.btn:active, .btn-press:active {
-    transform: scale(0.97);
+    transform: translateZ(0) scale(0.97);
     filter: brightness(0.95);
     box-shadow: inset 0 2px 6px rgba(0,0,0,0.25);
   }
   @keyframes ocean-ripple {
-    0%   { transform: translate(-50%, -50%) scale(0);   opacity: 0.55; }
+    0%   { transform: translate3d(-50%, -50%, 0) scale(0);   opacity: 0.55; }
     70%  { opacity: 0.25; }
-    100% { transform: translate(-50%, -50%) scale(2.6); opacity: 0; }
+    100% { transform: translate3d(-50%, -50%, 0) scale(2.6); opacity: 0; }
   }
   button::after, [role="button"]::after, a.btn::after, .btn-press::after {
     content: "";
@@ -151,21 +157,22 @@
       hsl(var(--turquoise-glow) / 0.55) 0%,
       hsl(var(--turquoise) / 0.25) 40%,
       transparent 70%);
-    transform: translate(-50%, -50%) scale(0);
+    transform: translate3d(-50%, -50%, 0) scale(0);
     pointer-events: none;
     opacity: 0;
+    will-change: transform, opacity;
   }
   button:active::after, [role="button"]:active::after, a.btn:active::after, .btn-press:active::after {
-    animation: ocean-ripple 650ms ease-out;
+    animation: ocean-ripple 600ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   /* Form field error state */
   @keyframes field-shake {
-    0%,100% { transform: translateX(0); }
-    20% { transform: translateX(-5px); }
-    40% { transform: translateX(5px); }
-    60% { transform: translateX(-3px); }
-    80% { transform: translateX(3px); }
+    0%,100% { transform: translate3d(0,0,0); }
+    20% { transform: translate3d(-5px,0,0); }
+    40% { transform: translate3d(5px,0,0); }
+    60% { transform: translate3d(-3px,0,0); }
+    80% { transform: translate3d(3px,0,0); }
   }
   .field-error,
   .field-error input,
