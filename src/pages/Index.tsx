@@ -126,7 +126,9 @@ const Index = () => {
   
 
   return (
-    <PageTransition key="menu"><main className="relative min-h-screen px-4 py-6 sm:py-10 overflow-hidden">
+    <>
+    <PromoBanner lang={lang} />
+    <PageTransition key="menu"><main className="relative min-h-screen px-4 pt-16 sm:pt-20 py-6 sm:py-10 overflow-hidden">
       {/* Background video */}
       <video
         className="pointer-events-none fixed inset-0 z-0 w-full h-full object-cover"
