@@ -60,7 +60,7 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook }: Pro
           </div>
 
           {/* Hook */}
-          <p className="mt-4 text-foreground/90 text-[15px] leading-relaxed italic">
+          <p className="float-soft mt-4 text-foreground/90 text-[15px] leading-relaxed italic">
             “{tour.hook}”
           </p>
 
