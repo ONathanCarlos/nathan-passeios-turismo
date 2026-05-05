@@ -196,15 +196,62 @@
 
   /* Page transition — compositor-only (opacity + translate3d), no layout impact */
   @keyframes page-enter {
-    from { opacity: 0; transform: translate3d(0, 10px, 0); }
+    from { opacity: 0; transform: translate3d(0, 8px, 0); }
     to   { opacity: 1; transform: translate3d(0, 0, 0); }
   }
   .page-transition {
-    animation: page-enter 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: page-enter 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
     will-change: opacity, transform;
     transform: translateZ(0);
     backface-visibility: hidden;
     contain: paint;
+  }
+
+  /* Smooth open/close for Radix-based menus, dialogs, popovers, accordions, sheets.
+     Compositor-only (opacity + translate3d/scale), short durations for mobile. */
+  [data-state="open"][data-radix-popper-content-wrapper] > *,
+  [data-radix-menu-content][data-state="open"],
+  [data-radix-popover-content][data-state="open"],
+  [data-radix-dropdown-menu-content][data-state="open"],
+  [data-radix-select-content][data-state="open"],
+  [data-radix-tooltip-content][data-state="open"],
+  [data-radix-hover-card-content][data-state="open"],
+  [data-radix-dialog-content][data-state="open"],
+  [data-radix-alert-dialog-content][data-state="open"] {
+    animation: page-enter 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    will-change: opacity, transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+  @keyframes radix-fade-out {
+    from { opacity: 1; transform: translate3d(0, 0, 0); }
+    to   { opacity: 0; transform: translate3d(0, 6px, 0); }
+  }
+  [data-radix-menu-content][data-state="closed"],
+  [data-radix-popover-content][data-state="closed"],
+  [data-radix-dropdown-menu-content][data-state="closed"],
+  [data-radix-select-content][data-state="closed"],
+  [data-radix-tooltip-content][data-state="closed"],
+  [data-radix-hover-card-content][data-state="closed"],
+  [data-radix-dialog-content][data-state="closed"],
+  [data-radix-alert-dialog-content][data-state="closed"] {
+    animation: radix-fade-out 160ms cubic-bezier(0.4, 0, 1, 1) both;
+    will-change: opacity, transform;
+  }
+
+  /* Cards: promote to GPU layer so hover/transition stays buttery on mobile */
+  .glass-card {
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  /* Mobile: reduce expensive backdrop-blur to avoid stutter on low-end GPUs */
+  @media (max-width: 640px) {
+    .glass-card {
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
   }
 }
 
