@@ -62,7 +62,63 @@ export const StandardForm = ({
   const [output, setOutput] = useState<{ text: string; rows: { label: string; value: string }[] } | null>(null);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [shake, setShake] = useState(0);
+  const [appliedCoupon, setAppliedCoupon] = useState<PromoData | null>(null);
+  const [couponPromptOpen, setCouponPromptOpen] = useState(false);
   const requiredMsg = lang === "pt" ? "Preenchimento obrigatório" : lang === "es" ? "Campo obligatorio" : "Required field";
+
+  // Autopreenchimento: nome, whatsapp, email do mini cadastro
+  useEffect(() => {
+    const p = loadPromo();
+    if (!p) return;
+    if (!name) setName(p.nome);
+    // whatsapp já vem como "+55 22 99999 9999" — extrair DDI/digits
+    if (!phone.number) {
+      const m = p.whatsapp.match(/^(\+\d+)\s*(.*)$/);
+      if (m) {
+        setPhone({ ddi: m[1], number: m[2].replace(/\D/g, "") });
+      }
+    }
+    // (email não há campo no form base; mantido em localStorage)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const tryApplyCoupon = () => {
+    const p = loadPromo();
+    if (!p) {
+      setCouponPromptOpen(true);
+      return;
+    }
+    if (p.cupomUsado) {
+      toast.error(lang === "pt" ? "Você já utilizou este cupom promocional." : "Coupon already used.");
+      return;
+    }
+    if (isExpired(p)) {
+      toast.error(lang === "pt" ? "Cupom expirado." : "Coupon expired.");
+      return;
+    }
+    setAppliedCoupon(p);
+    toast.success(`Cupom ${p.cupom} aplicado · -${p.percentualDesconto}%`);
+  };
+
+  // Cálculo de preço (quando aplicável)
+  const priceInfo = useMemo(() => {
+    if (!tourKey) return null;
+    const meta = TOUR_PRICES[tourKey];
+    const paxN = Math.max(1, parseInt(pax) || 1);
+    const halfN = (!adultsOnly && hasKids === "yes")
+      ? ages.filter((a) => { const n = parseInt(a); return n >= 6 && n <= 10; }).length
+      : 0;
+    const freeN = (!adultsOnly && hasKids === "yes")
+      ? ages.filter((a) => { const n = parseInt(a); return !isNaN(n) && n <= 5; }).length
+      : 0;
+    // Lancha: valor fixo "a partir de" (não multiplica por pax)
+    const original = meta.from
+      ? meta.value
+      : (paxN - freeN - halfN) * meta.value + halfN * (meta.value / 2);
+    const discount = appliedCoupon ? (original * appliedCoupon.percentualDesconto) / 100 : 0;
+    const final = original - discount;
+    return { original, discount, final, meta };
+  }, [tourKey, pax, hasKids, ages, adultsOnly, appliedCoupon]);
 
   const kidsN = Math.min(8, Math.max(0, parseInt(kidsCount) || 0));
 
