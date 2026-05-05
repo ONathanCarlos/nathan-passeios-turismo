@@ -470,6 +470,7 @@ export const StandardForm = ({
           </button>
         </div>
       </PageShell>
+      </div>
       <WhatsAppFab lang={lang} />
     </>
   );
