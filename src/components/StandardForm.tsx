@@ -13,6 +13,7 @@ import { WhatsAppFab } from "./WhatsAppFab";
 import { PhoneInput, PhoneValue, fullPhone } from "./PhoneInput";
 import { toast } from "sonner";
 import { TourDatePicker } from "./TourDatePicker";
+import { PromoBanner } from "./PromoBanner";
 
 import { TourKey } from "@/lib/tours";
 import { TOUR_PRICES, formatBRL, tourPriceLabel } from "@/lib/prices";
