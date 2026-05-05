@@ -184,7 +184,6 @@
   .field-error-shake {
     animation: field-shake 0.4s ease-in-out;
   }
-}
 
   /* Page transition — compositor-only (opacity + translate3d), no layout impact */
   @keyframes page-enter {
