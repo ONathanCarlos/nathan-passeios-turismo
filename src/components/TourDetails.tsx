@@ -2,8 +2,9 @@ import { Lang } from "@/lib/i18n";
 import { TourKey, getTour, sectionLabels } from "@/lib/tours";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Button } from "./ui/button";
-import { ArrowLeft, Star, Clock, MapPin, Users, Languages, Check, AlertCircle } from "lucide-react";
+import { ArrowLeft, Star, Clock, MapPin, Users, Check, AlertCircle } from "lucide-react";
 import { dict } from "@/lib/i18n";
+import { TOUR_PRICES, tourPriceLabel } from "@/lib/prices";
 
 interface Props {
   tourKey: TourKey;
