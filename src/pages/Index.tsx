@@ -67,15 +67,20 @@ const Index = () => {
   // Details screen
   if (typeof screen === "object" && "details" in screen) {
     return (
-      <PageTransition key={`details-${screen.details}`}>
-        <TourDetails
-          tourKey={screen.details}
-          lang={lang}
-          onLangChange={setLang}
-          onBack={back}
-          onBook={() => openForm(screen.details)}
-        />
-      </PageTransition>
+      <>
+        <PromoBanner lang={lang} />
+        <div className="pt-12">
+          <PageTransition key={`details-${screen.details}`}>
+            <TourDetails
+              tourKey={screen.details}
+              lang={lang}
+              onLangChange={setLang}
+              onBack={back}
+              onBook={() => openForm(screen.details)}
+            />
+          </PageTransition>
+        </div>
+      </>
     );
   }
 
