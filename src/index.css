@@ -263,6 +263,16 @@
     animation: float-soft 6s ease-in-out infinite;
     will-change: transform;
   }
+
+  /* Selo de cupom — pulso suave e elegante */
+  @keyframes coupon-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 hsl(45 95% 55% / 0.55); }
+    50%      { opacity: 0.85; transform: scale(1.04); box-shadow: 0 0 14px 2px hsl(45 95% 55% / 0.65); }
+  }
+  .coupon-blink {
+    animation: coupon-pulse 2.2s ease-in-out infinite;
+    will-change: transform, opacity, box-shadow;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
