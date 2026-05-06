@@ -219,6 +219,12 @@ export const validateSpecialCoupon = (
   return { ok: true, coupon: c };
 };
 
+/** Existe cupom comemorativo ativo HOJE? Se sim, padrão+recuperação ficam desativados. */
+export const hasHolidayActiveToday = (): boolean => {
+  const today = todayISO();
+  return SPECIAL_COUPONS.some((c) => c.onlyDate === today);
+};
+
 /** Retorna o cupom especial disponível HOJE (se houver) — para modal automático */
 export const getTodaySpecialCoupon = (promo: PromoData | null): SpecificCoupon | null => {
   const today = todayISO();
@@ -227,7 +233,8 @@ export const getTodaySpecialCoupon = (promo: PromoData | null): SpecificCoupon |
     const v = validateSpecialCoupon(c.code, { promo });
     if (v.ok) return c;
   }
-  // recuperação 72h
+  // Recuperação 72h — desativada se houver cupom comemorativo ativo hoje
+  if (hasHolidayActiveToday()) return null;
   if (promo && promo.aceitaLembretes && !promo.cupomUsado) {
     const rec = SPECIAL_COUPONS.find((c) => c.afterHoursIdle);
     if (rec) {
