@@ -111,7 +111,7 @@ const Index = () => {
       return <StandardForm tourKey="lancha" lang={lang} onLangChange={setLang} onBack={back} title={t.optLancha} backgroundImage={lanchaImg} />;
     return null;
   })();
-  if (formNode) return <PageTransition key={screen as string}>{formNode}</PageTransition>;
+  if (formNode) return <PageTransition key={screen as string}>{formNode}{admin && <AdminFab />}</PageTransition>;
 
   type Opt = { key: TourKey; image: string; title: string; desc: string; adultsOnly?: boolean };
   const ov = (k: TourKey, base: string) => adminCfg.images[k] || base;
