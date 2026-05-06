@@ -112,14 +112,19 @@ const Index = () => {
 
   type Opt = { key: TourKey; image: string; title: string; desc: string; adultsOnly?: boolean };
   const options: Opt[] = [
-    { key: "escuna", image: escunaImg, title: t.optEscuna, desc: t.descEscuna },
-    { key: "arraial", image: arraialImg, title: t.optArraial, desc: t.descArraial },
-    { key: "buggy", image: buggyImg, title: t.optBuggy, desc: t.descBuggy },
-    { key: "cabofrio", image: caboFrioImg, title: t.optCaboFrio, desc: t.descCaboFrio },
-    { key: "jardineira", image: jardineiraImg, title: t.optJardineira, desc: t.descJardineira },
-    { key: "catamara", image: catamaraImg, title: t.optCatamara, desc: t.descCatamara },
-    { key: "mergulho", image: mergulhoImg, title: t.optMergulho, desc: t.descMergulho, adultsOnly: true },
-    { key: "lancha", image: lanchaImg, title: t.optLancha, desc: t.descLancha },
+  const adminCfg = useAdminConfig();
+  const admin = isAdminMode();
+  const ov = (k: TourKey, base: string) => adminCfg.images[k] || base;
+  const od = (k: TourKey, base: string) => adminCfg.descriptions[k]?.[lang] || base;
+  const options: Opt[] = [
+    { key: "escuna",    image: ov("escuna", escunaImg),       title: t.optEscuna,    desc: od("escuna", t.descEscuna) },
+    { key: "arraial",   image: ov("arraial", arraialImg),     title: t.optArraial,   desc: od("arraial", t.descArraial) },
+    { key: "buggy",     image: ov("buggy", buggyImg),         title: t.optBuggy,     desc: od("buggy", t.descBuggy) },
+    { key: "cabofrio",  image: ov("cabofrio", caboFrioImg),   title: t.optCaboFrio,  desc: od("cabofrio", t.descCaboFrio) },
+    { key: "jardineira",image: ov("jardineira", jardineiraImg),title: t.optJardineira,desc: od("jardineira", t.descJardineira) },
+    { key: "catamara",  image: ov("catamara", catamaraImg),   title: t.optCatamara,  desc: od("catamara", t.descCatamara) },
+    { key: "mergulho",  image: ov("mergulho", mergulhoImg),   title: t.optMergulho,  desc: od("mergulho", t.descMergulho), adultsOnly: true },
+    { key: "lancha",    image: ov("lancha", lanchaImg),       title: t.optLancha,    desc: od("lancha", t.descLancha) },
   ];
 
   
