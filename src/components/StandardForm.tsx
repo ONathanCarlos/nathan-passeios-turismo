@@ -100,12 +100,13 @@ export const StandardForm = ({
   }, []);
 
   const tryApplyCoupon = () => {
+    if (!eligible) { toast.error(ineligibleMsg); return; }
     const p = loadPromo();
     if (!p) {
       setCouponPromptOpen(true);
       return;
     }
-    if (p.cupomUsado && !isTester(p)) {
+    if (p.cupomUsado && !isTester(p) && !isAdminMode()) {
       toast.error(lang === "pt" ? "Você já utilizou este cupom promocional." : "Coupon already used.");
       return;
     }
@@ -114,7 +115,29 @@ export const StandardForm = ({
       return;
     }
     setAppliedCoupon(p);
+    setAppliedSpecial(null);
     toast.success(`Cupom ${p.cupom} aplicado · -${p.percentualDesconto}%`);
+  };
+
+  const tryApplyManual = () => {
+    const code = manualCode.trim();
+    if (!code) return;
+    if (!eligible) { toast.error(ineligibleMsg); return; }
+    const p = loadPromo();
+    const v = validateSpecialCoupon(code, { promo: p, name, whatsapp: fullPhone(phone) });
+    if (!v.ok) {
+      const msg =
+        v.reason === "not_found" ? (lang === "pt" ? "Cupom inválido." : "Invalid coupon.")
+        : v.reason === "wrong_date" ? (lang === "pt" ? "Cupom indisponível nesta data." : "Coupon not available today.")
+        : v.reason === "needs_reminder" ? (lang === "pt" ? "Cupom requer aceite de lembretes promocionais." : "Coupon requires reminder opt-in.")
+        : v.reason === "needs_idle" ? (lang === "pt" ? "Cupom de recuperação ainda não disponível." : "Recovery coupon not yet available.")
+        : (lang === "pt" ? "Cupom já utilizado." : "Coupon already used.");
+      toast.error(msg);
+      return;
+    }
+    setAppliedSpecial(v.coupon!);
+    setAppliedCoupon(null); // especial substitui padrão
+    toast.success(`${v.coupon!.code} · -${v.coupon!.percent}%`);
   };
 
   // Cálculo de preço (quando aplicável)
