@@ -108,6 +108,11 @@ export const loadPromo = (): PromoData | null => {
       p.cupom = p.cupom.replace(/^NAT-/i, "NAT").toUpperCase();
       localStorage.setItem(PROMO_KEY, JSON.stringify(p));
     }
+    // Limpeza pontual de cupom de teste já enviado
+    if (p && p.cupom?.toUpperCase() === "NAT8523") {
+      localStorage.removeItem(PROMO_KEY);
+      return null;
+    }
     return p;
   } catch { return null; }
 };
