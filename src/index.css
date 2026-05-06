@@ -287,3 +287,15 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Fundo estático ondulatório — gradiente azul-turquesa → azul escuro profundo */
+.ocean-static-bg {
+  background-color: hsl(210 80% 8%);
+  background-image:
+    radial-gradient(ellipse 120% 60% at 50% 0%, hsl(180 75% 45% / 0.55) 0%, transparent 60%),
+    radial-gradient(ellipse 100% 55% at 20% 35%, hsl(190 80% 50% / 0.35) 0%, transparent 65%),
+    radial-gradient(ellipse 110% 55% at 80% 65%, hsl(200 85% 40% / 0.40) 0%, transparent 65%),
+    repeating-radial-gradient(circle at 50% 120%, hsl(185 70% 50% / 0.10) 0 22px, transparent 22px 60px),
+    linear-gradient(180deg, hsl(190 75% 35%) 0%, hsl(205 80% 18%) 45%, hsl(215 85% 10%) 100%);
+  background-attachment: fixed;
+}
