@@ -41,6 +41,8 @@ const Index = () => {
   const [lang, setLang] = useState<Lang>("pt");
   const [screen, setScreen] = useState<Screen>("menu");
   const t = dict[lang];
+  const adminCfg = useAdminConfig();
+  const admin = isAdminMode();
 
   // Browser/Android back-button support via history API
   useEffect(() => {
