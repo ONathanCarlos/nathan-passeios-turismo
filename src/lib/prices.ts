@@ -8,7 +8,7 @@ export const TOUR_PRICES: Record<TourKey, { value: number; from?: boolean; note?
   cabofrio:   { value: 220 },
   buggy:      { value: 120 },
   jardineira: { value: 100 },
-  catamara:   { value: 220 },
+  catamara:   { value: 130 },
   mergulho:   { value: 220 },
   lancha: {
     value: 1300,

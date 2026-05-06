@@ -99,8 +99,19 @@ export const PhoneInput = ({ value, onChange, inputClassName }: Props) => {
         value={value.ddi}
         onValueChange={(ddi) => onChange({ ...value, ddi })}
       >
-        <SelectTrigger className={`${inputClassName ?? ""} w-[7.5rem] flex-shrink-0`}>
-          <SelectValue />
+        <SelectTrigger className={`${inputClassName ?? ""} w-[9.5rem] sm:w-[10.5rem] flex-shrink-0`}>
+          <SelectValue>
+            {(() => {
+              const c = COUNTRIES.find((x) => x.code === value.ddi);
+              return c ? (
+                <span className="flex items-center gap-1.5">
+                  <span>{c.flag}</span>
+                  <span className="font-mono text-sm">{c.code}</span>
+                  <span className="text-muted-foreground text-[10px] uppercase">{c.name.slice(0, 6)}</span>
+                </span>
+              ) : value.ddi;
+            })()}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent className="bg-card border-turquoise/30 max-h-72">
           {COUNTRIES.map((c) => (
@@ -119,8 +130,9 @@ export const PhoneInput = ({ value, onChange, inputClassName }: Props) => {
         }
         type="tel"
         inputMode="numeric"
-        placeholder="22 998 216 796"
-        className={`${inputClassName ?? ""} flex-1`}
+        pattern="[0-9 ]*"
+        placeholder="DDD + seu telefone"
+        className={`${inputClassName ?? ""} flex-1 min-w-0`}
       />
     </div>
   );
