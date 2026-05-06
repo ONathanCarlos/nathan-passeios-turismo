@@ -340,38 +340,70 @@ export const StandardForm = ({
 
         {/* Preço + Aplicar Cupom */}
         {tourKey && (
-          <div className="mb-5 glass-card rounded-2xl p-4 flex items-center justify-between gap-3">
-            <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                {appliedCoupon ? (lang === "pt" ? "Com desconto" : "With discount") : (lang === "pt" ? "Valor" : "Price")}
-              </div>
-              {appliedCoupon && priceInfo ? (
-                <>
-                  <div className="text-xs text-muted-foreground line-through">{formatBRL(priceInfo.original)}</div>
-                  <div className="text-2xl font-extrabold bg-gradient-to-r from-emerald-300 to-turquoise-glow bg-clip-text text-transparent">
-                    {formatBRL(priceInfo.final)}
-                  </div>
-                  <div className="text-[11px] text-emerald-300 font-semibold">
-                    {appliedCoupon.cupom} · -{appliedCoupon.percentualDesconto}%
-                  </div>
-                </>
-              ) : (
-                <div className="text-2xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent">
-                  {tourPriceLabel(tourKey, lang)}
+          <div className="mb-5 glass-card rounded-2xl p-4 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  {effectiveCoupon ? (lang === "pt" ? "Com desconto" : "With discount") : (lang === "pt" ? "Valor" : "Price")}
                 </div>
+                {effectiveCoupon && priceInfo ? (
+                  <>
+                    <div className="text-xs text-muted-foreground line-through">{formatBRL(priceInfo.original)}</div>
+                    <div className="text-2xl font-extrabold bg-gradient-to-r from-emerald-300 to-turquoise-glow bg-clip-text text-transparent">
+                      {formatBRL(priceInfo.final)}
+                    </div>
+                    <div className="text-[11px] text-emerald-300 font-semibold">
+                      {effectiveCoupon.code} · -{effectiveCoupon.percent}%
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-2xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent">
+                    {tourPriceLabel(tourKey, lang)}
+                  </div>
+                )}
+              </div>
+              {eligible && !effectiveCoupon && (
+                <button
+                  type="button"
+                  onClick={tryApplyCoupon}
+                  className="rgb-border shrink-0"
+                >
+                  <span className="flex items-center gap-1.5 rounded-[0.55rem] bg-gradient-to-r from-turquoise to-turquoise-glow text-night font-bold text-xs px-3 py-2">
+                    <Tag className="h-3.5 w-3.5" />
+                    {lang === "pt" ? "Aplicar Cupom" : "Apply Coupon"}
+                  </span>
+                </button>
               )}
             </div>
-            {!appliedCoupon && (
-              <button
-                type="button"
-                onClick={tryApplyCoupon}
-                className="rgb-border shrink-0"
-              >
-                <span className="flex items-center gap-1.5 rounded-[0.55rem] bg-gradient-to-r from-turquoise to-turquoise-glow text-night font-bold text-xs px-3 py-2">
-                  <Tag className="h-3.5 w-3.5" />
-                  {lang === "pt" ? "Aplicar Cupom" : "Apply Coupon"}
-                </span>
-              </button>
+
+            {eligible ? (
+              <div className="flex gap-2">
+                <Input
+                  value={effectiveCoupon ? effectiveCoupon.code : manualCode}
+                  onChange={(e) => setManualCode(e.target.value.toUpperCase())}
+                  disabled={!!effectiveCoupon}
+                  placeholder={lang === "pt" ? "Digite seu cupom" : "Enter your coupon"}
+                  className={`${fieldClass} h-10 text-sm uppercase tracking-wider`}
+                />
+                {!effectiveCoupon && (
+                  <Button
+                    type="button"
+                    onClick={tryApplyManual}
+                    className="h-10 bg-turquoise/20 border border-turquoise/40 text-foreground hover:bg-turquoise/30"
+                  >
+                    {lang === "pt" ? "Aplicar" : "Apply"}
+                  </Button>
+                )}
+                {effectiveCoupon && (
+                  <div className="flex items-center px-2 text-emerald-300">
+                    <Lock className="h-4 w-4" />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-[11px] text-amber-200/80 italic">
+                {ineligibleMsg}
+              </p>
             )}
           </div>
         )}
