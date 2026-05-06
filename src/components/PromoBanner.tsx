@@ -255,6 +255,11 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
               </button>
             </>
           )}
+          {admin && (
+            <span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-amber-300 bg-amber-500/15 border border-amber-400/40 rounded px-1.5 py-0.5 shrink-0">
+              ADMIN
+            </span>
+          )}
         </div>
       </div>
 
@@ -271,6 +276,39 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
           onPromoCreated?.(p);
         }}
       />
+
+      {/* Modal de cupom especial */}
+      <Dialog open={specialOpen} onOpenChange={setSpecialOpen}>
+        <DialogContent className="bg-card border-amber-400/40 max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-amber-300" />
+              {lang === "pt" ? "Hoje é dia especial 🎉" : "Today is a special day 🎉"}
+            </DialogTitle>
+            <DialogDescription>{special?.message}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="text-center py-3 rounded-xl bg-gradient-to-r from-amber-500/15 to-turquoise/15 border border-amber-400/30">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{lang === "pt" ? "Código" : "Code"}</div>
+              <div className="text-2xl font-extrabold text-amber-200 font-mono tracking-wider">{special?.code}</div>
+              <div className="text-sm text-emerald-300 font-semibold">-{special?.percent}%</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                if (special) navigator.clipboard?.writeText(special.code).catch(() => {});
+                toast.success(lang === "pt" ? "Cupom copiado!" : "Coupon copied!");
+                setSpecialOpen(false);
+              }}
+              className="rgb-border w-full block"
+            >
+              <span className="flex items-center justify-center w-full h-12 rounded-[0.6rem] bg-gradient-to-r from-amber-400 to-turquoise-glow text-night font-bold text-sm">
+                {lang === "pt" ? "Resgate seu cupom agora!" : "Claim your coupon now!"}
+              </span>
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
