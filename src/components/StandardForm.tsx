@@ -155,10 +155,10 @@ export const StandardForm = ({
     const original = meta.from
       ? meta.value
       : (paxN - freeN - halfN) * meta.value + halfN * (meta.value / 2);
-    const discount = appliedCoupon ? (original * appliedCoupon.percentualDesconto) / 100 : 0;
+    const discount = effectiveCoupon ? (original * effectiveCoupon.percent) / 100 : 0;
     const final = original - discount;
     return { original, discount, final, meta };
-  }, [tourKey, pax, hasKids, ages, adultsOnly, appliedCoupon]);
+  }, [tourKey, pax, hasKids, ages, adultsOnly, effectiveCoupon]);
 
   const kidsN = Math.min(8, Math.max(0, parseInt(kidsCount) || 0));
 
