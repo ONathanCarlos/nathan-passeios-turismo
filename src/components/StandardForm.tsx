@@ -101,6 +101,12 @@ export const StandardForm = ({
 
   const tryApplyCoupon = () => {
     if (!eligible) { toast.error(ineligibleMsg); return; }
+    if (hasHolidayActiveToday() && !isAdminMode()) {
+      toast.error(lang === "pt"
+        ? "Hoje vale apenas o cupom comemorativo. Use o código do dia."
+        : "Today only the holiday coupon is valid. Use the day's code.");
+      return;
+    }
     const p = loadPromo();
     if (!p) {
       setCouponPromptOpen(true);
