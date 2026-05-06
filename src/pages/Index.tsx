@@ -111,7 +111,6 @@ const Index = () => {
   if (formNode) return <PageTransition key={screen as string}>{formNode}</PageTransition>;
 
   type Opt = { key: TourKey; image: string; title: string; desc: string; adultsOnly?: boolean };
-  const options: Opt[] = [
   const adminCfg = useAdminConfig();
   const admin = isAdminMode();
   const ov = (k: TourKey, base: string) => adminCfg.images[k] || base;
