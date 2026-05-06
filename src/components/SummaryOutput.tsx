@@ -26,7 +26,7 @@ const HEADER: Record<Lang, { ready: string; instr: string; send: string; back: s
   it: { ready: "Prenotazione Pronta!", instr: "Clicca sul pulsante qui sotto per inviare la tua prenotazione direttamente via WhatsApp. Risponderemo a breve!", send: "Invia la tua Prenotazione", back: "Torna al Tour", tour: "Tour" },
 };
 
-export const SummaryOutput = ({ text, lang, onReset, rows, tourTitle }: Props) => {
+export const SummaryOutput = ({ text, lang, onReset, rows, tourTitle, onSend }: Props) => {
   const h = HEADER[lang];
   const waUrl = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
 
