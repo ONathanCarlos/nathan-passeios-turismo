@@ -14,7 +14,7 @@ import { COUPON_ELIGIBLE, tourPriceLabel } from "@/lib/prices";
 import { isAdminMode } from "@/lib/promo";
 import { AdminFab } from "@/components/AdminPanel";
 import { useAdminConfig } from "@/lib/adminConfig";
-import { BackgroundVideo } from "@/components/BackgroundVideo";
+
 import nathanProfile from "@/assets/nathan-profile.jpg";
 import arraialImg from "@/assets/arraial-do-cabo.jpg";
 import escunaImg from "@/assets/escuna.jpg";
