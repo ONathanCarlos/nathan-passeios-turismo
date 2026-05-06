@@ -46,7 +46,7 @@ export interface SpecificCoupon {
   message?: string;
 }
 
-export const SPECIAL_COUPONS: SpecificCoupon[] = [
+const BUILTIN_SPECIAL: SpecificCoupon[] = [
   { code: "TODEVOLTA12",   percent: 12, afterHoursIdle: 72, requiresReminder: true,
     message: "Sentimos sua falta! Volte com 12% de desconto especial." },
   { code: "TOURDASMAES12", percent: 12, onlyDate: "2026-05-10",
@@ -58,6 +58,43 @@ export const SPECIAL_COUPONS: SpecificCoupon[] = [
   { code: "INDEPENDENCIA12", percent: 12, onlyDate: "2026-09-07",
     message: "7 de Setembro! Comemore com 12% de desconto 🇧🇷" },
 ];
+
+/** SPECIAL_COUPONS efetivos (mescla builtins + admin overrides por code) */
+export const getSpecialCoupons = (): SpecificCoupon[] => {
+  const cfg = loadAdminConfig();
+  const overridesByCode = new Map(cfg.specials.map((s) => [s.code.toUpperCase(), s]));
+  const merged: SpecificCoupon[] = [];
+  for (const b of BUILTIN_SPECIAL) {
+    const ov = overridesByCode.get(b.code.toUpperCase());
+    if (ov) {
+      if (ov.enabled === false) { overridesByCode.delete(b.code.toUpperCase()); continue; }
+      merged.push({ ...b, ...ov });
+      overridesByCode.delete(b.code.toUpperCase());
+    } else merged.push(b);
+  }
+  // adiciona novos do admin
+  for (const ov of overridesByCode.values()) {
+    if (ov.enabled === false) continue;
+    merged.push(ov);
+  }
+  // ajusta percent recovery via admin
+  const recPct = cfg.coupon.recoveryPercent;
+  const recHrs = cfg.coupon.recoveryAfterHours;
+  return merged.map((c) => {
+    if (c.afterHoursIdle != null) {
+      return { ...c,
+        percent: recPct ?? c.percent,
+        afterHoursIdle: recHrs ?? c.afterHoursIdle };
+    }
+    if (c.onlyDate && cfg.coupon.holidayPercent != null) {
+      return { ...c, percent: cfg.coupon.holidayPercent };
+    }
+    return c;
+  });
+};
+
+/** @deprecated use getSpecialCoupons() — mantido para compat */
+export const SPECIAL_COUPONS: SpecificCoupon[] = BUILTIN_SPECIAL;
 
 // ---------- Persistência ----------
 export const loadPromo = (): PromoData | null => {
