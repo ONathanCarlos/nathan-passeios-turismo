@@ -12,6 +12,7 @@ import {
   SpecificCoupon,
   isAdminMode,
   hasHolidayActiveToday,
+  isWelcomeBlockedForPhone,
 } from "@/lib/promo";
 import {
   Dialog,
