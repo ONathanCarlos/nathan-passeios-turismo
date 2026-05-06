@@ -13,6 +13,7 @@ interface Props {
   onReset: () => void;
   rows: SummaryRow[];
   tourTitle: string;
+  onSend?: () => void;
 }
 
 const WA_NUMBER = "5522998216796";
