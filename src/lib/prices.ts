@@ -24,6 +24,17 @@ const BASE_TOUR_PRICES: Record<TourKey, { value: number; from?: boolean; note?: 
   },
 };
 
+/** TOUR_PRICES com sobreposições do admin (preços alteráveis localmente) */
+export const TOUR_PRICES: Record<TourKey, { value: number; from?: boolean; note?: Record<Lang, string> }> =
+  new Proxy(BASE_TOUR_PRICES, {
+    get(target, prop: string) {
+      const base = (target as any)[prop];
+      if (!base) return base;
+      const override = loadAdminConfig().prices[prop as TourKey];
+      return override != null ? { ...base, value: override } : base;
+    },
+  }) as any;
+
 const FROM: Record<Lang, string> = {
   pt: "A partir de", es: "A partir de", en: "From", fr: "À partir de", it: "A partire da",
 };
@@ -38,3 +49,4 @@ export const tourPriceLabel = (key: TourKey, lang: Lang): string => {
 
 /** Cards com cupom aplicável */
 export const COUPON_ELIGIBLE: Set<TourKey> = new Set(["escuna", "arraial", "buggy", "cabofrio", "catamara"]);
+
