@@ -54,7 +54,14 @@ export const SPECIAL_COUPONS: SpecificCoupon[] = [
 export const loadPromo = (): PromoData | null => {
   try {
     const raw = localStorage.getItem(PROMO_KEY);
-    return raw ? (JSON.parse(raw) as PromoData) : null;
+    if (!raw) return null;
+    const p = JSON.parse(raw) as PromoData;
+    // Migração: remove traço de cupons antigos NAT-XXXX → NATXXXX
+    if (p && typeof p.cupom === "string" && p.cupom.includes("-")) {
+      p.cupom = p.cupom.replace(/^NAT-/i, "NAT").toUpperCase();
+      localStorage.setItem(PROMO_KEY, JSON.stringify(p));
+    }
+    return p;
   } catch { return null; }
 };
 
