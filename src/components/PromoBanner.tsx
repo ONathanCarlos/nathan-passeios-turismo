@@ -220,13 +220,32 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
   // Hide banner se cupom usado/expirado
   const expired = promo ? isExpired(promo) : false;
   const used = promo?.cupomUsado ?? false;
+  const holidayActive = hasHolidayActiveToday();
 
   return (
     <>
       {/* BANNER FIXO TOPO */}
       <div className="fixed top-0 left-0 right-0 z-40 px-3 py-2 bg-gradient-to-r from-night via-deep-blue to-night border-b border-turquoise/30 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.6)] backdrop-blur-md">
         <div className="mx-auto max-w-6xl flex items-center justify-between gap-3">
-          {promo && !expired && !used ? (
+          {holidayActive && special ? (
+            <>
+              <div className="flex items-center gap-2 min-w-0">
+                <Sparkles className="h-4 w-4 text-amber-300 shrink-0" />
+                <span className="text-[12px] sm:text-sm font-semibold text-foreground truncate">
+                  {special.message}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSpecialOpen(true)}
+                className="rgb-border shrink-0"
+              >
+                <span className="block rounded-[0.55rem] bg-gradient-to-r from-amber-400 to-turquoise-glow text-night font-bold text-[11px] sm:text-xs px-3 py-1.5">
+                  {special.code} · -{special.percent}%
+                </span>
+              </button>
+            </>
+          ) : promo && !expired && !used && !holidayActive ? (
             <>
               <div className="flex-1 min-w-0">
                 <div className="text-[12px] sm:text-sm font-semibold text-foreground truncate">
@@ -237,7 +256,7 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
                 </div>
               </div>
             </>
-          ) : (
+          ) : !holidayActive ? (
             <>
               <div className="flex items-center gap-2 min-w-0">
                 <Gift className="h-4 w-4 text-turquoise-glow shrink-0" />
@@ -255,6 +274,8 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
                 </span>
               </button>
             </>
+          ) : (
+            <div className="flex-1" />
           )}
           {admin && (
             <span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-amber-300 bg-amber-500/15 border border-amber-400/40 rounded px-1.5 py-0.5 shrink-0">
