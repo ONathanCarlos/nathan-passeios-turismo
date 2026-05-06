@@ -1,7 +1,7 @@
 import * as React from "react";
 import { format } from "date-fns";
 import { ptBR, es, enUS, fr, it } from "date-fns/locale";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -9,6 +9,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Lang, dict } from "@/lib/i18n";
 
 const locales: Record<Lang, typeof ptBR> = { pt: ptBR, es, en: enUS, fr, it };
+
+const CONFIRM: Record<Lang, string> = {
+  pt: "Confirmar Data", es: "Confirmar Fecha", en: "Confirm Date",
+  fr: "Confirmer la Date", it: "Conferma Data",
+};
 
 interface Props {
   lang: Lang;
@@ -19,11 +24,15 @@ interface Props {
 
 export const TourDatePicker = ({ lang, value, onChange, error }: Props) => {
   const t = dict[lang];
+  const [open, setOpen] = React.useState(false);
+  const [draft, setDraft] = React.useState<Date | undefined>(value);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  React.useEffect(() => { if (open) setDraft(value); }, [open, value]);
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           type="button"
@@ -41,13 +50,23 @@ export const TourDatePicker = ({ lang, value, onChange, error }: Props) => {
       <PopoverContent className="w-auto p-0 bg-card border-turquoise/30" align="start">
         <Calendar
           mode="single"
-          selected={value}
-          onSelect={onChange}
+          selected={draft}
+          onSelect={setDraft}
           locale={locales[lang]}
           disabled={(d) => d < today}
           initialFocus
           className={cn("p-3 pointer-events-auto")}
         />
+        <div className="p-2 border-t border-turquoise/20">
+          <Button
+            type="button"
+            disabled={!draft}
+            onClick={() => { onChange(draft); setOpen(false); }}
+            className="w-full h-10 bg-gradient-to-r from-turquoise to-turquoise-glow text-night font-bold hover:opacity-90"
+          >
+            <Check className="h-4 w-4 mr-1" /> {CONFIRM[lang]}
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
   );
