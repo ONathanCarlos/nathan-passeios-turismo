@@ -49,6 +49,10 @@ const fileToDataUrl = (file: File): Promise<string> =>
 export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) => {
   const cfg = useAdminConfig();
   const update = (patch: Partial<AdminConfig>) => saveAdminConfig({ ...loadAdminConfig(), ...patch });
+  const [blockedPhones, setBlockedPhones] = useState<string[]>(() => getBlockedWelcomePhones());
+  const [phoneInput, setPhoneInput] = useState("");
+  const refreshBlocked = () => setBlockedPhones(getBlockedWelcomePhones());
+  const activePromo = loadPromo();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
