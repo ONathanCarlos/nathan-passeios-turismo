@@ -11,6 +11,7 @@ import {
   getTodaySpecialCoupon,
   SpecificCoupon,
   isAdminMode,
+  hasHolidayActiveToday,
 } from "@/lib/promo";
 import {
   Dialog,
