@@ -21,7 +21,10 @@ import { dict } from "@/lib/i18n";
 import {
   AdminConfig, loadAdminConfig, saveAdminConfig, useAdminConfig,
 } from "@/lib/adminConfig";
-import { disableAdminMode } from "@/lib/promo";
+import {
+  disableAdminMode, blockWelcomeForPhone, unblockWelcomeForPhone,
+  getBlockedWelcomePhones, clearPromo, loadPromo,
+} from "@/lib/promo";
 
 const TOUR_KEYS: { key: TourKey; label: string }[] = [
   { key: "escuna", label: "Escuna" },
