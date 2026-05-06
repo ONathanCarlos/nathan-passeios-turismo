@@ -368,7 +368,7 @@ export const StandardForm = ({
                   </div>
                 )}
               </div>
-              {eligible && !effectiveCoupon && (
+              {eligible && !effectiveCoupon && !hasHolidayActiveToday() && (
                 <button
                   type="button"
                   onClick={tryApplyCoupon}
