@@ -1,8 +1,9 @@
 import { TourKey } from "./tours";
 import { Lang } from "./i18n";
+import { loadAdminConfig } from "./adminConfig";
 
 /** Preços base por passageiro (BRL). Lancha é especial: "A partir de". */
-export const TOUR_PRICES: Record<TourKey, { value: number; from?: boolean; note?: Record<Lang, string> }> = {
+const BASE_TOUR_PRICES: Record<TourKey, { value: number; from?: boolean; note?: Record<Lang, string> }> = {
   escuna:     { value: 80 },
   arraial:    { value: 220 },
   cabofrio:   { value: 220 },
