@@ -7,13 +7,14 @@ interface Props {
 }
 
 /**
- * Vídeo de fundo com técnica "blur fill" no mobile:
- * - Camada de fundo: cópia do vídeo, esticada e desfocada (preenche bordas).
- * - Camada principal: vídeo original sem distorção (object-contain), centralizado.
- * Desktop usa simples object-cover (sem blur fill).
+ * Vídeo de fundo:
+ * - Desktop: object-cover ocupando a tela.
+ * - Mobile: vídeo vertical (9:16) repetido verticalmente preenchendo toda a
+ *   altura da página, mantendo resolução, proporção e qualidade originais.
+ *   Sem blur, sem deformação, sem redimensionamento forçado.
  */
 export const BackgroundVideo = ({ desktopSrc, mobileSrc }: Props) => {
-  const cfg = useAdminConfig();
+  useAdminConfig();
   const desktop = adminGetVideo("desktop", desktopSrc);
   const mobile = adminGetVideo("mobile", mobileSrc || desktopSrc);
 
@@ -27,39 +28,72 @@ export const BackgroundVideo = ({ desktopSrc, mobileSrc }: Props) => {
     return () => mq.removeEventListener?.("change", fn);
   }, []);
 
-  const mainRef = useRef<HTMLVideoElement>(null);
-  const bgRef = useRef<HTMLVideoElement>(null);
+  const [tiles, setTiles] = useState(3);
+  const refs = useRef<HTMLVideoElement[]>([]);
 
-  // Mantém os dois vídeos sincronizados (mobile)
+  // Calcula quantas repetições verticais precisamos para cobrir a página inteira
   useEffect(() => {
     if (!isMobile) return;
-    const a = mainRef.current, b = bgRef.current;
-    if (!a || !b) return;
-    const sync = () => { try { b.currentTime = a.currentTime; } catch {} };
-    a.addEventListener("timeupdate", sync);
-    return () => a.removeEventListener("timeupdate", sync);
+    const compute = () => {
+      const vw = window.innerWidth;
+      const tileH = (vw * 16) / 9; // proporção 9:16 mantida
+      const pageH = Math.max(
+        document.documentElement.scrollHeight,
+        document.body?.scrollHeight || 0,
+        window.innerHeight
+      );
+      setTiles(Math.max(1, Math.ceil(pageH / tileH) + 1));
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    const ro = new ResizeObserver(compute);
+    ro.observe(document.body);
+    return () => {
+      window.removeEventListener("resize", compute);
+      ro.disconnect();
+    };
   }, [isMobile, mobile]);
+
+  // Sincroniza todos os tiles para continuidade visual
+  useEffect(() => {
+    if (!isMobile) return;
+    const master = refs.current[0];
+    if (!master) return;
+    const sync = () => {
+      for (let i = 1; i < refs.current.length; i++) {
+        const v = refs.current[i];
+        if (!v) continue;
+        if (Math.abs(v.currentTime - master.currentTime) > 0.08) {
+          try { v.currentTime = master.currentTime; } catch {}
+        }
+      }
+    };
+    master.addEventListener("timeupdate", sync);
+    return () => master.removeEventListener("timeupdate", sync);
+  }, [isMobile, tiles, mobile]);
 
   if (isMobile) {
     return (
-      <>
-        {/* Camada de blur fill (preenche bordas) */}
-        <video
-          ref={bgRef}
-          key={"bg-" + mobile}
-          className="pointer-events-none fixed inset-0 z-0 w-full h-full object-cover scale-110 blur-2xl brightness-75"
-          src={mobile}
-          autoPlay loop muted playsInline preload="auto" aria-hidden="true"
-        />
-        {/* Vídeo principal sem deformação */}
-        <video
-          ref={mainRef}
-          key={"main-" + mobile}
-          className="pointer-events-none fixed inset-0 z-0 w-full h-full object-contain"
-          src={mobile}
-          autoPlay loop muted playsInline preload="auto" aria-hidden="true"
-        />
-      </>
+      <div
+        className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
+        aria-hidden="true"
+      >
+        <div className="absolute inset-x-0 top-0 flex flex-col">
+          {Array.from({ length: tiles }).map((_, i) => (
+            <video
+              key={`m-${i}-${mobile}`}
+              ref={(el) => { if (el) refs.current[i] = el; }}
+              className="block w-full h-auto"
+              src={mobile}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="auto"
+            />
+          ))}
+        </div>
+      </div>
     );
   }
 
