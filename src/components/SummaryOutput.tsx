@@ -13,6 +13,7 @@ interface Props {
   onReset: () => void;
   rows: SummaryRow[];
   tourTitle: string;
+  onSend?: () => void;
 }
 
 const WA_NUMBER = "5522998216796";
@@ -25,7 +26,7 @@ const HEADER: Record<Lang, { ready: string; instr: string; send: string; back: s
   it: { ready: "Prenotazione Pronta!", instr: "Clicca sul pulsante qui sotto per inviare la tua prenotazione direttamente via WhatsApp. Risponderemo a breve!", send: "Invia la tua Prenotazione", back: "Torna al Tour", tour: "Tour" },
 };
 
-export const SummaryOutput = ({ text, lang, onReset, rows, tourTitle }: Props) => {
+export const SummaryOutput = ({ text, lang, onReset, rows, tourTitle, onSend }: Props) => {
   const h = HEADER[lang];
   const waUrl = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
 
@@ -55,6 +56,7 @@ export const SummaryOutput = ({ text, lang, onReset, rows, tourTitle }: Props) =
         href={waUrl}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => onSend?.()}
         className="block w-full rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 text-white font-bold text-base h-14 flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(16,185,129,0.55)] hover:opacity-95"
       >
         <svg viewBox="0 0 32 32" className="w-5 h-5 fill-white" aria-hidden="true">

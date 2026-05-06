@@ -6,6 +6,7 @@ import { loadAdminConfig } from "./adminConfig";
 export const PROMO_KEY = "nathan_promo_v1";
 export const SPECIAL_USED_KEY = "nathan_special_used_v1";
 export const ADMIN_KEY = "nathan_admin_v1";
+export const WELCOME_BLOCKED_KEY = "nathan_welcome_blocked_v1";
 export const PROMO_DISCOUNT_DEFAULT = 10;
 export const PROMO_VALIDITY_DAYS_DEFAULT = 3;
 export const PROMO_DISCOUNT = PROMO_DISCOUNT_DEFAULT;
@@ -107,6 +108,11 @@ export const loadPromo = (): PromoData | null => {
       p.cupom = p.cupom.replace(/^NAT-/i, "NAT").toUpperCase();
       localStorage.setItem(PROMO_KEY, JSON.stringify(p));
     }
+    // Limpeza pontual de cupom de teste já enviado
+    if (p && p.cupom?.toUpperCase() === "NAT8523") {
+      localStorage.removeItem(PROMO_KEY);
+      return null;
+    }
     return p;
   } catch { return null; }
 };
@@ -187,12 +193,44 @@ export const isAdminMode = (): boolean => {
 export const enableAdminMode = () => localStorage.setItem(ADMIN_KEY, "1");
 export const disableAdminMode = () => localStorage.removeItem(ADMIN_KEY);
 
+// ---------- Bloqueio definitivo do cupom de boas-vindas por telefone ----------
+const loadWelcomeBlocked = (): string[] => {
+  try { return JSON.parse(localStorage.getItem(WELCOME_BLOCKED_KEY) || "[]"); }
+  catch { return []; }
+};
+const saveWelcomeBlocked = (list: string[]) =>
+  localStorage.setItem(WELCOME_BLOCKED_KEY, JSON.stringify(list));
+
+export const blockWelcomeForPhone = (whatsapp: string) => {
+  const d = onlyDigits(whatsapp);
+  if (!d) return;
+  const list = loadWelcomeBlocked();
+  if (!list.includes(d)) { list.push(d); saveWelcomeBlocked(list); }
+};
+
+export const unblockWelcomeForPhone = (whatsapp: string) => {
+  const d = onlyDigits(whatsapp);
+  if (!d) return;
+  saveWelcomeBlocked(loadWelcomeBlocked().filter((x) => x !== d));
+};
+
+export const isWelcomeBlockedForPhone = (whatsapp: string): boolean => {
+  const d = onlyDigits(whatsapp);
+  if (!d) return false;
+  return loadWelcomeBlocked().includes(d);
+};
+
+export const getBlockedWelcomePhones = (): string[] => loadWelcomeBlocked();
+
 // ---------- Marcar cupom usado ----------
 export const markCouponUsed = () => {
   const p = loadPromo();
   if (!p) return;
   if (isTester(p) || isAdminMode()) return;
   savePromo({ ...p, cupomUsado: true });
+  blockWelcomeForPhone(p.whatsapp);
+  // remove o cupom ativo do site para este cliente
+  clearPromo();
 };
 
 export const isWelcomeCouponEnabled = () => getWelcomeEnabled();
