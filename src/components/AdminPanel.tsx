@@ -237,6 +237,89 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
               </div>
             </div>
 
+            {/* Cupom ativo no navegador + bloqueio por WhatsApp */}
+            <div className="glass-card rounded-xl p-3 space-y-3">
+              <h4 className="text-sm font-bold text-turquoise-glow">Cupom ativo / Bloqueios</h4>
+              {activePromo ? (
+                <div className="flex items-center justify-between gap-2 bg-night/40 rounded-md p-2">
+                  <div className="text-xs">
+                    <div className="font-bold text-foreground">{activePromo.cupom}</div>
+                    <div className="text-muted-foreground">{activePromo.nome} · {activePromo.whatsapp}</div>
+                  </div>
+                  <Button size="sm" variant="ghost" className="text-rose-300 hover:text-rose-200"
+                    onClick={() => {
+                      blockWelcomeForPhone(activePromo.whatsapp);
+                      clearPromo();
+                      refreshBlocked();
+                      toast.success(`Cupom ${activePromo.cupom} removido e bloqueado`);
+                    }}>
+                    <Trash2 className="h-3 w-3 mr-1" /> Remover
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">Nenhum cupom de boas-vindas ativo neste navegador.</p>
+              )}
+
+              <div>
+                <Label className="text-xs">Adicionar / Remover cupom por WhatsApp ou código</Label>
+                <div className="flex gap-2 mt-1">
+                  <Input
+                    placeholder="Ex.: +5522998216796 ou NAT8523"
+                    className="bg-night/70 border-turquoise/40 flex-1"
+                    value={phoneInput}
+                    onChange={(e) => setPhoneInput(e.target.value)}
+                  />
+                  <Button size="sm" variant="outline" className="border-turquoise/40"
+                    onClick={() => {
+                      const v = phoneInput.trim();
+                      if (!v) return;
+                      const ap = loadPromo();
+                      if (ap && ap.cupom.toUpperCase() === v.toUpperCase()) {
+                        blockWelcomeForPhone(ap.whatsapp);
+                        clearPromo();
+                        refreshBlocked();
+                        toast.success(`Cupom ${ap.cupom} removido e WhatsApp bloqueado`);
+                      } else {
+                        blockWelcomeForPhone(v);
+                        refreshBlocked();
+                        toast.success("WhatsApp bloqueado para boas-vindas");
+                      }
+                      setPhoneInput("");
+                    }}>
+                    <Plus className="h-3 w-3 mr-1" /> Bloquear
+                  </Button>
+                  <Button size="sm" variant="ghost" className="text-rose-300"
+                    onClick={() => {
+                      const v = phoneInput.trim();
+                      if (!v) return;
+                      unblockWelcomeForPhone(v);
+                      refreshBlocked();
+                      toast.success("WhatsApp desbloqueado");
+                      setPhoneInput("");
+                    }}>
+                    <Trash2 className="h-3 w-3 mr-1" /> Desbloquear
+                  </Button>
+                </div>
+              </div>
+
+              {blockedPhones.length > 0 && (
+                <div className="space-y-1">
+                  <Label className="text-xs">Bloqueados ({blockedPhones.length})</Label>
+                  <div className="flex flex-wrap gap-1">
+                    {blockedPhones.map((p) => (
+                      <span key={p} className="inline-flex items-center gap-1 text-[11px] bg-night/60 border border-turquoise/30 rounded-md px-2 py-0.5">
+                        {p}
+                        <button type="button" className="text-rose-300 hover:text-rose-200"
+                          onClick={() => { unblockWelcomeForPhone(p); refreshBlocked(); }}>
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="glass-card rounded-xl p-3 space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-bold text-turquoise-glow">Recuperação (TODEVOLTA12)</h4>
