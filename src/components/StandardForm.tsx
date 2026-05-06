@@ -16,9 +16,12 @@ import { TourDatePicker } from "./TourDatePicker";
 import { PromoBanner } from "./PromoBanner";
 
 import { TourKey } from "@/lib/tours";
-import { TOUR_PRICES, formatBRL, tourPriceLabel } from "@/lib/prices";
-import { isExpired, isTester, loadPromo, markCouponUsed, PromoData } from "@/lib/promo";
-import { Tag } from "lucide-react";
+import { TOUR_PRICES, formatBRL, tourPriceLabel, COUPON_ELIGIBLE } from "@/lib/prices";
+import {
+  isExpired, isTester, isAdminMode, loadPromo, markCouponUsed, PromoData,
+  validateSpecialCoupon, markSpecialUsed, SpecificCoupon,
+} from "@/lib/promo";
+import { Tag, Lock } from "lucide-react";
 
 type Payment = "cash" | "debit" | "credit" | "pix";
 
@@ -64,8 +67,21 @@ export const StandardForm = ({
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [shake, setShake] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState<PromoData | null>(null);
+  const [appliedSpecial, setAppliedSpecial] = useState<SpecificCoupon | null>(null);
+  const [manualCode, setManualCode] = useState("");
   const [couponPromptOpen, setCouponPromptOpen] = useState(false);
+  const eligible = tourKey ? COUPON_ELIGIBLE.has(tourKey) : false;
   const requiredMsg = lang === "pt" ? "Preenchimento obrigatório" : lang === "es" ? "Campo obligatorio" : "Required field";
+  const ineligibleMsg = lang === "pt" ? "Cupom indisponível para este passeio."
+    : lang === "es" ? "Cupón no disponible para este paseo."
+    : "Coupon not available for this tour.";
+
+  // Cupom efetivo (especial sobrescreve padrão)
+  const effectiveCoupon = appliedSpecial
+    ? { code: appliedSpecial.code, percent: appliedSpecial.percent }
+    : appliedCoupon
+    ? { code: appliedCoupon.cupom, percent: appliedCoupon.percentualDesconto }
+    : null;
 
   // Autopreenchimento: nome, whatsapp, email do mini cadastro
   useEffect(() => {
@@ -84,12 +100,13 @@ export const StandardForm = ({
   }, []);
 
   const tryApplyCoupon = () => {
+    if (!eligible) { toast.error(ineligibleMsg); return; }
     const p = loadPromo();
     if (!p) {
       setCouponPromptOpen(true);
       return;
     }
-    if (p.cupomUsado && !isTester(p)) {
+    if (p.cupomUsado && !isTester(p) && !isAdminMode()) {
       toast.error(lang === "pt" ? "Você já utilizou este cupom promocional." : "Coupon already used.");
       return;
     }
@@ -98,7 +115,29 @@ export const StandardForm = ({
       return;
     }
     setAppliedCoupon(p);
+    setAppliedSpecial(null);
     toast.success(`Cupom ${p.cupom} aplicado · -${p.percentualDesconto}%`);
+  };
+
+  const tryApplyManual = () => {
+    const code = manualCode.trim();
+    if (!code) return;
+    if (!eligible) { toast.error(ineligibleMsg); return; }
+    const p = loadPromo();
+    const v = validateSpecialCoupon(code, { promo: p, name, whatsapp: fullPhone(phone) });
+    if (!v.ok) {
+      const msg =
+        v.reason === "not_found" ? (lang === "pt" ? "Cupom inválido." : "Invalid coupon.")
+        : v.reason === "wrong_date" ? (lang === "pt" ? "Cupom indisponível nesta data." : "Coupon not available today.")
+        : v.reason === "needs_reminder" ? (lang === "pt" ? "Cupom requer aceite de lembretes promocionais." : "Coupon requires reminder opt-in.")
+        : v.reason === "needs_idle" ? (lang === "pt" ? "Cupom de recuperação ainda não disponível." : "Recovery coupon not yet available.")
+        : (lang === "pt" ? "Cupom já utilizado." : "Coupon already used.");
+      toast.error(msg);
+      return;
+    }
+    setAppliedSpecial(v.coupon!);
+    setAppliedCoupon(null); // especial substitui padrão
+    toast.success(`${v.coupon!.code} · -${v.coupon!.percent}%`);
   };
 
   // Cálculo de preço (quando aplicável)
@@ -116,10 +155,10 @@ export const StandardForm = ({
     const original = meta.from
       ? meta.value
       : (paxN - freeN - halfN) * meta.value + halfN * (meta.value / 2);
-    const discount = appliedCoupon ? (original * appliedCoupon.percentualDesconto) / 100 : 0;
+    const discount = effectiveCoupon ? (original * effectiveCoupon.percent) / 100 : 0;
     const final = original - discount;
     return { original, discount, final, meta };
-  }, [tourKey, pax, hasKids, ages, adultsOnly, appliedCoupon]);
+  }, [tourKey, pax, hasKids, ages, adultsOnly, effectiveCoupon]);
 
   const kidsN = Math.min(8, Math.max(0, parseInt(kidsCount) || 0));
 
@@ -204,8 +243,8 @@ export const StandardForm = ({
     // Preço + cupom
     if (priceInfo) {
       rows.push({ label: lang === "pt" ? "Valor original" : "Original value", value: formatBRL(priceInfo.original) });
-      if (appliedCoupon) {
-        rows.push({ label: "Cupom", value: `${appliedCoupon.cupom} (-${appliedCoupon.percentualDesconto}%)` });
+      if (effectiveCoupon) {
+        rows.push({ label: "Cupom", value: `${effectiveCoupon.code} (-${effectiveCoupon.percent}%)` });
         rows.push({ label: lang === "pt" ? "Economia" : "Savings", value: formatBRL(priceInfo.discount) });
         rows.push({ label: lang === "pt" ? "Valor com desconto" : "Final price", value: formatBRL(priceInfo.final) });
       }
@@ -233,14 +272,15 @@ export const StandardForm = ({
     if (payment === "credit") lines.push(t.creditWarning);
     if (priceInfo) {
       lines.push("", `💰 Valor original: ${formatBRL(priceInfo.original)}`);
-      if (appliedCoupon) {
+      if (effectiveCoupon) {
         lines.push(
-          `🎟️ Cupom ${appliedCoupon.cupom}`,
-          `Desconto: ${appliedCoupon.percentualDesconto}%`,
+          `🎟️ Cupom ${effectiveCoupon.code}`,
+          `Desconto: ${effectiveCoupon.percent}%`,
           `✅ Valor com desconto aplicado: ${formatBRL(priceInfo.final)}`,
         );
       }
     }
+    if (appliedSpecial) markSpecialUsed(appliedSpecial.code, name, fullPhone(phone));
     if (appliedCoupon) markCouponUsed();
     setOutput({ text: lines.join("\n"), rows });
   };
@@ -300,38 +340,70 @@ export const StandardForm = ({
 
         {/* Preço + Aplicar Cupom */}
         {tourKey && (
-          <div className="mb-5 glass-card rounded-2xl p-4 flex items-center justify-between gap-3">
-            <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                {appliedCoupon ? (lang === "pt" ? "Com desconto" : "With discount") : (lang === "pt" ? "Valor" : "Price")}
-              </div>
-              {appliedCoupon && priceInfo ? (
-                <>
-                  <div className="text-xs text-muted-foreground line-through">{formatBRL(priceInfo.original)}</div>
-                  <div className="text-2xl font-extrabold bg-gradient-to-r from-emerald-300 to-turquoise-glow bg-clip-text text-transparent">
-                    {formatBRL(priceInfo.final)}
-                  </div>
-                  <div className="text-[11px] text-emerald-300 font-semibold">
-                    {appliedCoupon.cupom} · -{appliedCoupon.percentualDesconto}%
-                  </div>
-                </>
-              ) : (
-                <div className="text-2xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent">
-                  {tourPriceLabel(tourKey, lang)}
+          <div className="mb-5 glass-card rounded-2xl p-4 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  {effectiveCoupon ? (lang === "pt" ? "Com desconto" : "With discount") : (lang === "pt" ? "Valor" : "Price")}
                 </div>
+                {effectiveCoupon && priceInfo ? (
+                  <>
+                    <div className="text-xs text-muted-foreground line-through">{formatBRL(priceInfo.original)}</div>
+                    <div className="text-2xl font-extrabold bg-gradient-to-r from-emerald-300 to-turquoise-glow bg-clip-text text-transparent">
+                      {formatBRL(priceInfo.final)}
+                    </div>
+                    <div className="text-[11px] text-emerald-300 font-semibold">
+                      {effectiveCoupon.code} · -{effectiveCoupon.percent}%
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-2xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent">
+                    {tourPriceLabel(tourKey, lang)}
+                  </div>
+                )}
+              </div>
+              {eligible && !effectiveCoupon && (
+                <button
+                  type="button"
+                  onClick={tryApplyCoupon}
+                  className="rgb-border shrink-0"
+                >
+                  <span className="flex items-center gap-1.5 rounded-[0.55rem] bg-gradient-to-r from-turquoise to-turquoise-glow text-night font-bold text-xs px-3 py-2">
+                    <Tag className="h-3.5 w-3.5" />
+                    {lang === "pt" ? "Aplicar Cupom" : "Apply Coupon"}
+                  </span>
+                </button>
               )}
             </div>
-            {!appliedCoupon && (
-              <button
-                type="button"
-                onClick={tryApplyCoupon}
-                className="rgb-border shrink-0"
-              >
-                <span className="flex items-center gap-1.5 rounded-[0.55rem] bg-gradient-to-r from-turquoise to-turquoise-glow text-night font-bold text-xs px-3 py-2">
-                  <Tag className="h-3.5 w-3.5" />
-                  {lang === "pt" ? "Aplicar Cupom" : "Apply Coupon"}
-                </span>
-              </button>
+
+            {eligible ? (
+              <div className="flex gap-2">
+                <Input
+                  value={effectiveCoupon ? effectiveCoupon.code : manualCode}
+                  onChange={(e) => setManualCode(e.target.value.toUpperCase())}
+                  disabled={!!effectiveCoupon}
+                  placeholder={lang === "pt" ? "Digite seu cupom" : "Enter your coupon"}
+                  className={`${fieldClass} h-10 text-sm uppercase tracking-wider`}
+                />
+                {!effectiveCoupon && (
+                  <Button
+                    type="button"
+                    onClick={tryApplyManual}
+                    className="h-10 bg-turquoise/20 border border-turquoise/40 text-foreground hover:bg-turquoise/30"
+                  >
+                    {lang === "pt" ? "Aplicar" : "Apply"}
+                  </Button>
+                )}
+                {effectiveCoupon && (
+                  <div className="flex items-center px-2 text-emerald-300">
+                    <Lock className="h-4 w-4" />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-[11px] text-amber-200/80 italic">
+                {ineligibleMsg}
+              </p>
             )}
           </div>
         )}
