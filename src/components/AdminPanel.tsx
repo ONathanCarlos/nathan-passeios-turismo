@@ -372,7 +372,7 @@ export const AdminFab = () => {
         type="button"
         aria-label="Painel Administrativo"
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 left-5 z-40 h-12 w-12 rounded-full bg-gradient-to-br from-night to-deep-blue border border-turquoise/40 shadow-[0_8px_24px_-4px_rgba(0,0,0,0.6)] flex items-center justify-center text-turquoise-glow hover:border-turquoise hover:shadow-[0_0_20px_hsl(var(--turquoise)/0.45)]"
+        className="fixed bottom-5 right-5 z-40 h-12 w-12 rounded-full bg-gradient-to-br from-night to-deep-blue border border-turquoise/40 shadow-[0_8px_24px_-4px_rgba(0,0,0,0.6)] flex items-center justify-center text-turquoise-glow hover:border-turquoise hover:shadow-[0_0_20px_hsl(var(--turquoise)/0.45)]"
       >
         <Settings2 className="h-5 w-5" />
       </button>

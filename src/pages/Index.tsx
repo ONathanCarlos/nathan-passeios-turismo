@@ -254,7 +254,7 @@ const Index = () => {
       <WhatsAppFab lang={lang} />
       {admin && (
         <>
-          <div className="fixed bottom-5 right-20 z-40 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider text-amber-300 bg-amber-500/15 border border-amber-400/40 backdrop-blur-sm">
+          <div className="fixed bottom-5 left-5 z-40 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider text-amber-300 bg-amber-500/15 border border-amber-400/40 backdrop-blur-sm">
             Modo Administrador Ativo
           </div>
           <AdminFab />
