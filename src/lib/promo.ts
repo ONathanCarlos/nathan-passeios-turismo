@@ -249,8 +249,11 @@ export const validateSpecialCoupon = (
   code: string,
   ctx: { promo?: PromoData | null; name?: string; whatsapp?: string }
 ): SpecialValidation => {
-  const c = SPECIAL_COUPONS.find((x) => x.code.toUpperCase() === code.trim().toUpperCase());
+  const list = getSpecialCoupons();
+  const c = list.find((x) => x.code.toUpperCase() === code.trim().toUpperCase());
   if (!c) return { ok: false, reason: "not_found" };
+  if (c.onlyDate && !getHolidayEnabled()) return { ok: false, coupon: c, reason: "wrong_date" };
+  if (c.afterHoursIdle && !getRecoveryEnabled()) return { ok: false, coupon: c, reason: "needs_idle" };
 
   if (!isAdminMode()) {
     if (c.onlyDate && c.onlyDate !== todayISO()) return { ok: false, coupon: c, reason: "wrong_date" };
@@ -268,22 +271,25 @@ export const validateSpecialCoupon = (
 
 /** Existe cupom comemorativo ativo HOJE? Se sim, padrão+recuperação ficam desativados. */
 export const hasHolidayActiveToday = (): boolean => {
+  if (!getHolidayEnabled()) return false;
   const today = todayISO();
-  return SPECIAL_COUPONS.some((c) => c.onlyDate === today);
+  return getSpecialCoupons().some((c) => c.onlyDate === today);
 };
 
 /** Retorna o cupom especial disponível HOJE (se houver) — para modal automático */
 export const getTodaySpecialCoupon = (promo: PromoData | null): SpecificCoupon | null => {
   const today = todayISO();
-  for (const c of SPECIAL_COUPONS) {
-    if (c.onlyDate !== today) continue;
-    const v = validateSpecialCoupon(c.code, { promo });
-    if (v.ok) return c;
+  const list = getSpecialCoupons();
+  if (getHolidayEnabled()) {
+    for (const c of list) {
+      if (c.onlyDate !== today) continue;
+      const v = validateSpecialCoupon(c.code, { promo });
+      if (v.ok) return c;
+    }
   }
-  // Recuperação 72h — desativada se houver cupom comemorativo ativo hoje
   if (hasHolidayActiveToday()) return null;
-  if (promo && promo.aceitaLembretes && !promo.cupomUsado) {
-    const rec = SPECIAL_COUPONS.find((c) => c.afterHoursIdle);
+  if (getRecoveryEnabled() && promo && promo.aceitaLembretes && !promo.cupomUsado) {
+    const rec = list.find((c) => c.afterHoursIdle);
     if (rec) {
       const v = validateSpecialCoupon(rec.code, { promo });
       if (v.ok) return rec;
@@ -291,3 +297,4 @@ export const getTodaySpecialCoupon = (promo: PromoData | null): SpecificCoupon |
   }
   return null;
 };
+
