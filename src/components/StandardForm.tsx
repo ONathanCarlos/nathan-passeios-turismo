@@ -16,9 +16,12 @@ import { TourDatePicker } from "./TourDatePicker";
 import { PromoBanner } from "./PromoBanner";
 
 import { TourKey } from "@/lib/tours";
-import { TOUR_PRICES, formatBRL, tourPriceLabel } from "@/lib/prices";
-import { isExpired, isTester, loadPromo, markCouponUsed, PromoData } from "@/lib/promo";
-import { Tag } from "lucide-react";
+import { TOUR_PRICES, formatBRL, tourPriceLabel, COUPON_ELIGIBLE } from "@/lib/prices";
+import {
+  isExpired, isTester, isAdminMode, loadPromo, markCouponUsed, PromoData,
+  validateSpecialCoupon, markSpecialUsed, SpecificCoupon,
+} from "@/lib/promo";
+import { Tag, Lock } from "lucide-react";
 
 type Payment = "cash" | "debit" | "credit" | "pix";
 
