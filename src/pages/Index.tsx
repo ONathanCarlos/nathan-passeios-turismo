@@ -86,6 +86,7 @@ const Index = () => {
             />
           </PageTransition>
         </div>
+        {admin && <AdminFab />}
       </>
     );
   }
