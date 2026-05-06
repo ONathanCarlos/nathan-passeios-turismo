@@ -67,8 +67,21 @@ export const StandardForm = ({
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [shake, setShake] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState<PromoData | null>(null);
+  const [appliedSpecial, setAppliedSpecial] = useState<SpecificCoupon | null>(null);
+  const [manualCode, setManualCode] = useState("");
   const [couponPromptOpen, setCouponPromptOpen] = useState(false);
+  const eligible = tourKey ? COUPON_ELIGIBLE.has(tourKey) : false;
   const requiredMsg = lang === "pt" ? "Preenchimento obrigatório" : lang === "es" ? "Campo obligatorio" : "Required field";
+  const ineligibleMsg = lang === "pt" ? "Cupom indisponível para este passeio."
+    : lang === "es" ? "Cupón no disponible para este paseo."
+    : "Coupon not available for this tour.";
+
+  // Cupom efetivo (especial sobrescreve padrão)
+  const effectiveCoupon = appliedSpecial
+    ? { code: appliedSpecial.code, percent: appliedSpecial.percent }
+    : appliedCoupon
+    ? { code: appliedCoupon.cupom, percent: appliedCoupon.percentualDesconto }
+    : null;
 
   // Autopreenchimento: nome, whatsapp, email do mini cadastro
   useEffect(() => {
