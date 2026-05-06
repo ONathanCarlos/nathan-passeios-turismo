@@ -195,7 +195,8 @@ export const markCouponUsed = () => {
   savePromo({ ...p, cupomUsado: true });
 };
 
-// ---------- Cupons especiais: registro de uso ----------
+export const isWelcomeCouponEnabled = () => getWelcomeEnabled();
+
 interface SpecialUseRecord { code: string; phoneDigits: string; nameKey: string; usedAt: string; }
 
 const loadSpecialUsed = (): SpecialUseRecord[] => {
