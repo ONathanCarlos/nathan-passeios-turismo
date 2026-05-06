@@ -231,7 +231,16 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
             </div>
 
             <div className="glass-card rounded-xl p-3 space-y-3">
-              <h4 className="text-sm font-bold text-turquoise-glow">Recuperação (TODEVOLTA12)</h4>
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-bold text-turquoise-glow">Recuperação (TODEVOLTA12)</h4>
+                <Button size="sm" variant="ghost" className="text-rose-300 hover:text-rose-200"
+                  onClick={() => {
+                    update({ coupon: { ...cfg.coupon, recoveryPercent: undefined, recoveryAfterHours: undefined, recoveryEnabled: false } });
+                    toast.success("Cupom de recuperação removido");
+                  }}>
+                  <Trash2 className="h-3 w-3 mr-1" /> Remover
+                </Button>
+              </div>
               <div className="grid grid-cols-3 gap-2 items-end">
                 <div>
                   <Label className="text-xs">Percentual</Label>
