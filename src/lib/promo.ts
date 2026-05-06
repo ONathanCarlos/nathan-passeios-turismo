@@ -1,12 +1,21 @@
 // ============================================================
 // Sistema de Cupom Promocional — Nathan Passeios
 // ============================================================
+import { loadAdminConfig } from "./adminConfig";
 
 export const PROMO_KEY = "nathan_promo_v1";
 export const SPECIAL_USED_KEY = "nathan_special_used_v1";
 export const ADMIN_KEY = "nathan_admin_v1";
-export const PROMO_DISCOUNT = 10;
-export const PROMO_VALIDITY_DAYS = 3;
+export const PROMO_DISCOUNT_DEFAULT = 10;
+export const PROMO_VALIDITY_DAYS_DEFAULT = 3;
+export const PROMO_DISCOUNT = PROMO_DISCOUNT_DEFAULT;
+export const PROMO_VALIDITY_DAYS = PROMO_VALIDITY_DAYS_DEFAULT;
+
+const getWelcomePercent = () => loadAdminConfig().coupon.welcomePercent ?? PROMO_DISCOUNT_DEFAULT;
+const getWelcomeDays = () => loadAdminConfig().coupon.welcomeValidityDays ?? PROMO_VALIDITY_DAYS_DEFAULT;
+const getWelcomeEnabled = () => loadAdminConfig().coupon.welcomeEnabled !== false;
+const getRecoveryEnabled = () => loadAdminConfig().coupon.recoveryEnabled !== false;
+const getHolidayEnabled = () => loadAdminConfig().coupon.holidayEnabled !== false;
 
 export interface PromoData {
   nome: string;
@@ -37,7 +46,7 @@ export interface SpecificCoupon {
   message?: string;
 }
 
-export const SPECIAL_COUPONS: SpecificCoupon[] = [
+const BUILTIN_SPECIAL: SpecificCoupon[] = [
   { code: "TODEVOLTA12",   percent: 12, afterHoursIdle: 72, requiresReminder: true,
     message: "Sentimos sua falta! Volte com 12% de desconto especial." },
   { code: "TOURDASMAES12", percent: 12, onlyDate: "2026-05-10",
@@ -49,6 +58,43 @@ export const SPECIAL_COUPONS: SpecificCoupon[] = [
   { code: "INDEPENDENCIA12", percent: 12, onlyDate: "2026-09-07",
     message: "7 de Setembro! Comemore com 12% de desconto 🇧🇷" },
 ];
+
+/** SPECIAL_COUPONS efetivos (mescla builtins + admin overrides por code) */
+export const getSpecialCoupons = (): SpecificCoupon[] => {
+  const cfg = loadAdminConfig();
+  const overridesByCode = new Map(cfg.specials.map((s) => [s.code.toUpperCase(), s]));
+  const merged: SpecificCoupon[] = [];
+  for (const b of BUILTIN_SPECIAL) {
+    const ov = overridesByCode.get(b.code.toUpperCase());
+    if (ov) {
+      if (ov.enabled === false) { overridesByCode.delete(b.code.toUpperCase()); continue; }
+      merged.push({ ...b, ...ov });
+      overridesByCode.delete(b.code.toUpperCase());
+    } else merged.push(b);
+  }
+  // adiciona novos do admin
+  for (const ov of overridesByCode.values()) {
+    if (ov.enabled === false) continue;
+    merged.push(ov);
+  }
+  // ajusta percent recovery via admin
+  const recPct = cfg.coupon.recoveryPercent;
+  const recHrs = cfg.coupon.recoveryAfterHours;
+  return merged.map((c) => {
+    if (c.afterHoursIdle != null) {
+      return { ...c,
+        percent: recPct ?? c.percent,
+        afterHoursIdle: recHrs ?? c.afterHoursIdle };
+    }
+    if (c.onlyDate && cfg.coupon.holidayPercent != null) {
+      return { ...c, percent: cfg.coupon.holidayPercent };
+    }
+    return c;
+  });
+};
+
+/** @deprecated use getSpecialCoupons() — mantido para compat */
+export const SPECIAL_COUPONS: SpecificCoupon[] = BUILTIN_SPECIAL;
 
 // ---------- Persistência ----------
 export const loadPromo = (): PromoData | null => {
@@ -79,11 +125,12 @@ export const createPromo = (input: {
   nome: string; whatsapp: string; email: string; aceitaLembretes: boolean;
 }): PromoData => {
   const now = new Date();
-  const expira = new Date(now.getTime() + PROMO_VALIDITY_DAYS * 24 * 60 * 60 * 1000);
+  const days = getWelcomeDays();
+  const expira = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
   return {
     ...input,
     cupom: generateCoupon(),
-    percentualDesconto: PROMO_DISCOUNT,
+    percentualDesconto: getWelcomePercent(),
     cupomUsado: false,
     dataCadastro: now.toISOString(),
     expiraEm: expira.toISOString(),
@@ -148,7 +195,8 @@ export const markCouponUsed = () => {
   savePromo({ ...p, cupomUsado: true });
 };
 
-// ---------- Cupons especiais: registro de uso ----------
+export const isWelcomeCouponEnabled = () => getWelcomeEnabled();
+
 interface SpecialUseRecord { code: string; phoneDigits: string; nameKey: string; usedAt: string; }
 
 const loadSpecialUsed = (): SpecialUseRecord[] => {
@@ -202,8 +250,11 @@ export const validateSpecialCoupon = (
   code: string,
   ctx: { promo?: PromoData | null; name?: string; whatsapp?: string }
 ): SpecialValidation => {
-  const c = SPECIAL_COUPONS.find((x) => x.code.toUpperCase() === code.trim().toUpperCase());
+  const list = getSpecialCoupons();
+  const c = list.find((x) => x.code.toUpperCase() === code.trim().toUpperCase());
   if (!c) return { ok: false, reason: "not_found" };
+  if (c.onlyDate && !getHolidayEnabled()) return { ok: false, coupon: c, reason: "wrong_date" };
+  if (c.afterHoursIdle && !getRecoveryEnabled()) return { ok: false, coupon: c, reason: "needs_idle" };
 
   if (!isAdminMode()) {
     if (c.onlyDate && c.onlyDate !== todayISO()) return { ok: false, coupon: c, reason: "wrong_date" };
@@ -221,22 +272,25 @@ export const validateSpecialCoupon = (
 
 /** Existe cupom comemorativo ativo HOJE? Se sim, padrão+recuperação ficam desativados. */
 export const hasHolidayActiveToday = (): boolean => {
+  if (!getHolidayEnabled()) return false;
   const today = todayISO();
-  return SPECIAL_COUPONS.some((c) => c.onlyDate === today);
+  return getSpecialCoupons().some((c) => c.onlyDate === today);
 };
 
 /** Retorna o cupom especial disponível HOJE (se houver) — para modal automático */
 export const getTodaySpecialCoupon = (promo: PromoData | null): SpecificCoupon | null => {
   const today = todayISO();
-  for (const c of SPECIAL_COUPONS) {
-    if (c.onlyDate !== today) continue;
-    const v = validateSpecialCoupon(c.code, { promo });
-    if (v.ok) return c;
+  const list = getSpecialCoupons();
+  if (getHolidayEnabled()) {
+    for (const c of list) {
+      if (c.onlyDate !== today) continue;
+      const v = validateSpecialCoupon(c.code, { promo });
+      if (v.ok) return c;
+    }
   }
-  // Recuperação 72h — desativada se houver cupom comemorativo ativo hoje
   if (hasHolidayActiveToday()) return null;
-  if (promo && promo.aceitaLembretes && !promo.cupomUsado) {
-    const rec = SPECIAL_COUPONS.find((c) => c.afterHoursIdle);
+  if (getRecoveryEnabled() && promo && promo.aceitaLembretes && !promo.cupomUsado) {
+    const rec = list.find((c) => c.afterHoursIdle);
     if (rec) {
       const v = validateSpecialCoupon(rec.code, { promo });
       if (v.ok) return rec;
@@ -244,3 +298,4 @@ export const getTodaySpecialCoupon = (promo: PromoData | null): SpecificCoupon |
   }
   return null;
 };
+

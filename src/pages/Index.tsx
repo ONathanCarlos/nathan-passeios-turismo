@@ -11,6 +11,10 @@ import { Star, Tag } from "lucide-react";
 import { PageTransition } from "@/components/PageTransition";
 import { PromoBanner } from "@/components/PromoBanner";
 import { COUPON_ELIGIBLE, tourPriceLabel } from "@/lib/prices";
+import { isAdminMode } from "@/lib/promo";
+import { AdminFab } from "@/components/AdminPanel";
+import { useAdminConfig } from "@/lib/adminConfig";
+import { BackgroundVideo } from "@/components/BackgroundVideo";
 import nathanProfile from "@/assets/nathan-profile.jpg";
 import arraialImg from "@/assets/arraial-do-cabo.jpg";
 import escunaImg from "@/assets/escuna.jpg";
@@ -37,6 +41,8 @@ const Index = () => {
   const [lang, setLang] = useState<Lang>("pt");
   const [screen, setScreen] = useState<Screen>("menu");
   const t = dict[lang];
+  const adminCfg = useAdminConfig();
+  const admin = isAdminMode();
 
   // Browser/Android back-button support via history API
   useEffect(() => {
@@ -80,6 +86,7 @@ const Index = () => {
             />
           </PageTransition>
         </div>
+        {admin && <AdminFab />}
       </>
     );
   }
@@ -104,18 +111,20 @@ const Index = () => {
       return <StandardForm tourKey="lancha" lang={lang} onLangChange={setLang} onBack={back} title={t.optLancha} backgroundImage={lanchaImg} />;
     return null;
   })();
-  if (formNode) return <PageTransition key={screen as string}>{formNode}</PageTransition>;
+  if (formNode) return <PageTransition key={screen as string}>{formNode}{admin && <AdminFab />}</PageTransition>;
 
   type Opt = { key: TourKey; image: string; title: string; desc: string; adultsOnly?: boolean };
+  const ov = (k: TourKey, base: string) => adminCfg.images[k] || base;
+  const od = (k: TourKey, base: string) => adminCfg.descriptions[k]?.[lang] || base;
   const options: Opt[] = [
-    { key: "escuna", image: escunaImg, title: t.optEscuna, desc: t.descEscuna },
-    { key: "arraial", image: arraialImg, title: t.optArraial, desc: t.descArraial },
-    { key: "buggy", image: buggyImg, title: t.optBuggy, desc: t.descBuggy },
-    { key: "cabofrio", image: caboFrioImg, title: t.optCaboFrio, desc: t.descCaboFrio },
-    { key: "jardineira", image: jardineiraImg, title: t.optJardineira, desc: t.descJardineira },
-    { key: "catamara", image: catamaraImg, title: t.optCatamara, desc: t.descCatamara },
-    { key: "mergulho", image: mergulhoImg, title: t.optMergulho, desc: t.descMergulho, adultsOnly: true },
-    { key: "lancha", image: lanchaImg, title: t.optLancha, desc: t.descLancha },
+    { key: "escuna",    image: ov("escuna", escunaImg),       title: t.optEscuna,    desc: od("escuna", t.descEscuna) },
+    { key: "arraial",   image: ov("arraial", arraialImg),     title: t.optArraial,   desc: od("arraial", t.descArraial) },
+    { key: "buggy",     image: ov("buggy", buggyImg),         title: t.optBuggy,     desc: od("buggy", t.descBuggy) },
+    { key: "cabofrio",  image: ov("cabofrio", caboFrioImg),   title: t.optCaboFrio,  desc: od("cabofrio", t.descCaboFrio) },
+    { key: "jardineira",image: ov("jardineira", jardineiraImg),title: t.optJardineira,desc: od("jardineira", t.descJardineira) },
+    { key: "catamara",  image: ov("catamara", catamaraImg),   title: t.optCatamara,  desc: od("catamara", t.descCatamara) },
+    { key: "mergulho",  image: ov("mergulho", mergulhoImg),   title: t.optMergulho,  desc: od("mergulho", t.descMergulho), adultsOnly: true },
+    { key: "lancha",    image: ov("lancha", lanchaImg),       title: t.optLancha,    desc: od("lancha", t.descLancha) },
   ];
 
   
@@ -124,12 +133,8 @@ const Index = () => {
     <>
     <PromoBanner lang={lang} />
     <PageTransition key="menu"><main className="relative min-h-screen px-4 pt-16 sm:pt-20 py-6 sm:py-10 overflow-hidden">
-      {/* Background videos: mobile + desktop */}
-      <video
-        className="pointer-events-none fixed inset-0 z-0 w-full h-full object-cover object-center"
-        src="/videos/ocean-desktop.mp4"
-        autoPlay loop muted playsInline preload="auto" aria-hidden="true"
-      />
+      {/* Background videos: mobile (blur fill) + desktop */}
+      <BackgroundVideo desktopSrc="/videos/ocean-desktop.mp4" mobileSrc="/videos/ocean-desktop.mp4" />
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-night/85 via-deep-blue/80 to-night/90"
@@ -251,6 +256,14 @@ const Index = () => {
         </footer>
       </div>
       <WhatsAppFab lang={lang} />
+      {admin && (
+        <>
+          <div className="fixed bottom-5 right-20 z-40 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider text-amber-300 bg-amber-500/15 border border-amber-400/40 backdrop-blur-sm">
+            Modo Administrador Ativo
+          </div>
+          <AdminFab />
+        </>
+      )}
     </main></PageTransition>
     </>
   );
