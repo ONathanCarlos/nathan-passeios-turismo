@@ -19,7 +19,7 @@ import { TourKey } from "@/lib/tours";
 import { TOUR_PRICES, formatBRL, tourPriceLabel, COUPON_ELIGIBLE } from "@/lib/prices";
 import {
   isExpired, isTester, isAdminMode, loadPromo, markCouponUsed, PromoData,
-  validateSpecialCoupon, markSpecialUsed, SpecificCoupon,
+  validateSpecialCoupon, markSpecialUsed, SpecificCoupon, hasHolidayActiveToday,
 } from "@/lib/promo";
 import { Tag, Lock } from "lucide-react";
 
