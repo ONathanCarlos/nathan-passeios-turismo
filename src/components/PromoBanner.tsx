@@ -368,9 +368,16 @@ const PromoModal = ({ lang, open, onOpenChange, existing, onCreated }: ModalProp
     if (!validBrPhone(phone.number)) e.whats = t.errWhats;
     setErrors(e);
     if (Object.keys(e).length) return;
+    const wa = fullPhone(phone);
+    if (isWelcomeBlockedForPhone(wa) && !isAdminMode()) {
+      toast.error(lang === "pt"
+        ? "Este WhatsApp já utilizou o cupom de boas-vindas."
+        : "This WhatsApp has already used the welcome coupon.");
+      return;
+    }
     const created = createPromo({
       nome: nome.trim(),
-      whatsapp: fullPhone(phone),
+      whatsapp: wa,
       email: email.trim(),
       aceitaLembretes: aceita,
     });
