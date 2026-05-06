@@ -191,13 +191,13 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
     if (forceOpen) setOpen(true);
   }, [forceOpen]);
 
-  // Modal de cupom especial (data válida) - apenas 1x por sessão
+  // Cupom comemorativo do dia + modal automático (1x por sessão)
   useEffect(() => {
     const sp = getTodaySpecialCoupon(loadPromo());
     if (!sp) return;
+    setSpecial(sp);
     const flag = sessionStorage.getItem("nathan_special_modal_" + sp.code);
     if (flag) return;
-    setSpecial(sp);
     setSpecialOpen(true);
     sessionStorage.setItem("nathan_special_modal_" + sp.code, "1");
   }, []);
