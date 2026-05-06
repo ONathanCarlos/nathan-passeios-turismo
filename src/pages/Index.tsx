@@ -126,12 +126,7 @@ const Index = () => {
     <PageTransition key="menu"><main className="relative min-h-screen px-4 pt-16 sm:pt-20 py-6 sm:py-10 overflow-hidden">
       {/* Background videos: mobile + desktop */}
       <video
-        className="pointer-events-none fixed inset-0 z-0 w-full h-full object-cover object-center sm:hidden"
-        src="/videos/ocean-mobile.mp4"
-        autoPlay loop muted playsInline preload="auto" aria-hidden="true"
-      />
-      <video
-        className="pointer-events-none fixed inset-0 z-0 w-full h-full object-cover hidden sm:block"
+        className="pointer-events-none fixed inset-0 z-0 w-full h-full object-cover object-center"
         src="/videos/ocean-desktop.mp4"
         autoPlay loop muted playsInline preload="auto" aria-hidden="true"
       />
