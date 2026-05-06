@@ -8,6 +8,9 @@ import {
   loadPromo,
   PromoData,
   savePromo,
+  getTodaySpecialCoupon,
+  SpecificCoupon,
+  isAdminMode,
 } from "@/lib/promo";
 import {
   Dialog,
@@ -21,7 +24,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PhoneInput, PhoneValue, fullPhone } from "./PhoneInput";
 import { toast } from "sonner";
-import { Gift, X } from "lucide-react";
+import { Gift, X, Sparkles } from "lucide-react";
 
 // i18n simples para o banner/modal
 const T: Record<Lang, {
