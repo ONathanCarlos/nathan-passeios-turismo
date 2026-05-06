@@ -358,7 +358,7 @@ const PromoModal = ({ lang, open, onOpenChange, existing, onCreated }: ModalProp
   };
 
   // Se já existe e foi usado: aviso
-  if (existing?.cupomUsado) {
+  if (existing?.cupomUsado && !isAdminMode()) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="bg-card border-turquoise/30">
