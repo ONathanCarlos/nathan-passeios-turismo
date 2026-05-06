@@ -311,7 +311,7 @@ export const StandardForm = ({
         <PromoBanner lang={lang} />
         <div className="pt-12">
           <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage}>
-            <SummaryOutput text={output.text} rows={output.rows} tourTitle={title} lang={lang} onReset={onBack} />
+            <SummaryOutput text={output.text} rows={output.rows} tourTitle={title} lang={lang} onReset={onBack} onSend={handleReservationSent} />
           </PageShell>
         </div>
         <WhatsAppFab lang={lang} />
