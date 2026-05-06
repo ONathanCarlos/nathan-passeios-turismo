@@ -176,6 +176,9 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
   const [promo, setPromo] = useState<PromoData | null>(null);
   const [open, setOpen] = useState(false);
   const [tick, setTick] = useState(0);
+  const [special, setSpecial] = useState<SpecificCoupon | null>(null);
+  const [specialOpen, setSpecialOpen] = useState(false);
+  const admin = isAdminMode();
 
   useEffect(() => {
     setPromo(loadPromo());
@@ -186,6 +189,17 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
   useEffect(() => {
     if (forceOpen) setOpen(true);
   }, [forceOpen]);
+
+  // Modal de cupom especial (data válida) - apenas 1x por sessão
+  useEffect(() => {
+    const sp = getTodaySpecialCoupon(loadPromo());
+    if (!sp) return;
+    const flag = sessionStorage.getItem("nathan_special_modal_" + sp.code);
+    if (flag) return;
+    setSpecial(sp);
+    setSpecialOpen(true);
+    sessionStorage.setItem("nathan_special_modal_" + sp.code, "1");
+  }, []);
 
   // Alert one-time per session quando expira
   useEffect(() => {
