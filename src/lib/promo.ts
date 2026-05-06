@@ -6,6 +6,7 @@ import { loadAdminConfig } from "./adminConfig";
 export const PROMO_KEY = "nathan_promo_v1";
 export const SPECIAL_USED_KEY = "nathan_special_used_v1";
 export const ADMIN_KEY = "nathan_admin_v1";
+export const WELCOME_BLOCKED_KEY = "nathan_welcome_blocked_v1";
 export const PROMO_DISCOUNT_DEFAULT = 10;
 export const PROMO_VALIDITY_DAYS_DEFAULT = 3;
 export const PROMO_DISCOUNT = PROMO_DISCOUNT_DEFAULT;
