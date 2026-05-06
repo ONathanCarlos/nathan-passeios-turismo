@@ -125,11 +125,12 @@ export const createPromo = (input: {
   nome: string; whatsapp: string; email: string; aceitaLembretes: boolean;
 }): PromoData => {
   const now = new Date();
-  const expira = new Date(now.getTime() + PROMO_VALIDITY_DAYS * 24 * 60 * 60 * 1000);
+  const days = getWelcomeDays();
+  const expira = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
   return {
     ...input,
     cupom: generateCoupon(),
-    percentualDesconto: PROMO_DISCOUNT,
+    percentualDesconto: getWelcomePercent(),
     cupomUsado: false,
     dataCadastro: now.toISOString(),
     expiraEm: expira.toISOString(),
