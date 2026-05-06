@@ -19,7 +19,7 @@ import { TourKey } from "@/lib/tours";
 import { TOUR_PRICES, formatBRL, tourPriceLabel, COUPON_ELIGIBLE } from "@/lib/prices";
 import {
   isExpired, isTester, isAdminMode, loadPromo, markCouponUsed, PromoData,
-  validateSpecialCoupon, markSpecialUsed, SpecificCoupon,
+  validateSpecialCoupon, markSpecialUsed, SpecificCoupon, hasHolidayActiveToday,
 } from "@/lib/promo";
 import { Tag, Lock } from "lucide-react";
 
@@ -101,6 +101,12 @@ export const StandardForm = ({
 
   const tryApplyCoupon = () => {
     if (!eligible) { toast.error(ineligibleMsg); return; }
+    if (hasHolidayActiveToday() && !isAdminMode()) {
+      toast.error(lang === "pt"
+        ? "Hoje vale apenas o cupom comemorativo. Use o código do dia."
+        : "Today only the holiday coupon is valid. Use the day's code.");
+      return;
+    }
     const p = loadPromo();
     if (!p) {
       setCouponPromptOpen(true);
@@ -362,7 +368,7 @@ export const StandardForm = ({
                   </div>
                 )}
               </div>
-              {eligible && !effectiveCoupon && (
+              {eligible && !effectiveCoupon && !hasHolidayActiveToday() && (
                 <button
                   type="button"
                   onClick={tryApplyCoupon}

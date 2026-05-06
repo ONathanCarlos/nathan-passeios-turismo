@@ -54,7 +54,14 @@ export const SPECIAL_COUPONS: SpecificCoupon[] = [
 export const loadPromo = (): PromoData | null => {
   try {
     const raw = localStorage.getItem(PROMO_KEY);
-    return raw ? (JSON.parse(raw) as PromoData) : null;
+    if (!raw) return null;
+    const p = JSON.parse(raw) as PromoData;
+    // Migração: remove traço de cupons antigos NAT-XXXX → NATXXXX
+    if (p && typeof p.cupom === "string" && p.cupom.includes("-")) {
+      p.cupom = p.cupom.replace(/^NAT-/i, "NAT").toUpperCase();
+      localStorage.setItem(PROMO_KEY, JSON.stringify(p));
+    }
+    return p;
   } catch { return null; }
 };
 
@@ -64,7 +71,9 @@ export const savePromo = (data: PromoData) => {
 
 export const clearPromo = () => localStorage.removeItem(PROMO_KEY);
 
-export const generateCoupon = (): string => `NAT-${Math.floor(1000 + Math.random() * 9000)}`;
+export const generateCoupon = (): string => `NAT${Math.floor(1000 + Math.random() * 9000)}`;
+/** Normaliza cupons antigos no formato NAT-XXXX para NATXXXX */
+export const normalizeCoupon = (code: string): string => (code || "").replace(/^NAT-/i, "NAT").toUpperCase();
 
 export const createPromo = (input: {
   nome: string; whatsapp: string; email: string; aceitaLembretes: boolean;
@@ -210,6 +219,12 @@ export const validateSpecialCoupon = (
   return { ok: true, coupon: c };
 };
 
+/** Existe cupom comemorativo ativo HOJE? Se sim, padrão+recuperação ficam desativados. */
+export const hasHolidayActiveToday = (): boolean => {
+  const today = todayISO();
+  return SPECIAL_COUPONS.some((c) => c.onlyDate === today);
+};
+
 /** Retorna o cupom especial disponível HOJE (se houver) — para modal automático */
 export const getTodaySpecialCoupon = (promo: PromoData | null): SpecificCoupon | null => {
   const today = todayISO();
@@ -218,7 +233,8 @@ export const getTodaySpecialCoupon = (promo: PromoData | null): SpecificCoupon |
     const v = validateSpecialCoupon(c.code, { promo });
     if (v.ok) return c;
   }
-  // recuperação 72h
+  // Recuperação 72h — desativada se houver cupom comemorativo ativo hoje
+  if (hasHolidayActiveToday()) return null;
   if (promo && promo.aceitaLembretes && !promo.cupomUsado) {
     const rec = SPECIAL_COUPONS.find((c) => c.afterHoursIdle);
     if (rec) {
