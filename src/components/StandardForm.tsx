@@ -286,6 +286,7 @@ export const StandardForm = ({
         );
       }
     }
+    lines.push("", "Reserva feita pelo site https://www.nathanturismo.com.br");
     if (appliedSpecial) markSpecialUsed(appliedSpecial.code, name, fullPhone(phone));
     if (appliedCoupon) markCouponUsed();
     setOutput({ text: lines.join("\n"), rows });
