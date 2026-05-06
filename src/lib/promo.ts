@@ -64,7 +64,9 @@ export const savePromo = (data: PromoData) => {
 
 export const clearPromo = () => localStorage.removeItem(PROMO_KEY);
 
-export const generateCoupon = (): string => `NAT-${Math.floor(1000 + Math.random() * 9000)}`;
+export const generateCoupon = (): string => `NAT${Math.floor(1000 + Math.random() * 9000)}`;
+/** Normaliza cupons antigos no formato NAT-XXXX para NATXXXX */
+export const normalizeCoupon = (code: string): string => (code || "").replace(/^NAT-/i, "NAT").toUpperCase();
 
 export const createPromo = (input: {
   nome: string; whatsapp: string; email: string; aceitaLembretes: boolean;
