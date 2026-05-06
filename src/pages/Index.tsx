@@ -133,12 +133,8 @@ const Index = () => {
     <>
     <PromoBanner lang={lang} />
     <PageTransition key="menu"><main className="relative min-h-screen px-4 pt-16 sm:pt-20 py-6 sm:py-10 overflow-hidden">
-      {/* Background videos: mobile (blur fill) + desktop */}
-      <BackgroundVideo desktopSrc="/videos/ocean-desktop.mp4" mobileSrc="/videos/ocean-desktop.mp4" />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-night/85 via-deep-blue/80 to-night/90"
-      />
+      {/* Fundo estático ondulatório: gradiente azul-turquesa → azul escuro */}
+      <div aria-hidden="true" className="ocean-static-bg pointer-events-none fixed inset-0 z-0" />
 
       <div className="relative z-10 mx-auto max-w-6xl">
         {/* Top bar */}
