@@ -326,6 +326,7 @@ export const StandardForm = ({
 
   return (
     <>
+      <QrPromoBoot />
       <PromoBanner
         lang={lang}
         forceOpen={couponPromptOpen}
