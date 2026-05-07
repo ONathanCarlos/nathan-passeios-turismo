@@ -223,9 +223,28 @@ const Index = () => {
                   <h3 className="text-lg font-bold text-foreground leading-tight">{opt.title}</h3>
                   <p className="mt-1.5 text-sm text-muted-foreground leading-snug flex-1">{opt.desc}</p>
 
-                  <p className="float-soft mt-3 text-2xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
-                    {tourPriceLabel(opt.key, lang)}
-                  </p>
+                  {qr ? (() => {
+                    const meta = TOUR_PRICES[opt.key];
+                    const orig = meta.value;
+                    const disc = orig - (orig * qr.percent) / 100;
+                    return (
+                      <div className="float-soft mt-3">
+                        <div className="text-xs text-muted-foreground line-through leading-none">
+                          {meta.from ? `A partir de ${formatBRL(orig)}` : formatBRL(orig)}
+                        </div>
+                        <div className="text-2xl font-extrabold bg-gradient-to-r from-emerald-300 to-turquoise-glow bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+                          {meta.from ? `A partir de ${formatBRL(disc)}` : formatBRL(disc)}
+                        </div>
+                        <div className="text-[10px] font-bold text-emerald-300">
+                          -{qr.percent}% via QR Code
+                        </div>
+                      </div>
+                    );
+                  })() : (
+                    <p className="float-soft mt-3 text-2xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+                      {tourPriceLabel(opt.key, lang)}
+                    </p>
+                  )}
 
                   <div className="mt-4 flex flex-col gap-2">
                     <button
