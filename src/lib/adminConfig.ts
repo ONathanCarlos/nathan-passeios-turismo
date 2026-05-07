@@ -17,6 +17,7 @@ export interface AdminConfig {
   images: Partial<Record<TourKey, string>>;       // dataURL ou URL
   videos: { mobile?: string; desktop?: string };  // dataURL ou URL
   coupon: {
+    allEnabled?: boolean;
     welcomePercent?: number;
     welcomeValidityDays?: number;
     welcomeEnabled?: boolean;
