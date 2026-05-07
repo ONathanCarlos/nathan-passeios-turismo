@@ -312,6 +312,7 @@ export const StandardForm = ({
   if (output) {
     return (
       <>
+        <QrPromoBoot />
         <PromoBanner lang={lang} />
         <div className="pt-12">
           <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage}>
