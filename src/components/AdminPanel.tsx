@@ -197,9 +197,23 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
 
           {/* ---------------- CUPONS ---------------- */}
           <TabsContent value="coupons" className="mt-4 space-y-4">
+            <div className="glass-card rounded-xl p-3 flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-bold text-turquoise-glow">Sistema de cupons</h4>
+                <p className="text-[11px] text-muted-foreground">Ativa/desativa todos os cupons do site (boas-vindas, recuperação e comemorativos).</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={cfg.coupon.allEnabled !== false}
+                  onCheckedChange={(v) => update({ coupon: { ...cfg.coupon, allEnabled: v } })}
+                />
+                <span className="text-xs">{cfg.coupon.allEnabled !== false ? "Ativo" : "Desativado"}</span>
+              </div>
+            </div>
+
             <div className="glass-card rounded-xl p-3 space-y-3">
               <div className="flex items-center justify-between">
-                <h4 className="text-sm font-bold text-turquoise-glow">Boas-vindas (NATXXXX)</h4>
+                <h4 className="text-sm font-bold text-turquoise-glow">Boas-vindas (BEMVINDOXXXX)</h4>
                 <Button size="sm" variant="ghost" className="text-rose-300 hover:text-rose-200"
                   onClick={() => {
                     update({ coupon: { ...cfg.coupon, welcomePercent: undefined, welcomeValidityDays: undefined, welcomeEnabled: false } });

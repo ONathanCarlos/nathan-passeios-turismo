@@ -12,11 +12,14 @@ export const PROMO_VALIDITY_DAYS_DEFAULT = 3;
 export const PROMO_DISCOUNT = PROMO_DISCOUNT_DEFAULT;
 export const PROMO_VALIDITY_DAYS = PROMO_VALIDITY_DAYS_DEFAULT;
 
+const getAllEnabled = () => loadAdminConfig().coupon.allEnabled !== false;
 const getWelcomePercent = () => loadAdminConfig().coupon.welcomePercent ?? PROMO_DISCOUNT_DEFAULT;
 const getWelcomeDays = () => loadAdminConfig().coupon.welcomeValidityDays ?? PROMO_VALIDITY_DAYS_DEFAULT;
-const getWelcomeEnabled = () => loadAdminConfig().coupon.welcomeEnabled !== false;
-const getRecoveryEnabled = () => loadAdminConfig().coupon.recoveryEnabled !== false;
-const getHolidayEnabled = () => loadAdminConfig().coupon.holidayEnabled !== false;
+const getWelcomeEnabled = () => getAllEnabled() && loadAdminConfig().coupon.welcomeEnabled !== false;
+const getRecoveryEnabled = () => getAllEnabled() && loadAdminConfig().coupon.recoveryEnabled !== false;
+const getHolidayEnabled = () => getAllEnabled() && loadAdminConfig().coupon.holidayEnabled !== false;
+
+export const isAllCouponsEnabled = () => getAllEnabled();
 
 export interface PromoData {
   nome: string;
@@ -123,8 +126,8 @@ export const savePromo = (data: PromoData) => {
 
 export const clearPromo = () => localStorage.removeItem(PROMO_KEY);
 
-export const generateCoupon = (): string => `NAT${Math.floor(1000 + Math.random() * 9000)}`;
-/** Normaliza cupons antigos no formato NAT-XXXX para NATXXXX */
+export const generateCoupon = (): string => `BEMVINDO${Math.floor(1000 + Math.random() * 9000)}`;
+/** Normaliza cupons antigos para o formato atual */
 export const normalizeCoupon = (code: string): string => (code || "").replace(/^NAT-/i, "NAT").toUpperCase();
 
 export const createPromo = (input: {
