@@ -10,10 +10,12 @@ import { TourKey } from "@/lib/tours";
 import { Star, Tag } from "lucide-react";
 import { PageTransition } from "@/components/PageTransition";
 import { PromoBanner } from "@/components/PromoBanner";
-import { COUPON_ELIGIBLE, tourPriceLabel } from "@/lib/prices";
+import { COUPON_ELIGIBLE, tourPriceLabel, TOUR_PRICES, formatBRL } from "@/lib/prices";
 import { isAdminMode } from "@/lib/promo";
 import { AdminFab } from "@/components/AdminPanel";
 import { useAdminConfig } from "@/lib/adminConfig";
+import { QrPromoBoot } from "@/components/QrPromo";
+import { loadQrPromo, urlHasPromoParam, subscribeQrPromo } from "@/lib/qrPromo";
 
 import nathanProfile from "@/assets/nathan-profile.jpg";
 import arraialImg from "@/assets/arraial-do-cabo.jpg";
@@ -42,7 +44,10 @@ const Index = () => {
   const [screen, setScreen] = useState<Screen>("menu");
   const t = dict[lang];
   const adminCfg = useAdminConfig();
-  const admin = isAdminMode();
+  // Bloqueia recursos admin se houver parâmetro promocional na URL
+  const admin = isAdminMode() && !urlHasPromoParam();
+  const [qr, setQr] = useState(() => loadQrPromo());
+  useEffect(() => subscribeQrPromo(() => setQr(loadQrPromo())), []);
 
   // Browser/Android back-button support via history API
   useEffect(() => {
