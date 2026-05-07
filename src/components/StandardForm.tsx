@@ -14,6 +14,8 @@ import { PhoneInput, PhoneValue, fullPhone } from "./PhoneInput";
 import { toast } from "sonner";
 import { TourDatePicker } from "./TourDatePicker";
 import { PromoBanner } from "./PromoBanner";
+import { QrPromoBoot } from "./QrPromo";
+import { loadQrPromo } from "@/lib/qrPromo";
 
 import { TourKey } from "@/lib/tours";
 import { TOUR_PRICES, formatBRL, tourPriceLabel, COUPON_ELIGIBLE } from "@/lib/prices";
@@ -158,12 +160,14 @@ export const StandardForm = ({
       ? ages.filter((a) => { const n = parseInt(a); return !isNaN(n) && n <= 5; }).length
       : 0;
     // Lancha: valor fixo "a partir de" (não multiplica por pax)
-    const original = meta.from
+    const baseOriginal = meta.from
       ? meta.value
       : (paxN - freeN - halfN) * meta.value + halfN * (meta.value / 2);
+    const qr = loadQrPromo();
+    const original = qr ? baseOriginal - (baseOriginal * qr.percent) / 100 : baseOriginal;
     const discount = effectiveCoupon ? (original * effectiveCoupon.percent) / 100 : 0;
     const final = original - discount;
-    return { original, discount, final, meta };
+    return { original, discount, final, meta, qrPercent: qr?.percent ?? 0, qrApplied: !!qr, baseOriginal };
   }, [tourKey, pax, hasKids, ages, adultsOnly, effectiveCoupon]);
 
   const kidsN = Math.min(8, Math.max(0, parseInt(kidsCount) || 0));
@@ -308,6 +312,7 @@ export const StandardForm = ({
   if (output) {
     return (
       <>
+        <QrPromoBoot />
         <PromoBanner lang={lang} />
         <div className="pt-12">
           <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage}>
@@ -321,6 +326,7 @@ export const StandardForm = ({
 
   return (
     <>
+      <QrPromoBoot />
       <PromoBanner
         lang={lang}
         forceOpen={couponPromptOpen}

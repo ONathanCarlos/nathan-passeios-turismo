@@ -10,10 +10,12 @@ import { TourKey } from "@/lib/tours";
 import { Star, Tag } from "lucide-react";
 import { PageTransition } from "@/components/PageTransition";
 import { PromoBanner } from "@/components/PromoBanner";
-import { COUPON_ELIGIBLE, tourPriceLabel } from "@/lib/prices";
+import { COUPON_ELIGIBLE, tourPriceLabel, TOUR_PRICES, formatBRL } from "@/lib/prices";
 import { isAdminMode } from "@/lib/promo";
 import { AdminFab } from "@/components/AdminPanel";
 import { useAdminConfig } from "@/lib/adminConfig";
+import { QrPromoBoot } from "@/components/QrPromo";
+import { loadQrPromo, urlHasPromoParam, subscribeQrPromo } from "@/lib/qrPromo";
 
 import nathanProfile from "@/assets/nathan-profile.jpg";
 import arraialImg from "@/assets/arraial-do-cabo.jpg";
@@ -42,7 +44,10 @@ const Index = () => {
   const [screen, setScreen] = useState<Screen>("menu");
   const t = dict[lang];
   const adminCfg = useAdminConfig();
-  const admin = isAdminMode();
+  // Bloqueia recursos admin se houver parâmetro promocional na URL
+  const admin = isAdminMode() && !urlHasPromoParam();
+  const [qr, setQr] = useState(() => loadQrPromo());
+  useEffect(() => subscribeQrPromo(() => setQr(loadQrPromo())), []);
 
   // Browser/Android back-button support via history API
   useEffect(() => {
@@ -74,8 +79,10 @@ const Index = () => {
   if (typeof screen === "object" && "details" in screen) {
     return (
       <>
+        <QrPromoBoot />
+        {admin && <AdminTopBar />}
         <PromoBanner lang={lang} />
-        <div className="pt-12">
+        <div className={admin ? "pt-20" : "pt-12"}>
           <PageTransition key={`details-${screen.details}`}>
             <TourDetails
               tourKey={screen.details}
@@ -131,8 +138,10 @@ const Index = () => {
 
   return (
     <>
+    <QrPromoBoot />
+    {admin && <AdminTopBar />}
     <PromoBanner lang={lang} />
-    <PageTransition key="menu"><main className="relative min-h-screen px-4 pt-16 sm:pt-20 py-6 sm:py-10 overflow-hidden">
+    <PageTransition key="menu"><main className={`relative min-h-screen px-4 ${admin ? "pt-24 sm:pt-28" : "pt-16 sm:pt-20"} py-6 sm:py-10 overflow-hidden`}>
       {/* Fundo estático ondulatório: gradiente azul-turquesa → azul escuro */}
       <div aria-hidden="true" className="ocean-static-bg pointer-events-none fixed inset-0 z-0" />
 
@@ -218,9 +227,28 @@ const Index = () => {
                   <h3 className="text-lg font-bold text-foreground leading-tight">{opt.title}</h3>
                   <p className="mt-1.5 text-sm text-muted-foreground leading-snug flex-1">{opt.desc}</p>
 
-                  <p className="float-soft mt-3 text-2xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
-                    {tourPriceLabel(opt.key, lang)}
-                  </p>
+                  {qr ? (() => {
+                    const meta = TOUR_PRICES[opt.key];
+                    const orig = meta.value;
+                    const disc = orig - (orig * qr.percent) / 100;
+                    return (
+                      <div className="float-soft mt-3">
+                        <div className="text-xs text-muted-foreground line-through leading-none">
+                          {meta.from ? `A partir de ${formatBRL(orig)}` : formatBRL(orig)}
+                        </div>
+                        <div className="text-2xl font-extrabold bg-gradient-to-r from-emerald-300 to-turquoise-glow bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+                          {meta.from ? `A partir de ${formatBRL(disc)}` : formatBRL(disc)}
+                        </div>
+                        <div className="text-[10px] font-bold text-emerald-300">
+                          -{qr.percent}% via QR Code
+                        </div>
+                      </div>
+                    );
+                  })() : (
+                    <p className="float-soft mt-3 text-2xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+                      {tourPriceLabel(opt.key, lang)}
+                    </p>
+                  )}
 
                   <div className="mt-4 flex flex-col gap-2">
                     <button
@@ -264,5 +292,11 @@ const Index = () => {
     </>
   );
 };
+
+const AdminTopBar = () => (
+  <div className="fixed top-0 left-0 right-0 z-50 bg-amber-500/95 text-night text-center py-1.5 text-[11px] sm:text-xs font-extrabold uppercase tracking-wider shadow-md">
+    ⚠️ MODO ADMIN ATIVO
+  </div>
+);
 
 export default Index;

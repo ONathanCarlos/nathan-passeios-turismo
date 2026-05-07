@@ -42,8 +42,15 @@ const FROM: Record<Lang, string> = {
 export const formatBRL = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: v % 1 ? 2 : 0 });
 
+import { loadQrPromo } from "./qrPromo";
+
 export const tourPriceLabel = (key: TourKey, lang: Lang): string => {
   const p = TOUR_PRICES[key];
+  const qr = loadQrPromo();
+  if (qr) {
+    const discounted = p.value - (p.value * qr.percent) / 100;
+    return p.from ? `${FROM[lang]} ${formatBRL(discounted)}` : formatBRL(discounted);
+  }
   return p.from ? `${FROM[lang]} ${formatBRL(p.value)}` : formatBRL(p.value);
 };
 
