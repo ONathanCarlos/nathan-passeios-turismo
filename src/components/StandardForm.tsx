@@ -346,25 +346,28 @@ export const StandardForm = ({
     );
   }
 
+  const adminOn = isAdminMode();
   return (
     <>
-      <QrPromoBoot lang={lang} />
-      <PromoBanner
-        lang={lang}
-        forceOpen={couponPromptOpen}
-        onForceOpenChange={setCouponPromptOpen}
-        onPromoCreated={(p) => {
-          // Auto-aplica e preenche
-          setAppliedCoupon(p);
-          if (!name) setName(p.nome);
-          if (!phone.number) {
-            const m = p.whatsapp.match(/^(\+\d+)\s*(.*)$/);
-            if (m) setPhone({ ddi: m[1], number: m[2].replace(/\D/g, "") });
-          }
-          toast.success(`Cupom ${p.cupom} aplicado · -${p.percentualDesconto}%`);
-        }}
-      />
-      <div className="pt-12">
+      {!adminOn && <QrPromoBoot lang={lang} />}
+      {!adminOn && (
+        <PromoBanner
+          lang={lang}
+          forceOpen={couponPromptOpen}
+          onForceOpenChange={setCouponPromptOpen}
+          onPromoCreated={(p) => {
+            // Auto-aplica e preenche
+            setAppliedCoupon(p);
+            if (!name) setName(p.nome);
+            if (!phone.number) {
+              const m = p.whatsapp.match(/^(\+\d+)\s*(.*)$/);
+              if (m) setPhone({ ddi: m[1], number: m[2].replace(/\D/g, "") });
+            }
+            toast.success(`Cupom ${p.cupom} aplicado · -${p.percentualDesconto}%`);
+          }}
+        />
+      )}
+      <div className={adminOn ? "" : "pt-12"}>
       <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage}>
         <p className="text-foreground bg-night/50 backdrop-blur-sm rounded-lg p-3 mb-4 text-sm leading-relaxed font-medium">{t.intro}</p>
         {notice && (
