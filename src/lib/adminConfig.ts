@@ -85,10 +85,10 @@ export const adminGetImage = (key: TourKey, fallback: string): string =>
   loadAdminConfig().images[key] || fallback;
 
 export const adminGetDesc = (key: TourKey, lang: Lang, fallback: string): string =>
-  loadAdminConfig().descriptions[key]?.[lang] || fallback;
+  loadAdminConfig().descriptions[key]?.pt || loadAdminConfig().descriptions[key]?.[lang] || fallback;
 
 export const adminGetTitle = (key: TourKey, lang: Lang, fallback: string): string =>
-  loadAdminConfig().titles[key]?.[lang] || fallback;
+  loadAdminConfig().titles[key]?.pt || loadAdminConfig().titles[key]?.[lang] || fallback;
 
 export const adminGetVideo = (which: "mobile" | "desktop", fallback: string): string =>
   loadAdminConfig().videos[which] || fallback;

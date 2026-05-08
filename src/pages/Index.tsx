@@ -122,7 +122,7 @@ const Index = () => {
 
   type Opt = { key: TourKey; image: string; title: string; desc: string; adultsOnly?: boolean };
   const ov = (k: TourKey, base: string) => adminCfg.images[k] || base;
-  const od = (k: TourKey, base: string) => adminCfg.descriptions[k]?.[lang] || base;
+  const od = (k: TourKey, base: string) => adminCfg.descriptions[k]?.pt || adminCfg.descriptions[k]?.[lang] || base;
   const options: Opt[] = [
     { key: "escuna",    image: ov("escuna", escunaImg),       title: t.optEscuna,    desc: od("escuna", t.descEscuna) },
     { key: "arraial",   image: ov("arraial", arraialImg),     title: t.optArraial,   desc: od("arraial", t.descArraial) },

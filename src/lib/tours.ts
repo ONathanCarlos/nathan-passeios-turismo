@@ -284,8 +284,8 @@ export const getTour = (key: TourKey, lang: Lang): TourDetail => {
   const t = T[key][lang];
   const cfg = loadAdminConfig();
   const overrideImg = cfg.images[key];
-  const overrideDesc = cfg.descriptions[key]?.[lang];
-  const overrideTitle = cfg.titles[key]?.[lang];
+  const overrideDesc = cfg.descriptions[key]?.pt || cfg.descriptions[key]?.[lang];
+  const overrideTitle = cfg.titles[key]?.pt || cfg.titles[key]?.[lang];
   const tt = { title: overrideTitle || t.title, hook: overrideDesc || t.hook };
 
 
