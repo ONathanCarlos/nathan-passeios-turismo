@@ -242,7 +242,7 @@ export const dict: Record<Lang, Dict> = {
     language: "Idioma",
     menuTitle: "Elige tu paseo",
     menuSubtitle: "Selecciona una de las opciones para iniciar tu reserva",
-    optEscuna: "Paseo en Goleta",
+    optEscuna: "Paseo en Escuna",
     optEscunaDesc: "Tour completo por las playas paradisíacas",
     optArraial: "Paseo en Arraial do Cabo",
     optArraialDesc: "Reserva con recogida en la posada",
