@@ -99,37 +99,33 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
             ))}
           </TabsContent>
 
-          {/* ---------------- TEXTOS ---------------- */}
+          {/* ---------------- TEXTOS (apenas PT — base para tradutor) ---------------- */}
           <TabsContent value="texts" className="mt-4 space-y-4">
-            {TOUR_KEYS.map(({ key, label }) => (
-              <details key={key} className="glass-card rounded-xl p-3">
-                <summary className="cursor-pointer font-semibold text-foreground">{label}</summary>
-                <div className="mt-3 space-y-3">
-                  {LANGS.map((ln) => {
-                    const baseDesc = dict[ln][`desc${key.charAt(0).toUpperCase() + key.slice(1)}` as keyof typeof dict["pt"]] as string | undefined;
-                    return (
-                      <div key={ln} className="space-y-1">
-                        <Label className="text-xs uppercase text-turquoise-glow">{ln}</Label>
-                        <Textarea
-                          rows={2}
-                          placeholder={baseDesc || "descrição"}
-                          className="bg-night/70 border-turquoise/30 text-foreground"
-                          value={cfg.descriptions[key]?.[ln] ?? ""}
-                          onChange={(e) => {
-                            const v = e.target.value;
-                            const all = { ...cfg.descriptions };
-                            const cur = { ...(all[key] || {}) };
-                            if (v === "") delete cur[ln]; else cur[ln] = v;
-                            all[key] = cur;
-                            update({ descriptions: all });
-                          }}
-                        />
-                      </div>
-                    );
-                  })}
+            <div className="glass-card rounded-xl p-3 border-turquoise/30 bg-turquoise/5 text-xs text-turquoise-glow">
+              ✍️ Edite somente em <b>Português</b>. O texto será exibido como base e o tradutor multilíngue do site (PT/ES/EN/FR/IT) refletirá automaticamente nas demais versões.
+            </div>
+            {TOUR_KEYS.map(({ key, label }) => {
+              const baseDesc = dict.pt[`desc${key.charAt(0).toUpperCase() + key.slice(1)}` as keyof typeof dict["pt"]] as string | undefined;
+              return (
+                <div key={key} className="glass-card rounded-xl p-3 space-y-2">
+                  <Label className="font-semibold text-foreground">{label}</Label>
+                  <Textarea
+                    rows={2}
+                    placeholder={baseDesc || "descrição em português"}
+                    className="bg-night/70 border-turquoise/30 text-foreground"
+                    value={cfg.descriptions[key]?.pt ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      const all = { ...cfg.descriptions };
+                      const cur = { ...(all[key] || {}) };
+                      if (v === "") delete cur.pt; else cur.pt = v;
+                      all[key] = cur;
+                      update({ descriptions: all });
+                    }}
+                  />
                 </div>
-              </details>
-            ))}
+              );
+            })}
           </TabsContent>
 
           {/* ---------------- MÍDIA ---------------- */}
