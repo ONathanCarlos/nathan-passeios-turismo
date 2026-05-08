@@ -1,8 +1,3 @@
-// ============================================================
-// Painel Administrativo Local — Nathan Passeios
-// Permite editar preços, descrições, imagens, vídeos e cupons.
-// Tudo é salvo em localStorage via lib/adminConfig.
-// ============================================================
 import { useState } from "react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
@@ -13,11 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Settings2, Trash2, Upload, Plus, Save } from "lucide-react";
+import { Settings2, Trash2, Upload, Plus, Save, Sparkles, Gift, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { TourKey } from "@/lib/tours";
-import { Lang } from "@/lib/i18n";
-import { dict } from "@/lib/i18n";
+import { Lang, dict } from "@/lib/i18n";
 import {
   AdminConfig, loadAdminConfig, saveAdminConfig, useAdminConfig,
 } from "@/lib/adminConfig";
@@ -55,6 +49,10 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
   const refreshBlocked = () => setBlockedPhones(getBlockedWelcomePhones());
   const activePromo = loadPromo();
 
+  // Previews de modais (visualização apenas — não alteram estado real)
+  const [qrPreview, setQrPreview] = useState<{ percent: number; lang: Lang } | null>(null);
+  const [holidayPreview, setHolidayPreview] = useState<{ code: string; message: string; percent: number } | null>(null);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-card border-turquoise/30 max-w-3xl max-h-[90vh] overflow-y-auto">
@@ -69,11 +67,12 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
         </DialogHeader>
 
         <Tabs defaultValue="prices" className="w-full">
-          <TabsList className="grid grid-cols-5 w-full bg-night/60">
+          <TabsList className="grid grid-cols-6 w-full bg-night/60">
             <TabsTrigger value="prices">Preços</TabsTrigger>
             <TabsTrigger value="texts">Textos</TabsTrigger>
             <TabsTrigger value="media">Mídia</TabsTrigger>
             <TabsTrigger value="coupons">Cupons</TabsTrigger>
+            <TabsTrigger value="modals">Modais</TabsTrigger>
             <TabsTrigger value="system">Sistema</TabsTrigger>
           </TabsList>
 
@@ -479,6 +478,75 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
             </div>
           </TabsContent>
 
+          {/* ---------------- MODAIS (previews visuais) ---------------- */}
+          <TabsContent value="modals" className="mt-4 space-y-4">
+            <div className="text-xs text-muted-foreground">
+              Os botões abaixo exibem apenas a visualização dos modais. Nenhum desconto é aplicado, nenhum estado é salvo e a sessão não é modificada.
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <Button
+                variant="outline"
+                className="border-amber-400/40 text-amber-200 hover:bg-amber-500/10 h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => setQrPreview({ percent: 5, lang: "pt" })}
+              >
+                <Eye className="h-4 w-4" />
+                <span className="text-xs font-semibold">Visualizar QR 5%</span>
+                <span className="text-[10px] text-muted-foreground">?promo=qr5</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="border-amber-400/40 text-amber-200 hover:bg-amber-500/10 h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => setQrPreview({ percent: 10, lang: "pt" })}
+              >
+                <Eye className="h-4 w-4" />
+                <span className="text-xs font-semibold">Visualizar QR 10%</span>
+                <span className="text-[10px] text-muted-foreground">?promo=qr10</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/10 h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => setHolidayPreview({ code: "NATAL15", message: "Feliz Natal! Aproveite 15% de desconto especial 🎄", percent: 15 })}
+              >
+                <Gift className="h-4 w-4" />
+                <span className="text-xs font-semibold">Visualizar Natal</span>
+                <span className="text-[10px] text-muted-foreground">Modal comemorativo</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="border-turquoise/40 text-turquoise-glow hover:bg-turquoise/10 h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => setHolidayPreview({ code: "ANONOVO15", message: "Feliz Ano Novo! Aproveite 15% de desconto especial 🎆", percent: 15 })}
+              >
+                <Gift className="h-4 w-4" />
+                <span className="text-xs font-semibold">Visualizar Ano Novo</span>
+                <span className="text-[10px] text-muted-foreground">Modal comemorativo</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="border-violet-400/40 text-violet-200 hover:bg-violet-500/10 h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => setHolidayPreview({ code: "BLACK20", message: "Black Friday! 20% de desconto por tempo limitado 🖤", percent: 20 })}
+              >
+                <Gift className="h-4 w-4" />
+                <span className="text-xs font-semibold">Visualizar Black Friday</span>
+                <span className="text-[10px] text-muted-foreground">Modal comemorativo</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="border-amber-400/40 text-amber-200 hover:bg-amber-500/10 h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => setQrPreview({ percent: 10, lang: "es" })}
+              >
+                <Eye className="h-4 w-4" />
+                <span className="text-xs font-semibold">Visualizar Espanhol</span>
+                <span className="text-[10px] text-muted-foreground">QR promo em ES</span>
+              </Button>
+            </div>
+          </TabsContent>
+
           {/* ---------------- SISTEMA ---------------- */}
           <TabsContent value="system" className="mt-4 space-y-3">
             <div className="glass-card rounded-xl p-3 space-y-2 text-sm">
@@ -531,6 +599,87 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
             <Save className="h-4 w-4 mr-1" /> Aplicar Alterações
           </Button>
         </div>
+
+        {/* Preview: Modal QR */}
+        <Dialog open={!!qrPreview} onOpenChange={(v) => !v && setQrPreview(null)}>
+          <DialogContent className="bg-card border-amber-400/40 max-w-sm">
+            {qrPreview && (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="text-foreground flex items-center gap-2 text-xl">
+                    <Sparkles className="h-6 w-6 text-amber-300" />
+                    {qrPreview.lang === "es" ? "¡Vaya... tú por aquí! 🎉" : "Opa... você por aqui? 🎉"}
+                  </DialogTitle>
+                  <DialogDescription className="leading-relaxed pt-1">
+                    {qrPreview.lang === "es"
+                      ? "Vimos que llegaste escaneando nuestro QR Code."
+                      : "Vimos que você chegou escaneando nosso QR Code."}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="text-center py-5 rounded-2xl bg-gradient-to-r from-amber-500/15 to-turquoise/15 border border-amber-400/30">
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {qrPreview.lang === "es" ? "Descuento activado" : "Desconto ativado"}
+                    </div>
+                    <div className="text-5xl font-extrabold bg-gradient-to-r from-amber-300 to-turquoise-glow bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] py-1">
+                      {qrPreview.percent}% OFF
+                    </div>
+                    <div className="text-xs text-emerald-300 font-semibold mt-1">
+                      {qrPreview.lang === "es" ? "Aplicado automáticamente en tu reserva" : "Aplicado automaticamente na sua reserva"}
+                    </div>
+                  </div>
+                  <p className="text-xs text-foreground/85 text-center leading-relaxed">
+                    {qrPreview.lang === "es"
+                      ? `Como recompensa, tu descuento de ${qrPreview.percent}% OFF fue activado automáticamente. Tu valor promocional ya está aplicado en tu reserva.`
+                      : `Como recompensa, seu desconto de ${qrPreview.percent}% OFF foi ativado automaticamente. Seu valor promocional já está aplicado na sua reserva.`}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setQrPreview(null)}
+                    className="rgb-border w-full block"
+                  >
+                    <span className="flex items-center justify-center w-full h-12 rounded-[0.6rem] bg-gradient-to-r from-amber-400 to-turquoise-glow text-night font-bold text-sm">
+                      {qrPreview.lang === "es" ? "Continuar" : "Continuar"}
+                    </span>
+                  </button>
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Preview: Modal Comemorativo */}
+        <Dialog open={!!holidayPreview} onOpenChange={(v) => !v && setHolidayPreview(null)}>
+          <DialogContent className="bg-card border-amber-400/40 max-w-sm">
+            {holidayPreview && (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="text-foreground flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-amber-300" />
+                    Hoje é dia especial 🎉
+                  </DialogTitle>
+                  <DialogDescription>{holidayPreview.message}</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-3">
+                  <div className="text-center py-3 rounded-xl bg-gradient-to-r from-amber-500/15 to-turquoise/15 border border-amber-400/30">
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Código</div>
+                    <div className="text-2xl font-extrabold text-amber-200 font-mono tracking-wider">{holidayPreview.code}</div>
+                    <div className="text-sm text-emerald-300 font-semibold">-{holidayPreview.percent}%</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setHolidayPreview(null)}
+                    className="rgb-border w-full block"
+                  >
+                    <span className="flex items-center justify-center w-full h-12 rounded-[0.6rem] bg-gradient-to-r from-amber-400 to-turquoise-glow text-night font-bold text-sm">
+                      Resgate seu cupom agora!
+                    </span>
+                  </button>
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
       </DialogContent>
     </Dialog>
   );
