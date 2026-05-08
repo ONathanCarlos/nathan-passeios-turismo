@@ -125,9 +125,20 @@ export const QrPromoBoot = ({ lang }: Props) => {
           <button
             type="button"
             onClick={() => {
-              if (promo) markSeenCampaign(promo.campaign);
+              try {
+                if (promo) {
+                  markSeenCampaign(promo.campaign);
+                  localStorage.setItem("nathan_qr_promo_confirmed_v1", promo.campaign);
+                }
+              } catch {}
               setOpen(false);
-              window.location.reload();
+              setTimeout(() => {
+                try {
+                  window.location.reload();
+                } catch {
+                  window.location.href = window.location.href;
+                }
+              }, 50);
             }}
             className="rgb-border w-full block"
           >
