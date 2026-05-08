@@ -14,6 +14,7 @@ import {
   hasHolidayActiveToday,
   isWelcomeBlockedForPhone,
 } from "@/lib/promo";
+import { isQrActive, loadQrPromo, subscribeQrPromo } from "@/lib/qrPromo";
 import {
   Dialog,
   DialogContent,
