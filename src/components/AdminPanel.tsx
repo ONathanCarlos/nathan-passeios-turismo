@@ -478,6 +478,75 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
             </div>
           </TabsContent>
 
+          {/* ---------------- MODAIS (previews visuais) ---------------- */}
+          <TabsContent value="modals" className="mt-4 space-y-4">
+            <div className="text-xs text-muted-foreground">
+              Os botões abaixo exibem apenas a visualização dos modais. Nenhum desconto é aplicado, nenhum estado é salvo e a sessão não é modificada.
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <Button
+                variant="outline"
+                className="border-amber-400/40 text-amber-200 hover:bg-amber-500/10 h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => setQrPreview({ percent: 5, lang: "pt" })}
+              >
+                <Eye className="h-4 w-4" />
+                <span className="text-xs font-semibold">Visualizar QR 5%</span>
+                <span className="text-[10px] text-muted-foreground">?promo=qr5</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="border-amber-400/40 text-amber-200 hover:bg-amber-500/10 h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => setQrPreview({ percent: 10, lang: "pt" })}
+              >
+                <Eye className="h-4 w-4" />
+                <span className="text-xs font-semibold">Visualizar QR 10%</span>
+                <span className="text-[10px] text-muted-foreground">?promo=qr10</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/10 h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => setHolidayPreview({ code: "NATAL15", message: "Feliz Natal! Aproveite 15% de desconto especial 🎄", percent: 15 })}
+              >
+                <Gift className="h-4 w-4" />
+                <span className="text-xs font-semibold">Visualizar Natal</span>
+                <span className="text-[10px] text-muted-foreground">Modal comemorativo</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="border-turquoise/40 text-turquoise-glow hover:bg-turquoise/10 h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => setHolidayPreview({ code: "ANONOVO15", message: "Feliz Ano Novo! Aproveite 15% de desconto especial 🎆", percent: 15 })}
+              >
+                <Gift className="h-4 w-4" />
+                <span className="text-xs font-semibold">Visualizar Ano Novo</span>
+                <span className="text-[10px] text-muted-foreground">Modal comemorativo</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="border-violet-400/40 text-violet-200 hover:bg-violet-500/10 h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => setHolidayPreview({ code: "BLACK20", message: "Black Friday! 20% de desconto por tempo limitado 🖤", percent: 20 })}
+              >
+                <Gift className="h-4 w-4" />
+                <span className="text-xs font-semibold">Visualizar Black Friday</span>
+                <span className="text-[10px] text-muted-foreground">Modal comemorativo</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="border-amber-400/40 text-amber-200 hover:bg-amber-500/10 h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => setQrPreview({ percent: 10, lang: "es" })}
+              >
+                <Eye className="h-4 w-4" />
+                <span className="text-xs font-semibold">Visualizar Espanhol</span>
+                <span className="text-[10px] text-muted-foreground">QR promo em ES</span>
+              </Button>
+            </div>
+          </TabsContent>
+
           {/* ---------------- SISTEMA ---------------- */}
           <TabsContent value="system" className="mt-4 space-y-3">
             <div className="glass-card rounded-xl p-3 space-y-2 text-sm">
