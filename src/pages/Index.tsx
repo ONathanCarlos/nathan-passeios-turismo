@@ -45,8 +45,8 @@ const Index = () => {
   const [screen, setScreen] = useState<Screen>("menu");
   const t = dict[lang];
   const adminCfg = useAdminConfig();
-  // Bloqueia recursos admin se houver parâmetro promocional na URL
-  const admin = isAdminMode() && !urlHasPromoParam();
+  // Modo admin tem prioridade absoluta: oculta banners promocionais e modal QR.
+  const admin = isAdminMode();
   const [qr, setQr] = useState(() => loadQrPromo());
   useEffect(() => subscribeQrPromo(() => setQr(loadQrPromo())), []);
 
