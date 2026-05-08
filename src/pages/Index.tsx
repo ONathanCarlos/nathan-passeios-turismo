@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Lang, dict } from "@/lib/i18n";
+import { Lang, dict, loadLang, saveLang } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 
@@ -40,7 +40,8 @@ const deserialize = (s: string): Screen => {
 };
 
 const Index = () => {
-  const [lang, setLang] = useState<Lang>("pt");
+  const [lang, setLangState] = useState<Lang>(() => loadLang());
+  const setLang = (l: Lang) => { saveLang(l); setLangState(l); };
   const [screen, setScreen] = useState<Screen>("menu");
   const t = dict[lang];
   const adminCfg = useAdminConfig();
@@ -79,7 +80,7 @@ const Index = () => {
   if (typeof screen === "object" && "details" in screen) {
     return (
       <>
-        <QrPromoBoot />
+        <QrPromoBoot lang={lang} />
         <PromoBanner lang={lang} />
         <div className="pt-12">
           <PageTransition key={`details-${screen.details}`}>
@@ -121,7 +122,7 @@ const Index = () => {
 
   type Opt = { key: TourKey; image: string; title: string; desc: string; adultsOnly?: boolean };
   const ov = (k: TourKey, base: string) => adminCfg.images[k] || base;
-  const od = (k: TourKey, base: string) => adminCfg.descriptions[k]?.[lang] || base;
+  const od = (k: TourKey, base: string) => adminCfg.descriptions[k]?.pt || adminCfg.descriptions[k]?.[lang] || base;
   const options: Opt[] = [
     { key: "escuna",    image: ov("escuna", escunaImg),       title: t.optEscuna,    desc: od("escuna", t.descEscuna) },
     { key: "arraial",   image: ov("arraial", arraialImg),     title: t.optArraial,   desc: od("arraial", t.descArraial) },
@@ -137,7 +138,7 @@ const Index = () => {
 
   return (
     <>
-    <QrPromoBoot />
+    <QrPromoBoot lang={lang} />
     <PromoBanner lang={lang} />
     <PageTransition key="menu"><main className={`relative min-h-screen px-4 pt-16 sm:pt-20 py-6 sm:py-10 overflow-hidden`}>
       {/* Fundo estático ondulatório: gradiente azul-turquesa → azul escuro */}
