@@ -124,7 +124,11 @@ export const QrPromoBoot = ({ lang }: Props) => {
 
           <button
             type="button"
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              if (promo) markSeenCampaign(promo.campaign);
+              setOpen(false);
+              window.location.reload();
+            }}
             className="rgb-border w-full block"
           >
             <span className="flex items-center justify-center w-full h-12 rounded-[0.6rem] bg-gradient-to-r from-amber-400 to-turquoise-glow text-night font-bold text-sm">
