@@ -102,10 +102,19 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
           {/* ---------------- TEXTOS (apenas PT — base para tradutor) ---------------- */}
           <TabsContent value="texts" className="mt-4 space-y-4">
             <div className="glass-card rounded-xl p-3 border-turquoise/30 bg-turquoise/5 text-xs text-turquoise-glow">
-              ✍️ Edite somente em <b>Português</b>. O texto será exibido como base e o tradutor multilíngue do site (PT/ES/EN/FR/IT) refletirá automaticamente nas demais versões.
+              ✍️ Edite somente em <b>Português</b>. O texto será exibido como base e o tradutor multilíngue do site (PT/ES/EN/FR/IT) refletirá automaticamente nas demais versões. Veja a prévia logo abaixo.
             </div>
             {TOUR_KEYS.map(({ key, label }) => {
               const baseDesc = dict.pt[`desc${key.charAt(0).toUpperCase() + key.slice(1)}` as keyof typeof dict["pt"]] as string | undefined;
+              const ptOverride = cfg.descriptions[key]?.pt;
+              const effectivePt = ptOverride || baseDesc || "";
+              const LANGS: { code: Lang; flag: string; name: string }[] = [
+                { code: "pt", flag: "🇧🇷", name: "Português" },
+                { code: "es", flag: "🇪🇸", name: "Español" },
+                { code: "en", flag: "🇬🇧", name: "English" },
+                { code: "fr", flag: "🇫🇷", name: "Français" },
+                { code: "it", flag: "🇮🇹", name: "Italiano" },
+              ];
               return (
                 <div key={key} className="glass-card rounded-xl p-3 space-y-2">
                   <Label className="font-semibold text-foreground">{label}</Label>
@@ -113,7 +122,7 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
                     rows={2}
                     placeholder={baseDesc || "descrição em português"}
                     className="bg-night/70 border-turquoise/30 text-foreground"
-                    value={cfg.descriptions[key]?.pt ?? ""}
+                    value={ptOverride ?? ""}
                     onChange={(e) => {
                       const v = e.target.value;
                       const all = { ...cfg.descriptions };
@@ -123,6 +132,29 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
                       update({ descriptions: all });
                     }}
                   />
+                  <div className="rounded-lg border border-turquoise/20 bg-night/40 p-2 space-y-1">
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                      Prévia em todos os idiomas
+                    </div>
+                    {LANGS.map((L) => {
+                      const dictKey = `desc${key.charAt(0).toUpperCase() + key.slice(1)}` as keyof typeof dict["pt"];
+                      const baseForLang = (dict[L.code][dictKey] as string) || "";
+                      // Regra: se admin editou o PT, ele é usado como base para todos os idiomas;
+                      // caso contrário, cada idioma usa sua própria tradução do dicionário.
+                      const shown = ptOverride ? effectivePt : baseForLang;
+                      return (
+                        <div key={L.code} className="flex items-start gap-2 text-[11px] leading-snug">
+                          <span className="shrink-0 w-12 text-muted-foreground">{L.flag} {L.code.toUpperCase()}</span>
+                          <span className="text-foreground/90">{shown}</span>
+                        </div>
+                      );
+                    })}
+                    {ptOverride && (
+                      <div className="text-[10px] text-amber-300/80 pt-1">
+                        ⚠️ Texto personalizado em PT — está sendo usado como base nas demais línguas.
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
