@@ -45,8 +45,8 @@ const Index = () => {
   const [screen, setScreen] = useState<Screen>("menu");
   const t = dict[lang];
   const adminCfg = useAdminConfig();
-  // Bloqueia recursos admin se houver parâmetro promocional na URL
-  const admin = isAdminMode() && !urlHasPromoParam();
+  // Modo admin tem prioridade absoluta: oculta banners promocionais e modal QR.
+  const admin = isAdminMode();
   const [qr, setQr] = useState(() => loadQrPromo());
   useEffect(() => subscribeQrPromo(() => setQr(loadQrPromo())), []);
 
@@ -80,9 +80,9 @@ const Index = () => {
   if (typeof screen === "object" && "details" in screen) {
     return (
       <>
-        <QrPromoBoot lang={lang} />
-        <PromoBanner lang={lang} />
-        <div className="pt-12">
+        {!admin && <QrPromoBoot lang={lang} />}
+        {!admin && <PromoBanner lang={lang} />}
+        <div className={admin ? "" : "pt-12"}>
           <PageTransition key={`details-${screen.details}`}>
             <TourDetails
               tourKey={screen.details}
@@ -138,9 +138,9 @@ const Index = () => {
 
   return (
     <>
-    <QrPromoBoot lang={lang} />
-    <PromoBanner lang={lang} />
-    <PageTransition key="menu"><main className={`relative min-h-screen px-4 pt-16 sm:pt-20 py-6 sm:py-10 overflow-hidden`}>
+    {!admin && <QrPromoBoot lang={lang} />}
+    {!admin && <PromoBanner lang={lang} />}
+    <PageTransition key="menu"><main className={`relative min-h-screen px-4 ${admin ? "pt-6" : "pt-16 sm:pt-20"} py-6 sm:py-10 overflow-hidden`}>
       {/* Fundo estático ondulatório: gradiente azul-turquesa → azul escuro */}
       <div aria-hidden="true" className="ocean-static-bg pointer-events-none fixed inset-0 z-0" />
 
