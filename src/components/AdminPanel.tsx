@@ -1,8 +1,3 @@
-// ============================================================
-// Painel Administrativo Local — Nathan Passeios
-// Permite editar preços, descrições, imagens, vídeos e cupons.
-// Tudo é salvo em localStorage via lib/adminConfig.
-// ============================================================
 import { useState } from "react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
@@ -13,11 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Settings2, Trash2, Upload, Plus, Save } from "lucide-react";
+import { Settings2, Trash2, Upload, Plus, Save, Sparkles, Gift, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { TourKey } from "@/lib/tours";
-import { Lang } from "@/lib/i18n";
-import { dict } from "@/lib/i18n";
+import { Lang, dict } from "@/lib/i18n";
 import {
   AdminConfig, loadAdminConfig, saveAdminConfig, useAdminConfig,
 } from "@/lib/adminConfig";
