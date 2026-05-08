@@ -14,7 +14,7 @@ import {
   hasHolidayActiveToday,
   isWelcomeBlockedForPhone,
 } from "@/lib/promo";
-import { isQrActive, loadQrPromo, subscribeQrPromo } from "@/lib/qrPromo";
+import { isQrActive, loadQrPromo, subscribeQrPromo, urlIsExactRoot } from "@/lib/qrPromo";
 import {
   Dialog,
   DialogContent,
@@ -267,7 +267,7 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
                 🎟 {loadQrPromo()?.percent}% OFF aplicado via QR Code
               </span>
             </div>
-          ) : !holidayActive ? (
+          ) : !holidayActive && urlIsExactRoot() ? (
             <>
               <div className="flex items-center gap-2 min-w-0">
                 <Gift className="h-4 w-4 text-turquoise-glow shrink-0" />

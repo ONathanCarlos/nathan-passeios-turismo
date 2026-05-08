@@ -29,6 +29,13 @@ export const urlHasPromoParam = (): boolean => {
   return new URLSearchParams(window.location.search).has("promo");
 };
 
+/** Verdadeiro só quando URL é exatamente "/" — sem query, hash ou rota extra. */
+export const urlIsExactRoot = (): boolean => {
+  if (typeof window === "undefined") return false;
+  const { pathname, search, hash } = window.location;
+  return pathname === "/" && !search && !hash;
+};
+
 export const loadQrPromo = (): QrPromo | null => {
   try {
     const raw = localStorage.getItem(QR_KEY);

@@ -24,7 +24,8 @@ export const WhatsAppFab = ({ lang }: Props) => {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={t.whatsappSupport}
-      className="fixed bottom-5 left-5 z-50 flex items-center gap-2 rounded-full bg-[#25D366] pl-3 pr-4 py-3 text-white font-semibold shadow-[0_8px_24px_-4px_rgba(37,211,102,0.6)] hover:bg-[#1ebe5a] transition-all wa-pulse"
+      style={{ position: "fixed", bottom: "max(1.25rem, env(safe-area-inset-bottom))", right: "1rem" }}
+      className="z-[60] flex items-center gap-2 rounded-full bg-[#25D366] pl-3 pr-4 py-3 text-white font-semibold shadow-[0_8px_24px_-4px_rgba(37,211,102,0.6)] hover:bg-[#1ebe5a] transition-all wa-pulse"
     >
       <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white/15">
         {/* WhatsApp icon (inline SVG) */}
