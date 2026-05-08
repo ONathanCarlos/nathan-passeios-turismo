@@ -80,9 +80,9 @@ const Index = () => {
   if (typeof screen === "object" && "details" in screen) {
     return (
       <>
-        <QrPromoBoot lang={lang} />
-        <PromoBanner lang={lang} />
-        <div className="pt-12">
+        {!admin && <QrPromoBoot lang={lang} />}
+        {!admin && <PromoBanner lang={lang} />}
+        <div className={admin ? "" : "pt-12"}>
           <PageTransition key={`details-${screen.details}`}>
             <TourDetails
               tourKey={screen.details}
