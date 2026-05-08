@@ -537,6 +537,46 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
 
               <Button
                 variant="outline"
+                className="border-rose-400/40 text-rose-200 hover:bg-rose-500/10 h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => setHolidayPreview({ code: "MAES15", message: "Feliz Dia das Mães! 15% de desconto especial 💐", percent: 15 })}
+              >
+                <Gift className="h-4 w-4" />
+                <span className="text-xs font-semibold">Visualizar Dia das Mães</span>
+                <span className="text-[10px] text-muted-foreground">Modal comemorativo</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="border-red-400/40 text-red-200 hover:bg-red-500/10 h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => setHolidayPreview({ code: "NAMO15", message: "Feliz Dia dos Namorados! 15% de desconto para vocês 💕", percent: 15 })}
+              >
+                <Gift className="h-4 w-4" />
+                <span className="text-xs font-semibold">Visualizar Dia dos Namorados</span>
+                <span className="text-[10px] text-muted-foreground">Modal comemorativo</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="border-blue-400/40 text-blue-200 hover:bg-blue-500/10 h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => setHolidayPreview({ code: "PAIS15", message: "Feliz Dia dos Pais! 15% de desconto especial 👔", percent: 15 })}
+              >
+                <Gift className="h-4 w-4" />
+                <span className="text-xs font-semibold">Visualizar Dia dos Pais</span>
+                <span className="text-[10px] text-muted-foreground">Modal comemorativo</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="border-green-400/40 text-green-200 hover:bg-green-500/10 h-auto py-3 flex flex-col items-center gap-1"
+                onClick={() => setHolidayPreview({ code: "BRASIL15", message: "Independência do Brasil! 15% de desconto patriota 🇧🇷", percent: 15 })}
+              >
+                <Gift className="h-4 w-4" />
+                <span className="text-xs font-semibold">Visualizar Independência</span>
+                <span className="text-[10px] text-muted-foreground">Modal comemorativo</span>
+              </Button>
+
+              <Button
+                variant="outline"
                 className="border-amber-400/40 text-amber-200 hover:bg-amber-500/10 h-auto py-3 flex flex-col items-center gap-1"
                 onClick={() => setQrPreview({ percent: 10, lang: "es" })}
               >
