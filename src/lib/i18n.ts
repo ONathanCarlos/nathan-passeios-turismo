@@ -1,5 +1,39 @@
 export type Lang = "pt" | "es" | "en" | "fr" | "it";
 
+// ----- Persistência + integração com parâmetro ?lang= -----
+const LANG_KEY = "nathan_lang_v1";
+const LANG_ALIASES: Record<string, Lang> = {
+  pt: "pt", "pt-br": "pt", br: "pt",
+  es: "es", "es-es": "es",
+  en: "en", us: "en", "en-us": "en", uk: "en", gb: "en",
+  fr: "fr", "fr-fr": "fr",
+  it: "it", "it-it": "it",
+};
+
+export const parseLangFromUrl = (): Lang | null => {
+  if (typeof window === "undefined") return null;
+  const raw = new URLSearchParams(window.location.search).get("lang");
+  if (!raw) return null;
+  return LANG_ALIASES[raw.trim().toLowerCase()] || null;
+};
+
+export const loadLang = (): Lang => {
+  try {
+    const fromUrl = parseLangFromUrl();
+    if (fromUrl) {
+      localStorage.setItem(LANG_KEY, fromUrl);
+      return fromUrl;
+    }
+    const saved = localStorage.getItem(LANG_KEY) as Lang | null;
+    if (saved && ["pt","es","en","fr","it"].includes(saved)) return saved;
+  } catch {}
+  return "pt";
+};
+
+export const saveLang = (l: Lang) => {
+  try { localStorage.setItem(LANG_KEY, l); } catch {}
+};
+
 export const LANG_LABELS: Record<Lang, { name: string; flag: string }> = {
   pt: { name: "Português", flag: "🇧🇷" },
   es: { name: "Español", flag: "🇪🇸" },
