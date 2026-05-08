@@ -37,7 +37,7 @@ const TOUR_KEYS: { key: TourKey; label: string }[] = [
   { key: "mergulho", label: "Mergulho" },
   { key: "lancha", label: "Lancha Privada" },
 ];
-const LANGS: Lang[] = ["pt", "es", "en", "fr", "it"];
+
 
 const fileToDataUrl = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
