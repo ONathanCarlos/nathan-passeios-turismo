@@ -319,7 +319,7 @@ export const dict: Record<Lang, Dict> = {
     optCaboFrio: "Cabo Frio",
     optCaboFrioDesc: "Tour terrestre con guía bilingüe, almuerzo y Shopping Park Lagos.",
     descEscuna: "Dos cubiertas, dos toboganes, 11 playas y 3 islas en 2h30 de puro ocio.",
-    descArraial: "Día completo con traslado, goleta 3h30 y almuerzo buffet libre.",
+    descArraial: "Día completo con traslado, escuna 3h30 y almuerzo buffet libre.",
     descBuggy: "8 playas y 3 miradores en 1h30 de aventura por las dunas de Búzios.",
     descCaboFrio: "Tour terrestre con guía bilingüe, almuerzo y Shopping Park Lagos.",
     descJardineira: "12 playas, 2 miradores y baño en la Praia do Forno en 2 horas.",
