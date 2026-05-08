@@ -599,6 +599,87 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
             <Save className="h-4 w-4 mr-1" /> Aplicar Alterações
           </Button>
         </div>
+
+        {/* Preview: Modal QR */}
+        <Dialog open={!!qrPreview} onOpenChange={(v) => !v && setQrPreview(null)}>
+          <DialogContent className="bg-card border-amber-400/40 max-w-sm">
+            {qrPreview && (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="text-foreground flex items-center gap-2 text-xl">
+                    <Sparkles className="h-6 w-6 text-amber-300" />
+                    {qrPreview.lang === "es" ? "¡Vaya... tú por aquí! 🎉" : "Opa... você por aqui? 🎉"}
+                  </DialogTitle>
+                  <DialogDescription className="leading-relaxed pt-1">
+                    {qrPreview.lang === "es"
+                      ? "Vimos que llegaste escaneando nuestro QR Code."
+                      : "Vimos que você chegou escaneando nosso QR Code."}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="text-center py-5 rounded-2xl bg-gradient-to-r from-amber-500/15 to-turquoise/15 border border-amber-400/30">
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {qrPreview.lang === "es" ? "Descuento activado" : "Desconto ativado"}
+                    </div>
+                    <div className="text-5xl font-extrabold bg-gradient-to-r from-amber-300 to-turquoise-glow bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] py-1">
+                      {qrPreview.percent}% OFF
+                    </div>
+                    <div className="text-xs text-emerald-300 font-semibold mt-1">
+                      {qrPreview.lang === "es" ? "Aplicado automáticamente en tu reserva" : "Aplicado automaticamente na sua reserva"}
+                    </div>
+                  </div>
+                  <p className="text-xs text-foreground/85 text-center leading-relaxed">
+                    {qrPreview.lang === "es"
+                      ? `Como recompensa, tu descuento de ${qrPreview.percent}% OFF fue activado automáticamente. Tu valor promocional ya está aplicado en tu reserva.`
+                      : `Como recompensa, seu desconto de ${qrPreview.percent}% OFF foi ativado automaticamente. Seu valor promocional já está aplicado na sua reserva.`}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setQrPreview(null)}
+                    className="rgb-border w-full block"
+                  >
+                    <span className="flex items-center justify-center w-full h-12 rounded-[0.6rem] bg-gradient-to-r from-amber-400 to-turquoise-glow text-night font-bold text-sm">
+                      {qrPreview.lang === "es" ? "Continuar" : "Continuar"}
+                    </span>
+                  </button>
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Preview: Modal Comemorativo */}
+        <Dialog open={!!holidayPreview} onOpenChange={(v) => !v && setHolidayPreview(null)}>
+          <DialogContent className="bg-card border-amber-400/40 max-w-sm">
+            {holidayPreview && (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="text-foreground flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-amber-300" />
+                    Hoje é dia especial 🎉
+                  </DialogTitle>
+                  <DialogDescription>{holidayPreview.message}</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-3">
+                  <div className="text-center py-3 rounded-xl bg-gradient-to-r from-amber-500/15 to-turquoise/15 border border-amber-400/30">
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Código</div>
+                    <div className="text-2xl font-extrabold text-amber-200 font-mono tracking-wider">{holidayPreview.code}</div>
+                    <div className="text-sm text-emerald-300 font-semibold">-{holidayPreview.percent}%</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setHolidayPreview(null)}
+                    className="rgb-border w-full block"
+                  >
+                    <span className="flex items-center justify-center w-full h-12 rounded-[0.6rem] bg-gradient-to-r from-amber-400 to-turquoise-glow text-night font-bold text-sm">
+                      Resgate seu cupom agora!
+                    </span>
+                  </button>
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
       </DialogContent>
     </Dialog>
   );
