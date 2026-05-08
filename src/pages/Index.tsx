@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Lang, dict } from "@/lib/i18n";
+import { Lang, dict, loadLang, saveLang } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 
@@ -40,7 +40,8 @@ const deserialize = (s: string): Screen => {
 };
 
 const Index = () => {
-  const [lang, setLang] = useState<Lang>("pt");
+  const [lang, setLangState] = useState<Lang>(() => loadLang());
+  const setLang = (l: Lang) => { saveLang(l); setLangState(l); };
   const [screen, setScreen] = useState<Screen>("menu");
   const t = dict[lang];
   const adminCfg = useAdminConfig();
