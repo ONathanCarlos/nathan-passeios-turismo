@@ -288,11 +288,6 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
           ) : (
             <div className="flex-1" />
           )}
-          {admin && (
-            <span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-amber-300 bg-amber-500/15 border border-amber-400/40 rounded px-1.5 py-0.5 shrink-0">
-              ADMIN
-            </span>
-          )}
         </div>
       </div>
 
