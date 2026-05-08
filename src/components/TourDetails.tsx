@@ -18,6 +18,8 @@ interface Props {
 }
 
 export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook }: Props) => {
+  const [qr, setQr] = useState(() => loadQrPromo());
+  useEffect(() => subscribeQrPromo(() => setQr(loadQrPromo())), []);
   const tour = getTour(tourKey, lang);
   const L = sectionLabels(lang);
   const t = dict[lang];
