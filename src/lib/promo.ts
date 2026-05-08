@@ -188,10 +188,7 @@ export const isTester = (p: PromoData | null): boolean =>
 export const isAdminMode = (): boolean => {
   try {
     if (typeof window === "undefined") return false;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("admin") === "1") {
-      localStorage.setItem(ADMIN_KEY, "1");
-    }
+    // Acesso administrativo só via /admin com senha — nunca via URL pública.
     return localStorage.getItem(ADMIN_KEY) === "1";
   } catch { return false; }
 };
