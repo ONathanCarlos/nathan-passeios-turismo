@@ -331,11 +331,12 @@ export const StandardForm = ({
   };
 
   if (output) {
+    const adminOn = isAdminMode();
     return (
       <>
-        <QrPromoBoot lang={lang} />
-        <PromoBanner lang={lang} />
-        <div className="pt-12">
+        {!adminOn && <QrPromoBoot lang={lang} />}
+        {!adminOn && <PromoBanner lang={lang} />}
+        <div className={adminOn ? "" : "pt-12"}>
           <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage}>
             <SummaryOutput text={output.text} rows={output.rows} tourTitle={title} lang={lang} onReset={onBack} onSend={handleReservationSent} />
           </PageShell>
