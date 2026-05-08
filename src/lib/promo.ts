@@ -16,8 +16,10 @@ export const PROMO_VALIDITY_DAYS = PROMO_VALIDITY_DAYS_DEFAULT;
 const getAllEnabled = () => loadAdminConfig().coupon.allEnabled !== false;
 const getWelcomePercent = () => loadAdminConfig().coupon.welcomePercent ?? PROMO_DISCOUNT_DEFAULT;
 const getWelcomeDays = () => loadAdminConfig().coupon.welcomeValidityDays ?? PROMO_VALIDITY_DAYS_DEFAULT;
-const getWelcomeEnabled = () => getAllEnabled() && loadAdminConfig().coupon.welcomeEnabled !== false;
-const getRecoveryEnabled = () => getAllEnabled() && loadAdminConfig().coupon.recoveryEnabled !== false;
+// Quando QR está ativo, cupons padrão (boas-vindas) e recuperação ficam bloqueados.
+// Cupons comemorativos (holiday) continuam permitidos para acúmulo manual via admin.
+const getWelcomeEnabled = () => getAllEnabled() && !isQrActive() && loadAdminConfig().coupon.welcomeEnabled !== false;
+const getRecoveryEnabled = () => getAllEnabled() && !isQrActive() && loadAdminConfig().coupon.recoveryEnabled !== false;
 const getHolidayEnabled = () => getAllEnabled() && loadAdminConfig().coupon.holidayEnabled !== false;
 
 export const isAllCouponsEnabled = () => getAllEnabled();
