@@ -103,6 +103,12 @@ export const StandardForm = ({
 
   const tryApplyCoupon = () => {
     if (!eligible) { toast.error(ineligibleMsg); return; }
+    if (loadQrPromo() && !isAdminMode()) {
+      toast.error(lang === "pt"
+        ? "Cupom de boas-vindas indisponível: desconto via QR Code já está ativo."
+        : "Welcome coupon unavailable: a QR Code discount is already active.");
+      return;
+    }
     if (hasHolidayActiveToday() && !isAdminMode()) {
       toast.error(lang === "pt"
         ? "Hoje vale apenas o cupom comemorativo. Use o código do dia."
