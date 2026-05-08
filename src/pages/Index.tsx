@@ -80,7 +80,7 @@ const Index = () => {
   if (typeof screen === "object" && "details" in screen) {
     return (
       <>
-        <QrPromoBoot />
+        <QrPromoBoot lang={lang} />
         <PromoBanner lang={lang} />
         <div className="pt-12">
           <PageTransition key={`details-${screen.details}`}>
@@ -138,7 +138,7 @@ const Index = () => {
 
   return (
     <>
-    <QrPromoBoot />
+    <QrPromoBoot lang={lang} />
     <PromoBanner lang={lang} />
     <PageTransition key="menu"><main className={`relative min-h-screen px-4 pt-16 sm:pt-20 py-6 sm:py-10 overflow-hidden`}>
       {/* Fundo estático ondulatório: gradiente azul-turquesa → azul escuro */}
