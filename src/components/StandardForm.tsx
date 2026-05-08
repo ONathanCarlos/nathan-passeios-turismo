@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { TourDatePicker } from "./TourDatePicker";
 import { PromoBanner } from "./PromoBanner";
 import { QrPromoBoot } from "./QrPromo";
-import { loadQrPromo } from "@/lib/qrPromo";
+import { loadQrPromo, urlIsExactRoot } from "@/lib/qrPromo";
 
 import { TourKey } from "@/lib/tours";
 import { TOUR_PRICES, formatBRL, tourPriceLabel, COUPON_ELIGIBLE } from "@/lib/prices";
@@ -72,7 +72,8 @@ export const StandardForm = ({
   const [appliedSpecial, setAppliedSpecial] = useState<SpecificCoupon | null>(null);
   const [manualCode, setManualCode] = useState("");
   const [couponPromptOpen, setCouponPromptOpen] = useState(false);
-  const eligible = tourKey ? COUPON_ELIGIBLE.has(tourKey) : false;
+  const couponsAllowed = urlIsExactRoot() && !loadQrPromo();
+  const eligible = (tourKey ? COUPON_ELIGIBLE.has(tourKey) : false) && couponsAllowed;
   const requiredMsg = lang === "pt" ? "Preenchimento obrigatório" : lang === "es" ? "Campo obligatorio" : "Required field";
   const ineligibleMsg = lang === "pt" ? "Cupom indisponível para este passeio."
     : lang === "es" ? "Cupón no disponible para este paseo."
