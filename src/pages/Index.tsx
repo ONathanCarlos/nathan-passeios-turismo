@@ -138,9 +138,9 @@ const Index = () => {
 
   return (
     <>
-    <QrPromoBoot lang={lang} />
-    <PromoBanner lang={lang} />
-    <PageTransition key="menu"><main className={`relative min-h-screen px-4 pt-16 sm:pt-20 py-6 sm:py-10 overflow-hidden`}>
+    {!admin && <QrPromoBoot lang={lang} />}
+    {!admin && <PromoBanner lang={lang} />}
+    <PageTransition key="menu"><main className={`relative min-h-screen px-4 ${admin ? "pt-6" : "pt-16 sm:pt-20"} py-6 sm:py-10 overflow-hidden`}>
       {/* Fundo estático ondulatório: gradiente azul-turquesa → azul escuro */}
       <div aria-hidden="true" className="ocean-static-bg pointer-events-none fixed inset-0 z-0" />
 
