@@ -25,6 +25,7 @@ import {
   disableAdminMode, blockWelcomeForPhone, unblockWelcomeForPhone,
   getBlockedWelcomePhones, clearPromo, loadPromo,
 } from "@/lib/promo";
+import { isQrActive } from "@/lib/qrPromo";
 
 const TOUR_KEYS: { key: TourKey; label: string }[] = [
   { key: "escuna", label: "Escuna" },
@@ -197,6 +198,11 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
 
           {/* ---------------- CUPONS ---------------- */}
           <TabsContent value="coupons" className="mt-4 space-y-4">
+            {isQrActive() && (
+              <div className="glass-card rounded-xl p-3 border-amber-400/40 bg-amber-500/10 text-xs text-amber-200">
+                🎟 Promoção QR ativa. Cupons manuais desativados enquanto a URL contiver <code>?promo=qrN</code>.
+              </div>
+            )}
             <div className="glass-card rounded-xl p-3 flex items-center justify-between">
               <div>
                 <h4 className="text-sm font-bold text-turquoise-glow">Sistema de cupons</h4>
@@ -480,6 +486,23 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
             </div>
           </TabsContent>
         </Tabs>
+
+        <div className="flex items-center justify-end gap-2 pt-4 border-t border-turquoise/20 mt-2">
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button
+            className="bg-gradient-to-r from-turquoise to-turquoise-glow text-night font-bold hover:opacity-90"
+            onClick={() => {
+              // saveAdminConfig já é chamado a cada update; aqui apenas reforça e confirma.
+              saveAdminConfig(loadAdminConfig());
+              toast.success("✅ Alterações aplicadas com sucesso");
+              onOpenChange(false);
+            }}
+          >
+            <Save className="h-4 w-4 mr-1" /> Aplicar Alterações
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
