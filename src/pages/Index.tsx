@@ -278,23 +278,10 @@ const Index = () => {
         </footer>
       </div>
       <WhatsAppFab lang={lang} />
-      {admin && (
-        <>
-          <div className="fixed bottom-5 left-5 z-40 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider text-amber-300 bg-amber-500/15 border border-amber-400/40 backdrop-blur-sm">
-            Modo Administrador Ativo
-          </div>
-          <AdminFab />
-        </>
-      )}
+      {admin && <AdminFab />}
     </main></PageTransition>
     </>
   );
 };
-
-const AdminTopBar = () => (
-  <div className="fixed top-0 left-0 right-0 z-50 bg-amber-500/95 text-night text-center py-1.5 text-[11px] sm:text-xs font-extrabold uppercase tracking-wider shadow-md">
-    ⚠️ MODO ADMIN ATIVO
-  </div>
-);
 
 export default Index;
