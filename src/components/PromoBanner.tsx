@@ -182,11 +182,13 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
   const [special, setSpecial] = useState<SpecificCoupon | null>(null);
   const [specialOpen, setSpecialOpen] = useState(false);
   const admin = isAdminMode();
+  const [qrActive, setQrActive] = useState<boolean>(() => isQrActive());
 
   useEffect(() => {
     setPromo(loadPromo());
     const id = setInterval(() => setTick((x) => x + 1), 1000);
-    return () => clearInterval(id);
+    const unsub = subscribeQrPromo(() => setQrActive(isQrActive()));
+    return () => { clearInterval(id); unsub(); };
   }, []);
 
   useEffect(() => {
