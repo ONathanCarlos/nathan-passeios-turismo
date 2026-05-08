@@ -249,7 +249,7 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
                 </span>
               </button>
             </>
-          ) : promo && !expired && !used && !holidayActive ? (
+          ) : promo && !expired && !used && !holidayActive && !qrActive ? (
             <>
               <div className="flex-1 min-w-0">
                 <div className="text-[12px] sm:text-sm font-semibold text-foreground truncate">
@@ -260,6 +260,13 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
                 </div>
               </div>
             </>
+          ) : qrActive ? (
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <Sparkles className="h-4 w-4 text-amber-300 shrink-0" />
+              <span className="text-[12px] sm:text-sm font-semibold text-foreground truncate">
+                🎟 {loadQrPromo()?.percent}% OFF aplicado via QR Code
+              </span>
+            </div>
           ) : !holidayActive ? (
             <>
               <div className="flex items-center gap-2 min-w-0">
