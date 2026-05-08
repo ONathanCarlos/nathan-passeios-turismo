@@ -49,6 +49,10 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
   const refreshBlocked = () => setBlockedPhones(getBlockedWelcomePhones());
   const activePromo = loadPromo();
 
+  // Previews de modais (visualização apenas — não alteram estado real)
+  const [qrPreview, setQrPreview] = useState<{ percent: number; lang: Lang } | null>(null);
+  const [holidayPreview, setHolidayPreview] = useState<{ code: string; message: string; percent: number } | null>(null);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-card border-turquoise/30 max-w-3xl max-h-[90vh] overflow-y-auto">
