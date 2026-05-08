@@ -95,9 +95,28 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook }: Pro
 
           {/* Price */}
           <div className="mt-4 glass-card rounded-2xl p-4 text-center">
-            <p className="float-soft text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent">
-              {tourPriceLabel(tourKey, lang)}
-            </p>
+            {qr ? (() => {
+              const meta = TOUR_PRICES[tourKey];
+              const orig = meta.value;
+              const disc = orig - (orig * qr.percent) / 100;
+              return (
+                <>
+                  <p className="text-sm text-muted-foreground line-through">
+                    {meta.from ? `A partir de ${formatBRL(orig)}` : formatBRL(orig)}
+                  </p>
+                  <p className="float-soft text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-emerald-300 to-turquoise-glow bg-clip-text text-transparent">
+                    {meta.from ? `A partir de ${formatBRL(disc)}` : formatBRL(disc)}
+                  </p>
+                  <p className="mt-1 text-xs font-bold text-emerald-300">
+                    🎟 {qr.percent}% OFF aplicado via QR Code
+                  </p>
+                </>
+              );
+            })() : (
+              <p className="float-soft text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent">
+                {tourPriceLabel(tourKey, lang)}
+              </p>
+            )}
             {TOUR_PRICES[tourKey].note && (
               <p className="mt-1 text-xs text-amber-200/80 italic">
                 {TOUR_PRICES[tourKey].note![lang]}
