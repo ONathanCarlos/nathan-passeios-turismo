@@ -2,6 +2,7 @@
 // Sistema de Cupom Promocional — Nathan Passeios
 // ============================================================
 import { loadAdminConfig } from "./adminConfig";
+import { isQrActive } from "./qrPromo";
 
 export const PROMO_KEY = "nathan_promo_v1";
 export const SPECIAL_USED_KEY = "nathan_special_used_v1";
@@ -15,8 +16,10 @@ export const PROMO_VALIDITY_DAYS = PROMO_VALIDITY_DAYS_DEFAULT;
 const getAllEnabled = () => loadAdminConfig().coupon.allEnabled !== false;
 const getWelcomePercent = () => loadAdminConfig().coupon.welcomePercent ?? PROMO_DISCOUNT_DEFAULT;
 const getWelcomeDays = () => loadAdminConfig().coupon.welcomeValidityDays ?? PROMO_VALIDITY_DAYS_DEFAULT;
-const getWelcomeEnabled = () => getAllEnabled() && loadAdminConfig().coupon.welcomeEnabled !== false;
-const getRecoveryEnabled = () => getAllEnabled() && loadAdminConfig().coupon.recoveryEnabled !== false;
+// Quando QR está ativo, cupons padrão (boas-vindas) e recuperação ficam bloqueados.
+// Cupons comemorativos (holiday) continuam permitidos para acúmulo manual via admin.
+const getWelcomeEnabled = () => getAllEnabled() && !isQrActive() && loadAdminConfig().coupon.welcomeEnabled !== false;
+const getRecoveryEnabled = () => getAllEnabled() && !isQrActive() && loadAdminConfig().coupon.recoveryEnabled !== false;
 const getHolidayEnabled = () => getAllEnabled() && loadAdminConfig().coupon.holidayEnabled !== false;
 
 export const isAllCouponsEnabled = () => getAllEnabled();
@@ -185,10 +188,7 @@ export const isTester = (p: PromoData | null): boolean =>
 export const isAdminMode = (): boolean => {
   try {
     if (typeof window === "undefined") return false;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("admin") === "1") {
-      localStorage.setItem(ADMIN_KEY, "1");
-    }
+    // Acesso administrativo só via /admin com senha — nunca via URL pública.
     return localStorage.getItem(ADMIN_KEY) === "1";
   } catch { return false; }
 };

@@ -103,6 +103,12 @@ export const StandardForm = ({
 
   const tryApplyCoupon = () => {
     if (!eligible) { toast.error(ineligibleMsg); return; }
+    if (loadQrPromo() && !isAdminMode()) {
+      toast.error(lang === "pt"
+        ? "Cupom de boas-vindas indisponível: desconto via QR Code já está ativo."
+        : "Welcome coupon unavailable: a QR Code discount is already active.");
+      return;
+    }
     if (hasHolidayActiveToday() && !isAdminMode()) {
       toast.error(lang === "pt"
         ? "Hoje vale apenas o cupom comemorativo. Use o código do dia."
@@ -253,12 +259,17 @@ export const StandardForm = ({
     // Preço + cupom
     if (priceInfo) {
       rows.push({ label: lang === "pt" ? "Valor original" : "Original value", value: formatBRL(priceInfo.original) });
+      if (priceInfo.qrApplied) {
+        rows.push({ label: "QR Code", value: `🎟 ${priceInfo.qrPercent}% OFF` });
+      }
       if (effectiveCoupon) {
         rows.push({ label: "Cupom", value: `${effectiveCoupon.code} (-${effectiveCoupon.percent}%)` });
         rows.push({ label: lang === "pt" ? "Economia" : "Savings", value: formatBRL(priceInfo.discount) });
         rows.push({ label: lang === "pt" ? "Valor com desconto" : "Final price", value: formatBRL(priceInfo.final) });
       }
     }
+    rows.push({ label: lang === "pt" ? "Local Check-in" : "Check-in" , value: "Praça Santos Dummont, Cabine 03 - Búzios/RJ" });
+    rows.push({ label: lang === "pt" ? "Horário Check-in" : "Check-in time", value: "Até 11:30 — falar com Nathan ou Mary" });
 
     const lines = [t.sumTitle, title, "", `👤 ${t.sumName}: ${name}`];
     if (requireCpf) lines.push(`🪪 CPF: ${cpf}`);
@@ -289,8 +300,17 @@ export const StandardForm = ({
           `✅ Valor com desconto aplicado: ${formatBRL(priceInfo.final)}`,
         );
       }
+      if (priceInfo.qrApplied) {
+        lines.push(`🎟 Promoção aplicada: ${priceInfo.qrPercent}% OFF via QR Code`);
+      }
     }
-    lines.push("", "Reserva feita pelo site https://www.nathanturismo.com.br");
+    lines.push(
+      "",
+      "📍 Local do Check-in: Praça Santos Dummont, Cabine de Passeios Número 03 - Armação dos Búzios - RJ.",
+      "🕐 Horário do Check-in: até às 11:30 da manhã. Falar com Nathan ou Mary.",
+      "",
+      "Reserva feita pelo site https://www.nathanturismo.com.br",
+    );
     setOutput({ text: lines.join("\n"), rows });
   };
 

@@ -14,6 +14,7 @@ import {
   hasHolidayActiveToday,
   isWelcomeBlockedForPhone,
 } from "@/lib/promo";
+import { isQrActive, loadQrPromo, subscribeQrPromo } from "@/lib/qrPromo";
 import {
   Dialog,
   DialogContent,
@@ -181,11 +182,13 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
   const [special, setSpecial] = useState<SpecificCoupon | null>(null);
   const [specialOpen, setSpecialOpen] = useState(false);
   const admin = isAdminMode();
+  const [qrActive, setQrActive] = useState<boolean>(() => isQrActive());
 
   useEffect(() => {
     setPromo(loadPromo());
     const id = setInterval(() => setTick((x) => x + 1), 1000);
-    return () => clearInterval(id);
+    const unsub = subscribeQrPromo(() => setQrActive(isQrActive()));
+    return () => { clearInterval(id); unsub(); };
   }, []);
 
   useEffect(() => {
@@ -246,7 +249,7 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
                 </span>
               </button>
             </>
-          ) : promo && !expired && !used && !holidayActive ? (
+          ) : promo && !expired && !used && !holidayActive && !qrActive ? (
             <>
               <div className="flex-1 min-w-0">
                 <div className="text-[12px] sm:text-sm font-semibold text-foreground truncate">
@@ -257,6 +260,13 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
                 </div>
               </div>
             </>
+          ) : qrActive ? (
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <Sparkles className="h-4 w-4 text-amber-300 shrink-0" />
+              <span className="text-[12px] sm:text-sm font-semibold text-foreground truncate">
+                🎟 {loadQrPromo()?.percent}% OFF aplicado via QR Code
+              </span>
+            </div>
           ) : !holidayActive ? (
             <>
               <div className="flex items-center gap-2 min-w-0">
@@ -277,11 +287,6 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
             </>
           ) : (
             <div className="flex-1" />
-          )}
-          {admin && (
-            <span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-amber-300 bg-amber-500/15 border border-amber-400/40 rounded px-1.5 py-0.5 shrink-0">
-              ADMIN
-            </span>
           )}
         </div>
       </div>

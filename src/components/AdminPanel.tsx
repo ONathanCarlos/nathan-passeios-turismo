@@ -485,7 +485,7 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
   );
 };
 
-/** Botão flutuante de engrenagem + indicador "Modo Administrador Ativo" */
+/** Badge administrativo no canto superior direito (visível apenas autenticado). */
 export const AdminFab = () => {
   const [open, setOpen] = useState(false);
   return (
@@ -494,9 +494,10 @@ export const AdminFab = () => {
         type="button"
         aria-label="Painel Administrativo"
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-5 z-40 h-12 w-12 rounded-full bg-gradient-to-br from-night to-deep-blue border border-turquoise/40 shadow-[0_8px_24px_-4px_rgba(0,0,0,0.6)] flex items-center justify-center text-turquoise-glow hover:border-turquoise hover:shadow-[0_0_20px_hsl(var(--turquoise)/0.45)]"
+        className="fixed top-3 right-3 z-50 px-3 py-1.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider text-amber-200 bg-amber-500/20 border border-amber-400/60 backdrop-blur-md shadow-[0_4px_16px_-4px_rgba(0,0,0,0.6)] hover:bg-amber-500/30 hover:text-amber-100 transition-colors flex items-center gap-1.5"
       >
-        <Settings2 className="h-5 w-5" />
+        <Settings2 className="h-3.5 w-3.5" />
+        ⚠️ ADMIN
       </button>
       <AdminPanel open={open} onOpenChange={setOpen} />
     </>
