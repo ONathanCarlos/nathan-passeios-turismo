@@ -295,8 +295,17 @@ export const StandardForm = ({
           `✅ Valor com desconto aplicado: ${formatBRL(priceInfo.final)}`,
         );
       }
+      if (priceInfo.qrApplied) {
+        lines.push(`🎟 Promoção aplicada: ${priceInfo.qrPercent}% OFF via QR Code`);
+      }
     }
-    lines.push("", "Reserva feita pelo site https://www.nathanturismo.com.br");
+    lines.push(
+      "",
+      "📍 Local do Check-in: Praça Santos Dummont, Cabine de Passeios Número 03 - Armação dos Búzios - RJ.",
+      "🕐 Horário do Check-in: até às 11:30 da manhã. Falar com Nathan ou Mary.",
+      "",
+      "Reserva feita pelo site https://www.nathanturismo.com.br",
+    );
     setOutput({ text: lines.join("\n"), rows });
   };
 
