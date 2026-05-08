@@ -56,7 +56,17 @@ export const SummaryOutput = ({ text, lang, onReset, rows, tourTitle, onSend }: 
         href={waUrl}
         target="_blank"
         rel="noopener noreferrer"
-        onClick={() => onSend?.()}
+        onClick={() => {
+          onSend?.();
+          // Encerrar promoção QR ao concluir reserva e recarregar em estado limpo
+          try {
+            localStorage.removeItem("nathan_qr_promo_v1");
+            localStorage.removeItem("nathan_qr_seen_v1");
+          } catch {}
+          setTimeout(() => {
+            window.location.replace("/");
+          }, 600);
+        }}
         className="block w-full rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 text-white font-bold text-base h-14 flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(16,185,129,0.55)] hover:opacity-95"
       >
         <svg viewBox="0 0 32 32" className="w-5 h-5 fill-white" aria-hidden="true">
