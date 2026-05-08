@@ -4,7 +4,10 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Button } from "./ui/button";
 import { ArrowLeft, Star, Clock, MapPin, Users, Check, AlertCircle } from "lucide-react";
 import { dict } from "@/lib/i18n";
-import { TOUR_PRICES, tourPriceLabel } from "@/lib/prices";
+import { TOUR_PRICES, tourPriceLabel, formatBRL } from "@/lib/prices";
+import { loadQrPromo } from "@/lib/qrPromo";
+import { useEffect, useState } from "react";
+import { subscribeQrPromo } from "@/lib/qrPromo";
 
 interface Props {
   tourKey: TourKey;
