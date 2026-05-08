@@ -80,9 +80,8 @@ const Index = () => {
     return (
       <>
         <QrPromoBoot />
-        {admin && <AdminTopBar />}
         <PromoBanner lang={lang} />
-        <div className={admin ? "pt-20" : "pt-12"}>
+        <div className="pt-12">
           <PageTransition key={`details-${screen.details}`}>
             <TourDetails
               tourKey={screen.details}
