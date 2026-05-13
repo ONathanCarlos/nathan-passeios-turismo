@@ -68,12 +68,13 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
         </DialogHeader>
 
         <Tabs defaultValue="prices" className="w-full">
-          <TabsList className="grid grid-cols-6 w-full bg-night/60">
+          <TabsList className="grid grid-cols-7 w-full bg-night/60">
             <TabsTrigger value="prices">Preços</TabsTrigger>
             <TabsTrigger value="texts">Textos</TabsTrigger>
             <TabsTrigger value="media">Mídia</TabsTrigger>
             <TabsTrigger value="coupons">Cupons</TabsTrigger>
             <TabsTrigger value="modals">Modais</TabsTrigger>
+            <TabsTrigger value="db">Banco</TabsTrigger>
             <TabsTrigger value="system">Sistema</TabsTrigger>
           </TabsList>
 
