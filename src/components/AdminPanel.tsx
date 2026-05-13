@@ -546,7 +546,7 @@ export const AdminFab = () => {
         onClick={() => setOpen(true)}
         className="fixed bottom-4 left-4 z-50 h-12 w-12 rounded-full bg-gradient-to-br from-turquoise to-turquoise-glow text-night shadow-lg shadow-turquoise/30 flex items-center justify-center hover:scale-105 transition-transform"
       >
-        <Settings2Icon className="h-5 w-5" />
+        <Settings2 className="h-5 w-5" />
       </button>
       <AdminPanel open={open} onOpenChange={setOpen} />
     </>
