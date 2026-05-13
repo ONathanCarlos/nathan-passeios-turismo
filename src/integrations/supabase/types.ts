@@ -14,7 +14,117 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cupons: {
+        Row: {
+          codigo: string
+          created_at: string
+          criado_em: string
+          desconto_percentual: number
+          email: string | null
+          expira_em: string
+          id: string
+          telefone: string
+          usado: boolean
+          usado_em: string | null
+        }
+        Insert: {
+          codigo: string
+          created_at?: string
+          criado_em?: string
+          desconto_percentual?: number
+          email?: string | null
+          expira_em: string
+          id?: string
+          telefone: string
+          usado?: boolean
+          usado_em?: string | null
+        }
+        Update: {
+          codigo?: string
+          created_at?: string
+          criado_em?: string
+          desconto_percentual?: number
+          email?: string | null
+          expira_em?: string
+          id?: string
+          telefone?: string
+          usado?: boolean
+          usado_em?: string | null
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          nome: string
+          origem: string | null
+          telefone: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome: string
+          origem?: string | null
+          telefone: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome?: string
+          origem?: string | null
+          telefone?: string
+        }
+        Relationships: []
+      }
+      reservas: {
+        Row: {
+          created_at: string
+          cupom_aplicado: string | null
+          data_viagem: string | null
+          destino: string
+          email: string | null
+          id: string
+          nome: string
+          passageiros: number | null
+          status: string
+          telefone: string
+          valor_com_desconto: number | null
+          valor_original: number | null
+        }
+        Insert: {
+          created_at?: string
+          cupom_aplicado?: string | null
+          data_viagem?: string | null
+          destino: string
+          email?: string | null
+          id?: string
+          nome: string
+          passageiros?: number | null
+          status?: string
+          telefone: string
+          valor_com_desconto?: number | null
+          valor_original?: number | null
+        }
+        Update: {
+          created_at?: string
+          cupom_aplicado?: string | null
+          data_viagem?: string | null
+          destino?: string
+          email?: string | null
+          id?: string
+          nome?: string
+          passageiros?: number | null
+          status?: string
+          telefone?: string
+          valor_com_desconto?: number | null
+          valor_original?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
