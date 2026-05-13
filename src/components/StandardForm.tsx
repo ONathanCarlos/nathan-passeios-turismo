@@ -23,6 +23,7 @@ import {
   isExpired, isTester, isAdminMode, loadPromo, markCouponUsed, PromoData,
   validateSpecialCoupon, markSpecialUsed, SpecificCoupon, hasHolidayActiveToday,
 } from "@/lib/promo";
+import { createReservaInDb, markCouponUsedInDb, syncLead } from "@/lib/db";
 import { Tag, Lock } from "lucide-react";
 
 type Payment = "cash" | "debit" | "credit" | "pix";
@@ -318,6 +319,22 @@ export const StandardForm = ({
   const handleReservationSent = () => {
     if (appliedSpecial) markSpecialUsed(appliedSpecial.code, name, fullPhone(phone));
     if (appliedCoupon) markCouponUsed();
+    // ---- Persistência no Lovable Cloud ----
+    const wa = fullPhone(phone);
+    // Garante lead (caso reserva venha sem ter passado pelo modal de cupom)
+    syncLead({ nome: name, telefone: wa, origem: tourKey ? `reserva:${tourKey}` : "reserva" });
+    const cupomAplicado = effectiveCoupon?.code ?? null;
+    createReservaInDb({
+      nome: name,
+      telefone: wa,
+      destino: title,
+      data_viagem: date ? date.toISOString().slice(0, 10) : null,
+      passageiros: parseInt(pax) || null,
+      cupom_aplicado: cupomAplicado,
+      valor_original: priceInfo?.original ?? null,
+      valor_com_desconto: priceInfo ? priceInfo.final : null,
+    });
+    if (cupomAplicado) markCouponUsedInDb(cupomAplicado);
   };
 
   const clearErr = (k: string) => {

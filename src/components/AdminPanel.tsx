@@ -20,6 +20,7 @@ import {
   getBlockedWelcomePhones, clearPromo, loadPromo,
 } from "@/lib/promo";
 import { isQrActive } from "@/lib/qrPromo";
+import { DbAdminTab } from "./admin/DbAdminTab";
 
 const TOUR_KEYS: { key: TourKey; label: string }[] = [
   { key: "escuna", label: "Escuna" },
@@ -67,12 +68,13 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
         </DialogHeader>
 
         <Tabs defaultValue="prices" className="w-full">
-          <TabsList className="grid grid-cols-6 w-full bg-night/60">
+          <TabsList className="grid grid-cols-7 w-full bg-night/60">
             <TabsTrigger value="prices">Preços</TabsTrigger>
             <TabsTrigger value="texts">Textos</TabsTrigger>
             <TabsTrigger value="media">Mídia</TabsTrigger>
             <TabsTrigger value="coupons">Cupons</TabsTrigger>
             <TabsTrigger value="modals">Modais</TabsTrigger>
+            <TabsTrigger value="db">Banco</TabsTrigger>
             <TabsTrigger value="system">Sistema</TabsTrigger>
           </TabsList>
 
@@ -585,6 +587,11 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
                 <span className="text-[10px] text-muted-foreground">QR promo em ES</span>
               </Button>
             </div>
+          </TabsContent>
+
+          {/* ---------------- BANCO DE DADOS ---------------- */}
+          <TabsContent value="db" className="mt-4">
+            <DbAdminTab />
           </TabsContent>
 
           {/* ---------------- SISTEMA ---------------- */}

@@ -28,6 +28,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { PhoneInput, PhoneValue, fullPhone } from "./PhoneInput";
 import { toast } from "sonner";
 import { Gift, X, Sparkles } from "lucide-react";
+import { syncLead, syncWelcomeCoupon } from "@/lib/db";
 
 // i18n simples para o banner/modal
 const T: Record<Lang, {
@@ -387,6 +388,15 @@ const PromoModal = ({ lang, open, onOpenChange, existing, onCreated }: ModalProp
       aceitaLembretes: aceita,
     });
     savePromo(created);
+    // Persistência no Lovable Cloud (best-effort)
+    syncLead({ nome: created.nome, telefone: created.whatsapp, email: created.email, origem: "welcome_modal" });
+    syncWelcomeCoupon({
+      telefone: created.whatsapp,
+      email: created.email,
+      codigo: created.cupom,
+      desconto_percentual: created.percentualDesconto,
+      expira_em: created.expiraEm,
+    });
     onCreated(created);
     toast.success(`${t.successTitle} ${created.cupom}`);
     onOpenChange(false);
