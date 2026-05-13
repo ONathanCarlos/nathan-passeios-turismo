@@ -278,14 +278,16 @@ const T: Record<TourKey, Record<Lang, Texts>> = {
 };
 
 import { loadAdminConfig } from "./adminConfig";
+import { getCachedTour } from "./cmsCache";
 
 export const getTour = (key: TourKey, lang: Lang): TourDetail => {
   const l = L[lang];
   const t = T[key][lang];
   const cfg = loadAdminConfig();
-  const overrideImg = cfg.images[key];
-  const overrideDesc = cfg.descriptions[key]?.pt || cfg.descriptions[key]?.[lang];
-  const overrideTitle = cfg.titles[key]?.pt || cfg.titles[key]?.[lang];
+  const db = getCachedTour(key);
+  const overrideImg = db?.imagem_url || cfg.images[key];
+  const overrideDesc = db?.descricao?.[lang] || db?.descricao?.pt || cfg.descriptions[key]?.pt || cfg.descriptions[key]?.[lang];
+  const overrideTitle = db?.nome?.[lang] || db?.nome?.pt || cfg.titles[key]?.pt || cfg.titles[key]?.[lang];
   const tt = { title: overrideTitle || t.title, hook: overrideDesc || t.hook };
 
 
