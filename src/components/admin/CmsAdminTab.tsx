@@ -293,29 +293,15 @@ const DepRow = ({ d }: { d: CmsDepoimento }) => {
   );
 };
 
-// ---------------- MAIN ----------------
-export const CmsAdminTab = () => {
+// ============================================================
+// SECTIONS — exported individually for the unified admin panel
+// ============================================================
+
+export const ToursSection = () => {
   const tours = useTours(false);
-  const modais = useModais();
-  const cfg = useConfig();
-  const deps = useDepoimentos(false);
-  const upsertCfg = useUpsertConfig();
-  const upsertDep = useUpsertDepoimento();
-
-  const [newDep, setNewDep] = useState({ nome: "", texto_pt: "", nota: 5 });
-
   return (
     <TooltipProvider>
-      <Tabs defaultValue="tours" className="w-full">
-        <TabsList className="grid grid-cols-4 w-full bg-night/60">
-          <TabsTrigger value="tours">Passeios</TabsTrigger>
-          <TabsTrigger value="modais">Modais</TabsTrigger>
-          <TabsTrigger value="config">Config</TabsTrigger>
-          <TabsTrigger value="deps">Depoimentos</TabsTrigger>
-        </TabsList>
-
-        {/* ---- Passeios ---- */}
-        <TabsContent value="tours" className="mt-3 space-y-3">
+      <div className="space-y-3">
           {/* Mini guia */}
           <div className="glass-card rounded-xl p-4 border-turquoise/30 bg-turquoise/5 space-y-2">
             <h4 className="text-sm font-bold text-turquoise-glow flex items-center gap-2">
