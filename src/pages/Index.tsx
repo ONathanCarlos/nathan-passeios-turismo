@@ -50,6 +50,7 @@ const Index = () => {
   const admin = isAdminMode();
   const [qr, setQr] = useState(() => loadQrPromo());
   useEffect(() => subscribeQrPromo(() => setQr(loadQrPromo())), []);
+  const { data: cmsTours } = useTours(true);
 
   // Browser/Android back-button support via history API
   useEffect(() => {
