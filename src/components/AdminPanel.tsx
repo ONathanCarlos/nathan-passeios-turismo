@@ -589,6 +589,11 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
             </div>
           </TabsContent>
 
+          {/* ---------------- BANCO DE DADOS ---------------- */}
+          <TabsContent value="db" className="mt-4">
+            <DbAdminTab />
+          </TabsContent>
+
           {/* ---------------- SISTEMA ---------------- */}
           <TabsContent value="system" className="mt-4 space-y-3">
             <div className="glass-card rounded-xl p-3 space-y-2 text-sm">
