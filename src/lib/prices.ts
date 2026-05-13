@@ -25,12 +25,14 @@ const BASE_TOUR_PRICES: Record<TourKey, { value: number; from?: boolean; note?: 
   },
 };
 
-/** TOUR_PRICES com sobreposições do admin (preços alteráveis localmente) */
+/** TOUR_PRICES com sobreposições do CMS (Supabase) e fallback localStorage admin */
 export const TOUR_PRICES: Record<TourKey, { value: number; from?: boolean; note?: Record<Lang, string> }> =
   new Proxy(BASE_TOUR_PRICES, {
     get(target, prop: string) {
       const base = (target as any)[prop];
       if (!base) return base;
+      const dbPrice = getCachedTour(prop as TourKey)?.preco;
+      if (dbPrice != null && dbPrice > 0) return { ...base, value: dbPrice };
       const override = loadAdminConfig().prices[prop as TourKey];
       return override != null ? { ...base, value: override } : base;
     },
