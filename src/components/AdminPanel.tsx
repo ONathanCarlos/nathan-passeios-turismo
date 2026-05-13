@@ -21,6 +21,7 @@ import {
 } from "@/lib/promo";
 import { isQrActive } from "@/lib/qrPromo";
 import { DbAdminTab } from "./admin/DbAdminTab";
+import { CmsAdminTab } from "./admin/CmsAdminTab";
 
 const TOUR_KEYS: { key: TourKey; label: string }[] = [
   { key: "escuna", label: "Escuna" },
@@ -67,8 +68,9 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="prices" className="w-full">
-          <TabsList className="grid grid-cols-7 w-full bg-night/60">
+        <Tabs defaultValue="cms" className="w-full">
+          <TabsList className="grid grid-cols-8 w-full bg-night/60">
+            <TabsTrigger value="cms" className="text-turquoise-glow">CMS</TabsTrigger>
             <TabsTrigger value="prices">Preços</TabsTrigger>
             <TabsTrigger value="texts">Textos</TabsTrigger>
             <TabsTrigger value="media">Mídia</TabsTrigger>
@@ -77,6 +79,11 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
             <TabsTrigger value="db">Banco</TabsTrigger>
             <TabsTrigger value="system">Sistema</TabsTrigger>
           </TabsList>
+
+          {/* ---------------- CMS (persistente no backend) ---------------- */}
+          <TabsContent value="cms" className="mt-4">
+            <CmsAdminTab />
+          </TabsContent>
 
           {/* ---------------- PREÇOS ---------------- */}
           <TabsContent value="prices" className="mt-4 space-y-3">

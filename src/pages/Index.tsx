@@ -16,6 +16,7 @@ import { AdminFab } from "@/components/AdminPanel";
 import { useAdminConfig } from "@/lib/adminConfig";
 import { QrPromoBoot } from "@/components/QrPromo";
 import { loadQrPromo, urlHasPromoParam, subscribeQrPromo } from "@/lib/qrPromo";
+import { useTours, pickLang } from "@/lib/cms";
 
 import nathanProfile from "@/assets/nathan-profile.jpg";
 import arraialImg from "@/assets/arraial-do-cabo.jpg";
@@ -121,18 +122,49 @@ const Index = () => {
   if (formNode) return <PageTransition key={screen as string}>{formNode}{admin && <AdminFab />}</PageTransition>;
 
   type Opt = { key: TourKey; image: string; title: string; desc: string; adultsOnly?: boolean };
-  const ov = (k: TourKey, base: string) => adminCfg.images[k] || base;
-  const od = (k: TourKey, base: string) => adminCfg.descriptions[k]?.pt || adminCfg.descriptions[k]?.[lang] || base;
-  const options: Opt[] = [
-    { key: "escuna",    image: ov("escuna", escunaImg),       title: t.optEscuna,    desc: od("escuna", t.descEscuna) },
-    { key: "arraial",   image: ov("arraial", arraialImg),     title: t.optArraial,   desc: od("arraial", t.descArraial) },
-    { key: "buggy",     image: ov("buggy", buggyImg),         title: t.optBuggy,     desc: od("buggy", t.descBuggy) },
-    { key: "cabofrio",  image: ov("cabofrio", caboFrioImg),   title: t.optCaboFrio,  desc: od("cabofrio", t.descCaboFrio) },
-    { key: "jardineira",image: ov("jardineira", jardineiraImg),title: t.optJardineira,desc: od("jardineira", t.descJardineira) },
-    { key: "catamara",  image: ov("catamara", catamaraImg),   title: t.optCatamara,  desc: od("catamara", t.descCatamara) },
-    { key: "mergulho",  image: ov("mergulho", mergulhoImg),   title: t.optMergulho,  desc: od("mergulho", t.descMergulho), adultsOnly: true },
-    { key: "lancha",    image: ov("lancha", lanchaImg),       title: t.optLancha,    desc: od("lancha", t.descLancha) },
+  const { data: cmsTours } = useTours(true);
+  const cmsByKey = new Map((cmsTours || []).map((t) => [t.key, t]));
+  // Imagens/descrições do CMS têm prioridade; fallback para localStorage admin (legado) e por fim assets/i18n.
+  const ov = (k: TourKey, base: string) =>
+    cmsByKey.get(k)?.imagem_url || adminCfg.images[k] || base;
+  const od = (k: TourKey, base: string) => {
+    const cms = cmsByKey.get(k);
+    if (cms) {
+      const v = pickLang(cms as any, "descricao", lang);
+      if (v) return v;
+    }
+    return adminCfg.descriptions[k]?.pt || adminCfg.descriptions[k]?.[lang] || base;
+  };
+  const ot = (k: TourKey, base: string) => {
+    const cms = cmsByKey.get(k);
+    if (cms) {
+      const v = pickLang(cms as any, "nome", lang);
+      if (v) return v;
+    }
+    return base;
+  };
+  const baseOptions: Opt[] = [
+    { key: "escuna",    image: ov("escuna", escunaImg),       title: ot("escuna", t.optEscuna),       desc: od("escuna", t.descEscuna) },
+    { key: "arraial",   image: ov("arraial", arraialImg),     title: ot("arraial", t.optArraial),     desc: od("arraial", t.descArraial) },
+    { key: "buggy",     image: ov("buggy", buggyImg),         title: ot("buggy", t.optBuggy),         desc: od("buggy", t.descBuggy) },
+    { key: "cabofrio",  image: ov("cabofrio", caboFrioImg),   title: ot("cabofrio", t.optCaboFrio),   desc: od("cabofrio", t.descCaboFrio) },
+    { key: "jardineira",image: ov("jardineira", jardineiraImg),title: ot("jardineira", t.optJardineira),desc: od("jardineira", t.descJardineira) },
+    { key: "catamara",  image: ov("catamara", catamaraImg),   title: ot("catamara", t.optCatamara),   desc: od("catamara", t.descCatamara) },
+    { key: "mergulho",  image: ov("mergulho", mergulhoImg),   title: ot("mergulho", t.optMergulho),   desc: od("mergulho", t.descMergulho), adultsOnly: true },
+    { key: "lancha",    image: ov("lancha", lanchaImg),       title: ot("lancha", t.optLancha),       desc: od("lancha", t.descLancha) },
   ];
+  // Filtra por "ativo" do CMS (se o passeio existe no banco e está inativo, não exibe).
+  // Reordena pelos `ordem` do CMS quando disponível.
+  const options: Opt[] = baseOptions
+    .filter((o) => {
+      const cms = cmsByKey.get(o.key);
+      return cms ? cms.ativo : true;
+    })
+    .sort((a, b) => {
+      const oa = cmsByKey.get(a.key)?.ordem ?? 999;
+      const ob = cmsByKey.get(b.key)?.ordem ?? 999;
+      return oa - ob;
+    });
 
   
 

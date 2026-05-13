@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      config_global: {
+        Row: {
+          chave: string
+          descricao: string | null
+          updated_at: string
+          valor: string | null
+          valor_jsonb: Json | null
+        }
+        Insert: {
+          chave: string
+          descricao?: string | null
+          updated_at?: string
+          valor?: string | null
+          valor_jsonb?: Json | null
+        }
+        Update: {
+          chave?: string
+          descricao?: string | null
+          updated_at?: string
+          valor?: string | null
+          valor_jsonb?: Json | null
+        }
+        Relationships: []
+      }
       cupons: {
         Row: {
           codigo: string
@@ -53,6 +77,132 @@ export type Database = {
         }
         Relationships: []
       }
+      depoimentos: {
+        Row: {
+          ativo: boolean
+          avatar_url: string | null
+          created_at: string
+          id: string
+          nome: string
+          nota: number
+          ordem: number
+          texto_en: string | null
+          texto_es: string | null
+          texto_fr: string | null
+          texto_it: string | null
+          texto_pt: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          nome: string
+          nota?: number
+          ordem?: number
+          texto_en?: string | null
+          texto_es?: string | null
+          texto_fr?: string | null
+          texto_it?: string | null
+          texto_pt?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          nome?: string
+          nota?: number
+          ordem?: number
+          texto_en?: string | null
+          texto_es?: string | null
+          texto_fr?: string | null
+          texto_it?: string | null
+          texto_pt?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      home_content: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          cta_link: string | null
+          cta_texto_en: string | null
+          cta_texto_es: string | null
+          cta_texto_fr: string | null
+          cta_texto_it: string | null
+          cta_texto_pt: string | null
+          id: string
+          imagem_url: string | null
+          ordem: number
+          secao: string
+          subtitulo_en: string | null
+          subtitulo_es: string | null
+          subtitulo_fr: string | null
+          subtitulo_it: string | null
+          subtitulo_pt: string | null
+          titulo_en: string | null
+          titulo_es: string | null
+          titulo_fr: string | null
+          titulo_it: string | null
+          titulo_pt: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          cta_link?: string | null
+          cta_texto_en?: string | null
+          cta_texto_es?: string | null
+          cta_texto_fr?: string | null
+          cta_texto_it?: string | null
+          cta_texto_pt?: string | null
+          id?: string
+          imagem_url?: string | null
+          ordem?: number
+          secao: string
+          subtitulo_en?: string | null
+          subtitulo_es?: string | null
+          subtitulo_fr?: string | null
+          subtitulo_it?: string | null
+          subtitulo_pt?: string | null
+          titulo_en?: string | null
+          titulo_es?: string | null
+          titulo_fr?: string | null
+          titulo_it?: string | null
+          titulo_pt?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          cta_link?: string | null
+          cta_texto_en?: string | null
+          cta_texto_es?: string | null
+          cta_texto_fr?: string | null
+          cta_texto_it?: string | null
+          cta_texto_pt?: string | null
+          id?: string
+          imagem_url?: string | null
+          ordem?: number
+          secao?: string
+          subtitulo_en?: string | null
+          subtitulo_es?: string | null
+          subtitulo_fr?: string | null
+          subtitulo_it?: string | null
+          subtitulo_pt?: string | null
+          titulo_en?: string | null
+          titulo_es?: string | null
+          titulo_fr?: string | null
+          titulo_it?: string | null
+          titulo_pt?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           created_at: string
@@ -77,6 +227,72 @@ export type Database = {
           nome?: string
           origem?: string | null
           telefone?: string
+        }
+        Relationships: []
+      }
+      modais: {
+        Row: {
+          ativo: boolean
+          codigo: string | null
+          cor_borda: string | null
+          created_at: string
+          id: string
+          key: string
+          mensagem_en: string | null
+          mensagem_es: string | null
+          mensagem_fr: string | null
+          mensagem_it: string | null
+          mensagem_pt: string | null
+          percentual: number
+          regra: Json | null
+          titulo_en: string | null
+          titulo_es: string | null
+          titulo_fr: string | null
+          titulo_it: string | null
+          titulo_pt: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          codigo?: string | null
+          cor_borda?: string | null
+          created_at?: string
+          id?: string
+          key: string
+          mensagem_en?: string | null
+          mensagem_es?: string | null
+          mensagem_fr?: string | null
+          mensagem_it?: string | null
+          mensagem_pt?: string | null
+          percentual?: number
+          regra?: Json | null
+          titulo_en?: string | null
+          titulo_es?: string | null
+          titulo_fr?: string | null
+          titulo_it?: string | null
+          titulo_pt?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          codigo?: string | null
+          cor_borda?: string | null
+          created_at?: string
+          id?: string
+          key?: string
+          mensagem_en?: string | null
+          mensagem_es?: string | null
+          mensagem_fr?: string | null
+          mensagem_it?: string | null
+          mensagem_pt?: string | null
+          percentual?: number
+          regra?: Json | null
+          titulo_en?: string | null
+          titulo_es?: string | null
+          titulo_fr?: string | null
+          titulo_it?: string | null
+          titulo_pt?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -122,6 +338,75 @@ export type Database = {
           telefone?: string
           valor_com_desconto?: number | null
           valor_original?: number | null
+        }
+        Relationships: []
+      }
+      tours: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          descricao_en: string | null
+          descricao_es: string | null
+          descricao_fr: string | null
+          descricao_it: string | null
+          descricao_pt: string | null
+          destaque: boolean
+          id: string
+          imagem_url: string | null
+          key: string
+          nome_en: string | null
+          nome_es: string | null
+          nome_fr: string | null
+          nome_it: string | null
+          nome_pt: string
+          ordem: number
+          preco: number
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          descricao_en?: string | null
+          descricao_es?: string | null
+          descricao_fr?: string | null
+          descricao_it?: string | null
+          descricao_pt?: string | null
+          destaque?: boolean
+          id?: string
+          imagem_url?: string | null
+          key: string
+          nome_en?: string | null
+          nome_es?: string | null
+          nome_fr?: string | null
+          nome_it?: string | null
+          nome_pt: string
+          ordem?: number
+          preco?: number
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          descricao_en?: string | null
+          descricao_es?: string | null
+          descricao_fr?: string | null
+          descricao_it?: string | null
+          descricao_pt?: string | null
+          destaque?: boolean
+          id?: string
+          imagem_url?: string | null
+          key?: string
+          nome_en?: string | null
+          nome_es?: string | null
+          nome_fr?: string | null
+          nome_it?: string | null
+          nome_pt?: string
+          ordem?: number
+          preco?: number
+          updated_at?: string
+          video_url?: string | null
         }
         Relationships: []
       }

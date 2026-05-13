@@ -1,10 +1,11 @@
 import { Lang, dict } from "@/lib/i18n";
+import { useConfig } from "@/lib/cms";
 
 interface Props {
   lang: Lang;
 }
 
-const WA_NUMBER = "5522998216796";
+const FALLBACK_WA = "5522998216796";
 
 const MESSAGES: Record<Lang, string> = {
   pt: "Olá! Vim pelo site e gostaria de informações sobre os passeios.",
@@ -16,7 +17,9 @@ const MESSAGES: Record<Lang, string> = {
 
 export const WhatsAppFab = ({ lang }: Props) => {
   const t = dict[lang];
-  const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(MESSAGES[lang])}`;
+  const { data: cfg } = useConfig();
+  const wa = (cfg?.whatsapp || FALLBACK_WA).replace(/\D/g, "");
+  const url = `https://wa.me/${wa}?text=${encodeURIComponent(MESSAGES[lang])}`;
 
   return (
     <a
