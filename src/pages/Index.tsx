@@ -123,7 +123,6 @@ const Index = () => {
   if (formNode) return <PageTransition key={screen as string}>{formNode}{admin && <AdminFab />}</PageTransition>;
 
   type Opt = { key: TourKey; image: string; title: string; desc: string; adultsOnly?: boolean };
-  const { data: cmsTours } = useTours(true);
   const cmsByKey = new Map((cmsTours || []).map((t) => [t.key, t]));
   // Imagens/descrições do CMS têm prioridade; fallback para localStorage admin (legado) e por fim assets/i18n.
   const ov = (k: TourKey, base: string) =>
