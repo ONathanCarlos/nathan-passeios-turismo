@@ -1,6 +1,7 @@
 import { TourKey } from "./tours";
 import { Lang } from "./i18n";
 import { loadAdminConfig } from "./adminConfig";
+import { getCachedTour } from "./cmsCache";
 
 /** Preços base por passageiro (BRL). Lancha é especial: "A partir de". */
 const BASE_TOUR_PRICES: Record<TourKey, { value: number; from?: boolean; note?: Record<Lang, string> }> = {
