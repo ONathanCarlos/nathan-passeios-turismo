@@ -536,7 +536,6 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
 // ============================================================
 // AdminFab — floating action button to open the unified CMS
 // ============================================================
-import { Settings2 as Settings2Icon } from "lucide-react";
 export const AdminFab = () => {
   const [open, setOpen] = useState(false);
   return (
