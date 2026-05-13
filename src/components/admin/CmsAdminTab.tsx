@@ -302,88 +302,122 @@ export const ToursSection = () => {
   return (
     <TooltipProvider>
       <div className="space-y-3">
-          {/* Mini guia */}
-          <div className="glass-card rounded-xl p-4 border-turquoise/30 bg-turquoise/5 space-y-2">
-            <h4 className="text-sm font-bold text-turquoise-glow flex items-center gap-2">
-              <HelpCircle className="h-4 w-4" />
-              COMO EDITAR PASSEIOS
-            </h4>
-            <ol className="text-xs text-foreground/80 space-y-1 list-decimal list-inside">
-              <li>Edite nome, preço ou descrição nos campos abaixo</li>
-              <li>Ajuste a ordem de exibição (menor número = aparece primeiro)</li>
-              <li>Ative ou desative o passeio conforme disponibilidade</li>
-              <li>Clique em <b>Salvar</b> em cada card</li>
-              <li>As alterações aparecem automaticamente no site para todos os visitantes</li>
-            </ol>
-          </div>
-
-          {tours.isLoading && <Loader2 className="h-4 w-4 animate-spin text-turquoise mx-auto" />}
-          {tours.data?.map((t) => <TourRow key={t.id} t={t} />)}
-        </TabsContent>
-
-        {/* ---- Modais ---- */}
-        <TabsContent value="modais" className="mt-3 space-y-2">
-          <div className="text-[11px] text-muted-foreground">
-            Edite título, percentual, código e mensagem dos modais promocionais.
-          </div>
-          {modais.data?.map((m) => <ModalRow key={m.id} m={m} />)}
-        </TabsContent>
-
-        {/* ---- Config Global ---- */}
-        <TabsContent value="config" className="mt-3 space-y-3">
-          {[
-            { k: "whatsapp",         label: "WhatsApp (somente dígitos com DDI)", placeholder: "5522998216796" },
-            { k: "desconto_padrao",  label: "Desconto padrão (%)",                placeholder: "10" },
-            { k: "texto_promo_topo", label: "Texto promocional do topo",          placeholder: "Ganhe 10% OFF..." },
-            { k: "instagram_url",    label: "Instagram URL",                       placeholder: "https://instagram.com/..." },
-            { k: "footer_region",    label: "Texto do rodapé",                     placeholder: "Búzios — RJ" },
-          ].map(({ k, label, placeholder }) => (
-            <ConfigRow key={k} chave={k} label={label} placeholder={placeholder}
-              current={cfg.data?.[k] ?? ""}
-              onSave={async (v) => { await upsertCfg.mutateAsync({ chave: k, valor: v }); toast.success("Alterações salvas e publicadas"); }} />
-          ))}
-        </TabsContent>
-
-        {/* ---- Depoimentos ---- */}
-        <TabsContent value="deps" className="mt-3 space-y-3">
-          <div className="glass-card rounded-xl p-4 space-y-3 border-turquoise/40">
-            <div className="text-xs font-bold text-turquoise-glow">Adicionar depoimento</div>
-            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-              <div className="sm:col-span-7 space-y-1">
-                <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Nome do cliente</Label>
-                <Input className="bg-night/70 border-turquoise/40" placeholder="João Pereira"
-                  value={newDep.nome} onChange={(e) => setNewDep({ ...newDep, nome: e.target.value })} />
-              </div>
-              <div className="sm:col-span-2 space-y-1">
-                <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Nota (1-5)</Label>
-                <Input type="number" min={1} max={5} className="bg-night/70 border-turquoise/40" placeholder="5"
-                  value={newDep.nota} onChange={(e) => setNewDep({ ...newDep, nota: parseInt(e.target.value) || 5 })} />
-              </div>
-            </div>
-            <div className="space-y-1">
-              <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Texto do depoimento</Label>
-              <Textarea rows={2} className="bg-night/70 border-turquoise/30" placeholder="Texto PT"
-                value={newDep.texto_pt} onChange={(e) => setNewDep({ ...newDep, texto_pt: e.target.value })} />
-            </div>
-            <Button size="sm" className="bg-turquoise text-night hover:bg-turquoise/80"
-              disabled={!newDep.nome.trim()}
-              onClick={async () => {
-                await upsertDep.mutateAsync({ nome: newDep.nome, texto_pt: newDep.texto_pt, nota: newDep.nota, ativo: true, ordem: 0 });
-                setNewDep({ nome: "", texto_pt: "", nota: 5 });
-                toast.success("Depoimento adicionado e publicado");
-              }}>
-              <Plus className="h-3 w-3 mr-1" /> Adicionar
-            </Button>
-          </div>
-          {deps.data?.map((d) => <DepRow key={d.id} d={d} />)}
-          {deps.data?.length === 0 && (
-            <p className="text-xs text-muted-foreground text-center py-4">Nenhum depoimento ainda.</p>
-          )}
-        </TabsContent>
-      </Tabs>
+        <div className="glass-card rounded-xl p-4 border-turquoise/30 bg-turquoise/5 space-y-2">
+          <h4 className="text-sm font-bold text-turquoise-glow flex items-center gap-2">
+            <HelpCircle className="h-4 w-4" />
+            COMO EDITAR PASSEIOS
+          </h4>
+          <ol className="text-xs text-foreground/80 space-y-1 list-decimal list-inside">
+            <li>Edite nome, preço ou descrição nos campos abaixo</li>
+            <li>Ajuste a ordem de exibição (menor número = aparece primeiro)</li>
+            <li>Ative ou desative o passeio conforme disponibilidade</li>
+            <li>Clique em <b>Salvar</b> em cada card</li>
+            <li>As alterações aparecem automaticamente no site para todos os visitantes</li>
+          </ol>
+        </div>
+        {tours.isLoading && <Loader2 className="h-4 w-4 animate-spin text-turquoise mx-auto" />}
+        {tours.data?.map((t) => <TourRow key={t.id} t={t} />)}
+      </div>
     </TooltipProvider>
   );
 };
+
+export const ModaisSection = () => {
+  const modais = useModais();
+  return (
+    <TooltipProvider>
+      <div className="space-y-2">
+        <div className="text-[11px] text-muted-foreground">
+          Edite título, percentual, código e mensagem dos modais promocionais.
+        </div>
+        {modais.data?.map((m) => <ModalRow key={m.id} m={m} />)}
+      </div>
+    </TooltipProvider>
+  );
+};
+
+export const ConfigSection = () => {
+  const cfg = useConfig();
+  const upsertCfg = useUpsertConfig();
+  return (
+    <div className="space-y-3">
+      {[
+        { k: "whatsapp",         label: "WhatsApp (somente dígitos com DDI)", placeholder: "5522998216796" },
+        { k: "desconto_padrao",  label: "Desconto padrão (%)",                placeholder: "10" },
+        { k: "texto_promo_topo", label: "Texto promocional do topo",          placeholder: "Ganhe 10% OFF..." },
+        { k: "instagram_url",    label: "Instagram URL",                       placeholder: "https://instagram.com/..." },
+        { k: "footer_region",    label: "Texto do rodapé",                     placeholder: "Búzios — RJ" },
+      ].map(({ k, label, placeholder }) => (
+        <ConfigRow key={k} chave={k} label={label} placeholder={placeholder}
+          current={cfg.data?.[k] ?? ""}
+          onSave={async (v) => { await upsertCfg.mutateAsync({ chave: k, valor: v }); toast.success("Alterações salvas e publicadas"); }} />
+      ))}
+    </div>
+  );
+};
+
+export const DepoimentosSection = () => {
+  const deps = useDepoimentos(false);
+  const upsertDep = useUpsertDepoimento();
+  const [newDep, setNewDep] = useState({ nome: "", texto_pt: "", nota: 5 });
+  return (
+    <TooltipProvider>
+      <div className="space-y-3">
+        <div className="glass-card rounded-xl p-4 space-y-3 border-turquoise/40">
+          <div className="text-xs font-bold text-turquoise-glow">Adicionar depoimento</div>
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+            <div className="sm:col-span-7 space-y-1">
+              <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Nome do cliente</Label>
+              <Input className="bg-night/70 border-turquoise/40" placeholder="João Pereira"
+                value={newDep.nome} onChange={(e) => setNewDep({ ...newDep, nome: e.target.value })} />
+            </div>
+            <div className="sm:col-span-2 space-y-1">
+              <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Nota (1-5)</Label>
+              <Input type="number" min={1} max={5} className="bg-night/70 border-turquoise/40" placeholder="5"
+                value={newDep.nota} onChange={(e) => setNewDep({ ...newDep, nota: parseInt(e.target.value) || 5 })} />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Texto do depoimento</Label>
+            <Textarea rows={2} className="bg-night/70 border-turquoise/30" placeholder="Texto PT"
+              value={newDep.texto_pt} onChange={(e) => setNewDep({ ...newDep, texto_pt: e.target.value })} />
+          </div>
+          <Button size="sm" className="bg-turquoise text-night hover:bg-turquoise/80"
+            disabled={!newDep.nome.trim()}
+            onClick={async () => {
+              await upsertDep.mutateAsync({ nome: newDep.nome, texto_pt: newDep.texto_pt, nota: newDep.nota, ativo: true, ordem: 0 });
+              setNewDep({ nome: "", texto_pt: "", nota: 5 });
+              toast.success("Depoimento adicionado e publicado");
+            }}>
+            <Plus className="h-3 w-3 mr-1" /> Adicionar
+          </Button>
+        </div>
+        {deps.data?.map((d) => <DepRow key={d.id} d={d} />)}
+        {deps.data?.length === 0 && (
+          <p className="text-xs text-muted-foreground text-center py-4">Nenhum depoimento ainda.</p>
+        )}
+      </div>
+    </TooltipProvider>
+  );
+};
+
+// ---------------- Backward-compat wrapper ----------------
+export const CmsAdminTab = () => (
+  <TooltipProvider>
+    <Tabs defaultValue="tours" className="w-full">
+      <TabsList className="grid grid-cols-4 w-full bg-night/60">
+        <TabsTrigger value="tours">Passeios</TabsTrigger>
+        <TabsTrigger value="modais">Modais</TabsTrigger>
+        <TabsTrigger value="config">Config</TabsTrigger>
+        <TabsTrigger value="deps">Depoimentos</TabsTrigger>
+      </TabsList>
+      <TabsContent value="tours" className="mt-3"><ToursSection /></TabsContent>
+      <TabsContent value="modais" className="mt-3"><ModaisSection /></TabsContent>
+      <TabsContent value="config" className="mt-3"><ConfigSection /></TabsContent>
+      <TabsContent value="deps" className="mt-3"><DepoimentosSection /></TabsContent>
+    </Tabs>
+  </TooltipProvider>
+);
 
 const ConfigRow = ({ chave, label, placeholder, current, onSave }: {
   chave: string; label: string; placeholder?: string; current: string;
@@ -391,7 +425,6 @@ const ConfigRow = ({ chave, label, placeholder, current, onSave }: {
 }) => {
   const [v, setV] = useState(current);
   const [saved, setSaved] = useState(false);
-  // Sync when query loads
   if (current && !v) setV(current);
   return (
     <div className="glass-card rounded-xl p-4 space-y-2">
@@ -408,3 +441,4 @@ const ConfigRow = ({ chave, label, placeholder, current, onSave }: {
     </div>
   );
 };
+
