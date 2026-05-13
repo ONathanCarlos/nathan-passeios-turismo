@@ -20,6 +20,7 @@ import {
   getBlockedWelcomePhones, clearPromo, loadPromo,
 } from "@/lib/promo";
 import { isQrActive } from "@/lib/qrPromo";
+import { DbAdminTab } from "./admin/DbAdminTab";
 
 const TOUR_KEYS: { key: TourKey; label: string }[] = [
   { key: "escuna", label: "Escuna" },
