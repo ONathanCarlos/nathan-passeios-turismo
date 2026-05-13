@@ -16,6 +16,7 @@ import { AdminFab } from "@/components/AdminPanel";
 import { useAdminConfig } from "@/lib/adminConfig";
 import { QrPromoBoot } from "@/components/QrPromo";
 import { loadQrPromo, urlHasPromoParam, subscribeQrPromo } from "@/lib/qrPromo";
+import { useTours, pickLang } from "@/lib/cms";
 
 import nathanProfile from "@/assets/nathan-profile.jpg";
 import arraialImg from "@/assets/arraial-do-cabo.jpg";
