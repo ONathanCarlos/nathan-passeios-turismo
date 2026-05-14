@@ -26,10 +26,10 @@ import {
   AdminConfig, loadAdminConfig, saveAdminConfig, useAdminConfig,
 } from "@/lib/adminConfig";
 import {
-  disableAdminMode, blockWelcomeForPhone, unblockWelcomeForPhone,
-  getBlockedWelcomePhones, clearPromo, loadPromo,
+  disableAdminMode,
 } from "@/lib/promo";
 import { isQrActive } from "@/lib/qrPromo";
+import { fetchPendingReservationPhones, subscribeAdminRealtime, type PendingReservationPhone } from "@/lib/db";
 import {
   ToursSection, ModaisSection, ConfigSection, DepoimentosSection,
 } from "./admin/CmsAdminTab";
@@ -59,13 +59,25 @@ const fileToDataUrl = (file: File): Promise<string> =>
 export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) => {
   const cfg = useAdminConfig();
   const update = (patch: Partial<AdminConfig>) => saveAdminConfig({ ...loadAdminConfig(), ...patch });
-  const [blockedPhones, setBlockedPhones] = useState<string[]>(() => getBlockedWelcomePhones());
-  const [phoneInput, setPhoneInput] = useState("");
-  const refreshBlocked = () => setBlockedPhones(getBlockedWelcomePhones());
-  const activePromo = loadPromo();
+  const [pendingPhones, setPendingPhones] = useState<PendingReservationPhone[]>([]);
+  const [pendingLoading, setPendingLoading] = useState(false);
 
   const [qrPreview, setQrPreview] = useState<{ percent: number; lang: Lang } | null>(null);
   const [holidayPreview, setHolidayPreview] = useState<{ code: string; message: string; percent: number } | null>(null);
+
+  const loadPendingPhones = async () => {
+    setPendingLoading(true);
+    try {
+      setPendingPhones(await fetchPendingReservationPhones());
+    } finally {
+      setPendingLoading(false);
+    }
+  };
+
+  useState(() => {
+    loadPendingPhones();
+    return 0;
+  });
 
   const tabBtn = "flex flex-col items-center gap-0.5 text-[10px] py-1.5 data-[state=active]:text-turquoise-glow";
 
