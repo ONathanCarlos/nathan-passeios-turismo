@@ -53,7 +53,15 @@ export type CmsModal = {
   id: string;
   key: string;
   titulo_pt: string | null;
+  titulo_en: string | null;
+  titulo_es: string | null;
+  titulo_fr: string | null;
+  titulo_it: string | null;
   mensagem_pt: string | null;
+  mensagem_en: string | null;
+  mensagem_es: string | null;
+  mensagem_fr: string | null;
+  mensagem_it: string | null;
   percentual: number;
   codigo: string | null;
   cor_borda: string | null;
