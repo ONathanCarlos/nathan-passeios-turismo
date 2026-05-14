@@ -224,8 +224,10 @@ const TourRow = ({ t }: { t: CmsTour }) => {
 // ---------------- Sub: Modal Editor ----------------
 const ModalRow = ({ m }: { m: CmsModal }) => {
   const upsert = useUpsertModal();
+  const del = useDeleteModal();
   const [d, setD] = useState<CmsModal>(m);
   const [saved, setSaved] = useState(false);
+  const [showI18n, setShowI18n] = useState(false);
   return (
     <div className="glass-card rounded-xl p-4 space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
@@ -257,11 +259,38 @@ const ModalRow = ({ m }: { m: CmsModal }) => {
       </div>
       <Textarea rows={2} placeholder="Mensagem PT" className="bg-night/70 border-turquoise/30"
         value={d.mensagem_pt ?? ""} onChange={(e) => setD({ ...d, mensagem_pt: e.target.value })} />
-      <Button size="sm" className={`transition-colors ${saved ? "bg-emerald-500 text-white hover:bg-emerald-600" : "bg-turquoise text-night hover:bg-turquoise/80"}`}
-        onClick={async () => { await upsert.mutateAsync(d); setSaved(true); toast.success("Alterações salvas e publicadas"); setTimeout(() => setSaved(false), 2500); }}>
-        {saved ? <CheckCircle2 className="h-3 w-3 mr-1" /> : <Save className="h-3 w-3 mr-1" />}
-        {saved ? "Publicado" : "Salvar"}
-      </Button>
+
+      <button type="button" onClick={() => setShowI18n((v) => !v)}
+        className="text-[11px] text-turquoise-glow hover:underline">
+        {showI18n ? "− Ocultar idiomas" : "+ Editar idiomas (ES/EN/FR/IT)"}
+      </button>
+      {showI18n && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {(["es", "en", "fr", "it"] as const).map((lng) => (
+            <div key={lng} className="space-y-1.5 border border-turquoise/20 rounded-lg p-2 bg-night/40">
+              <div className="text-[10px] uppercase font-bold text-turquoise-glow">{lng}</div>
+              <Input className="bg-night/70 border-turquoise/30 h-8 text-xs" placeholder={`Título ${lng.toUpperCase()}`}
+                value={(d as any)[`titulo_${lng}`] ?? ""}
+                onChange={(e) => setD({ ...d, [`titulo_${lng}`]: e.target.value } as any)} />
+              <Textarea rows={2} className="bg-night/70 border-turquoise/30 text-xs" placeholder={`Mensagem ${lng.toUpperCase()}`}
+                value={(d as any)[`mensagem_${lng}`] ?? ""}
+                onChange={(e) => setD({ ...d, [`mensagem_${lng}`]: e.target.value } as any)} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex gap-2">
+        <Button size="sm" className={`transition-colors ${saved ? "bg-emerald-500 text-white hover:bg-emerald-600" : "bg-turquoise text-night hover:bg-turquoise/80"}`}
+          onClick={async () => { await upsert.mutateAsync(d); setSaved(true); toast.success("Modal salvo e publicado"); setTimeout(() => setSaved(false), 2500); }}>
+          {saved ? <CheckCircle2 className="h-3 w-3 mr-1" /> : <Save className="h-3 w-3 mr-1" />}
+          {saved ? "Publicado" : "Salvar"}
+        </Button>
+        <Button size="sm" variant="ghost" className="text-rose-300 hover:text-rose-200"
+          onClick={() => { if (confirm(`Excluir modal "${d.key}"? Esta ação não pode ser desfeita.`)) del.mutate(d.id); }}>
+          <Trash2 className="h-3 w-3 mr-1" /> Excluir
+        </Button>
+      </div>
     </div>
   );
 };
