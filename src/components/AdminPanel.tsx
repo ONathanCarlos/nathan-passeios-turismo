@@ -4,7 +4,7 @@
 // Reservas, Leads, Mídia, Configurações.
 // Toda configuração administrativa do site vive aqui.
 // ============================================================
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -17,7 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import {
   Settings2, Trash2, Upload, Plus, Save, Sparkles, Gift, Eye,
   LayoutDashboard, Compass, FileText, MessageSquare, Ticket,
-  CalendarCheck2, Users, Image as ImageIcon, Settings,
+  CalendarCheck2, Users, Image as ImageIcon, Settings, RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { TourKey } from "@/lib/tours";
@@ -26,10 +26,11 @@ import {
   AdminConfig, loadAdminConfig, saveAdminConfig, useAdminConfig,
 } from "@/lib/adminConfig";
 import {
-  disableAdminMode, blockWelcomeForPhone, unblockWelcomeForPhone,
-  getBlockedWelcomePhones, clearPromo, loadPromo,
+  disableAdminMode,
 } from "@/lib/promo";
 import { isQrActive } from "@/lib/qrPromo";
+import { fetchPendingReservationPhones, subscribeAdminRealtime, type PendingReservationPhone } from "@/lib/db";
+import { useModais, type CmsModal } from "@/lib/cms";
 import {
   ToursSection, ModaisSection, ConfigSection, DepoimentosSection,
 } from "./admin/CmsAdminTab";
@@ -58,14 +59,26 @@ const fileToDataUrl = (file: File): Promise<string> =>
 
 export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) => {
   const cfg = useAdminConfig();
+  const modais = useModais();
   const update = (patch: Partial<AdminConfig>) => saveAdminConfig({ ...loadAdminConfig(), ...patch });
-  const [blockedPhones, setBlockedPhones] = useState<string[]>(() => getBlockedWelcomePhones());
-  const [phoneInput, setPhoneInput] = useState("");
-  const refreshBlocked = () => setBlockedPhones(getBlockedWelcomePhones());
-  const activePromo = loadPromo();
+  const [pendingPhones, setPendingPhones] = useState<PendingReservationPhone[]>([]);
+  const [pendingLoading, setPendingLoading] = useState(false);
 
-  const [qrPreview, setQrPreview] = useState<{ percent: number; lang: Lang } | null>(null);
-  const [holidayPreview, setHolidayPreview] = useState<{ code: string; message: string; percent: number } | null>(null);
+  const [modalPreview, setModalPreview] = useState<CmsModal | null>(null);
+
+  const loadPendingPhones = async () => {
+    setPendingLoading(true);
+    try {
+      setPendingPhones(await fetchPendingReservationPhones());
+    } finally {
+      setPendingLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPendingPhones();
+    return subscribeAdminRealtime(loadPendingPhones);
+  }, []);
 
   const tabBtn = "flex flex-col items-center gap-0.5 text-[10px] py-1.5 data-[state=active]:text-turquoise-glow";
 
@@ -159,46 +172,13 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
                 Visualização apenas — nenhum desconto é aplicado nem persistido.
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <Button variant="outline" className="border-amber-400/40 text-amber-200 hover:bg-amber-500/10 h-auto py-3 flex flex-col items-center gap-1"
-                  onClick={() => setQrPreview({ percent: 5, lang: "pt" })}>
-                  <Eye className="h-4 w-4" /><span className="text-xs font-semibold">QR 5%</span>
-                </Button>
-                <Button variant="outline" className="border-amber-400/40 text-amber-200 hover:bg-amber-500/10 h-auto py-3 flex flex-col items-center gap-1"
-                  onClick={() => setQrPreview({ percent: 10, lang: "pt" })}>
-                  <Eye className="h-4 w-4" /><span className="text-xs font-semibold">QR 10%</span>
-                </Button>
-                <Button variant="outline" className="border-amber-400/40 text-amber-200 hover:bg-amber-500/10 h-auto py-3 flex flex-col items-center gap-1"
-                  onClick={() => setQrPreview({ percent: 10, lang: "es" })}>
-                  <Eye className="h-4 w-4" /><span className="text-xs font-semibold">QR 10% (ES)</span>
-                </Button>
-                <Button variant="outline" className="border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/10 h-auto py-3 flex flex-col items-center gap-1"
-                  onClick={() => setHolidayPreview({ code: "NATAL15", message: "Feliz Natal! Aproveite 15% de desconto especial 🎄", percent: 15 })}>
-                  <Gift className="h-4 w-4" /><span className="text-xs font-semibold">Natal</span>
-                </Button>
-                <Button variant="outline" className="border-turquoise/40 text-turquoise-glow hover:bg-turquoise/10 h-auto py-3 flex flex-col items-center gap-1"
-                  onClick={() => setHolidayPreview({ code: "ANONOVO15", message: "Feliz Ano Novo! Aproveite 15% de desconto especial 🎆", percent: 15 })}>
-                  <Gift className="h-4 w-4" /><span className="text-xs font-semibold">Ano Novo</span>
-                </Button>
-                <Button variant="outline" className="border-violet-400/40 text-violet-200 hover:bg-violet-500/10 h-auto py-3 flex flex-col items-center gap-1"
-                  onClick={() => setHolidayPreview({ code: "BLACK20", message: "Black Friday! 20% de desconto por tempo limitado 🖤", percent: 20 })}>
-                  <Gift className="h-4 w-4" /><span className="text-xs font-semibold">Black Friday</span>
-                </Button>
-                <Button variant="outline" className="border-rose-400/40 text-rose-200 hover:bg-rose-500/10 h-auto py-3 flex flex-col items-center gap-1"
-                  onClick={() => setHolidayPreview({ code: "MAES15", message: "Feliz Dia das Mães! 15% de desconto especial 💐", percent: 15 })}>
-                  <Gift className="h-4 w-4" /><span className="text-xs font-semibold">Dia das Mães</span>
-                </Button>
-                <Button variant="outline" className="border-red-400/40 text-red-200 hover:bg-red-500/10 h-auto py-3 flex flex-col items-center gap-1"
-                  onClick={() => setHolidayPreview({ code: "NAMO15", message: "Feliz Dia dos Namorados! 15% de desconto para vocês 💕", percent: 15 })}>
-                  <Gift className="h-4 w-4" /><span className="text-xs font-semibold">Namorados</span>
-                </Button>
-                <Button variant="outline" className="border-blue-400/40 text-blue-200 hover:bg-blue-500/10 h-auto py-3 flex flex-col items-center gap-1"
-                  onClick={() => setHolidayPreview({ code: "PAIS15", message: "Feliz Dia dos Pais! 15% de desconto especial 👔", percent: 15 })}>
-                  <Gift className="h-4 w-4" /><span className="text-xs font-semibold">Dia dos Pais</span>
-                </Button>
-                <Button variant="outline" className="border-green-400/40 text-green-200 hover:bg-green-500/10 h-auto py-3 flex flex-col items-center gap-1"
-                  onClick={() => setHolidayPreview({ code: "BRASIL15", message: "Independência do Brasil! 15% de desconto patriota 🇧🇷", percent: 15 })}>
-                  <Gift className="h-4 w-4" /><span className="text-xs font-semibold">Independência</span>
-                </Button>
+                {(modais.data || []).map((m) => (
+                  <Button key={m.id} variant="outline" className="border-amber-400/40 text-amber-200 hover:bg-amber-500/10 h-auto py-3 flex flex-col items-center gap-1"
+                    onClick={() => setModalPreview(m)}>
+                    <Eye className="h-4 w-4" />
+                    <span className="text-xs font-semibold">{m.titulo_pt || m.key}</span>
+                  </Button>
+                ))}
               </div>
             </section>
           </TabsContent>
@@ -251,64 +231,30 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
               </div>
             </div>
 
-            {/* Cupom ativo no navegador */}
+            {/* Telefones com reserva pendente */}
             <div className="glass-card rounded-xl p-3 space-y-3">
-              <h4 className="text-sm font-bold text-turquoise-glow">Cupom ativo / Bloqueios</h4>
-              {activePromo ? (
-                <div className="flex items-center justify-between gap-2 bg-night/40 rounded-md p-2">
-                  <div className="text-xs">
-                    <div className="font-bold text-foreground">{activePromo.cupom}</div>
-                    <div className="text-muted-foreground">{activePromo.nome} · {activePromo.whatsapp}</div>
-                  </div>
-                  <Button size="sm" variant="ghost" className="text-rose-300 hover:text-rose-200"
-                    onClick={() => { blockWelcomeForPhone(activePromo.whatsapp); clearPromo(); refreshBlocked(); toast.success(`Cupom ${activePromo.cupom} removido e bloqueado`); }}>
-                    <Trash2 className="h-3 w-3 mr-1" /> Remover
-                  </Button>
-                </div>
-              ) : (
-                <p className="text-xs text-muted-foreground">Nenhum cupom de boas-vindas ativo neste navegador.</p>
-              )}
-              <div>
-                <Label className="text-xs">Adicionar / Remover cupom por WhatsApp ou código</Label>
-                <div className="flex gap-2 mt-1">
-                  <Input placeholder="Ex.: +5522998216796 ou NAT8523" className="bg-night/70 border-turquoise/40 flex-1"
-                    value={phoneInput} onChange={(e) => setPhoneInput(e.target.value)} />
-                  <Button size="sm" variant="outline" className="border-turquoise/40"
-                    onClick={() => {
-                      const v = phoneInput.trim(); if (!v) return;
-                      const ap = loadPromo();
-                      if (ap && ap.cupom.toUpperCase() === v.toUpperCase()) {
-                        blockWelcomeForPhone(ap.whatsapp); clearPromo(); refreshBlocked();
-                        toast.success(`Cupom ${ap.cupom} removido e WhatsApp bloqueado`);
-                      } else {
-                        blockWelcomeForPhone(v); refreshBlocked(); toast.success("WhatsApp bloqueado para boas-vindas");
-                      }
-                      setPhoneInput("");
-                    }}>
-                    <Plus className="h-3 w-3 mr-1" /> Bloquear
-                  </Button>
-                  <Button size="sm" variant="ghost" className="text-rose-300"
-                    onClick={() => { const v = phoneInput.trim(); if (!v) return; unblockWelcomeForPhone(v); refreshBlocked(); toast.success("WhatsApp desbloqueado"); setPhoneInput(""); }}>
-                    <Trash2 className="h-3 w-3 mr-1" /> Desbloquear
-                  </Button>
-                </div>
+              <div className="flex items-center justify-between gap-2">
+                <h4 className="text-sm font-bold text-turquoise-glow">Telefones com reserva pendente</h4>
+                <Button size="sm" variant="outline" className="border-turquoise/40" onClick={loadPendingPhones} disabled={pendingLoading}>
+                  <RefreshCw className={`h-3 w-3 mr-1 ${pendingLoading ? "animate-spin" : ""}`} /> Atualizar
+                </Button>
               </div>
-              {blockedPhones.length > 0 && (
-                <div className="space-y-1">
-                  <Label className="text-xs">Bloqueados ({blockedPhones.length})</Label>
-                  <div className="flex flex-wrap gap-1">
-                    {blockedPhones.map((p) => (
-                      <span key={p} className="inline-flex items-center gap-1 text-[11px] bg-night/60 border border-turquoise/30 rounded-md px-2 py-0.5">
-                        {p}
-                        <button type="button" className="text-rose-300 hover:text-rose-200"
-                          onClick={() => { unblockWelcomeForPhone(p); refreshBlocked(); }}>
-                          <Trash2 className="h-3 w-3" />
-                        </button>
-                      </span>
-                    ))}
+              <p className="text-xs text-muted-foreground">
+                Lista em tempo real baseada na tabela oficial de reservas pendentes.
+              </p>
+              <div className="space-y-2 max-h-56 overflow-y-auto">
+                {pendingPhones.length === 0 ? (
+                  <div className="text-xs text-muted-foreground">Nenhum telefone pendente no momento.</div>
+                ) : pendingPhones.map((row) => (
+                  <div key={`${row.telefone}-${row.created_at}`} className="flex items-center justify-between gap-3 rounded-md bg-night/40 border border-turquoise/20 px-3 py-2">
+                    <div className="min-w-0">
+                      <div className="text-xs font-semibold text-foreground truncate">{row.nome}</div>
+                      <div className="text-[11px] text-muted-foreground truncate">{row.telefone} · {row.destino}</div>
+                    </div>
+                    <div className="text-[10px] text-muted-foreground whitespace-nowrap">{new Date(row.created_at).toLocaleDateString("pt-BR")}</div>
                   </div>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
 
             {/* Recuperação */}
@@ -483,51 +429,31 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Fechar</Button>
         </div>
 
-        {/* Preview: Modal QR */}
-        <Dialog open={!!qrPreview} onOpenChange={(v) => !v && setQrPreview(null)}>
-          <DialogContent className="bg-card border-amber-400/40 max-w-sm">
-            {qrPreview && (
+        <Dialog open={!!modalPreview} onOpenChange={(v) => !v && setModalPreview(null)}>
+          <DialogContent className={`bg-card max-w-sm ${modalPreview?.key?.startsWith("qr") ? "border-amber-400/40" : "border-emerald-400/40"}`}>
+            {modalPreview && (
               <>
                 <DialogHeader>
                   <DialogTitle className="text-foreground flex items-center gap-2 text-xl">
-                    <Sparkles className="h-6 w-6 text-amber-300" />
-                    {qrPreview.lang === "es" ? "¡Vaya... tú por aquí! 🎉" : "Opa... você por aqui? 🎉"}
+                    {modalPreview.key?.startsWith("qr") ? (
+                      <Sparkles className="h-6 w-6 text-amber-300" />
+                    ) : (
+                      <Gift className="h-6 w-6 text-emerald-300" />
+                    )}
+                    {modalPreview.titulo_pt || modalPreview.key}
                   </DialogTitle>
                   <DialogDescription className="leading-relaxed pt-1">
-                    {qrPreview.lang === "es" ? "Vimos que llegaste escaneando nuestro QR Code." : "Vimos que você chegou escaneando nosso QR Code."}
+                    {modalPreview.mensagem_pt || "Pré-visualização do modal persistido no CMS."}
                   </DialogDescription>
                 </DialogHeader>
-                <div className="text-center py-5 rounded-2xl bg-gradient-to-r from-amber-500/15 to-turquoise/15 border border-amber-400/30">
+                <div className={`text-center py-5 rounded-2xl bg-gradient-to-r border ${modalPreview.key?.startsWith("qr") ? "from-amber-500/15 border-amber-400/30" : "from-emerald-500/15 border-emerald-400/30"} to-turquoise/15`}>
                   <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    {qrPreview.lang === "es" ? "Descuento activado" : "Desconto ativado"}
+                    {modalPreview.codigo || modalPreview.key}
                   </div>
-                  <div className="text-5xl font-extrabold bg-gradient-to-r from-amber-300 to-turquoise-glow bg-clip-text text-transparent py-1">
-                    {qrPreview.percent}% OFF
-                  </div>
-                </div>
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
-
-        {/* Preview: Modal comemorativo */}
-        <Dialog open={!!holidayPreview} onOpenChange={(v) => !v && setHolidayPreview(null)}>
-          <DialogContent className="bg-card border-emerald-400/40 max-w-sm">
-            {holidayPreview && (
-              <>
-                <DialogHeader>
-                  <DialogTitle className="text-foreground flex items-center gap-2 text-xl">
-                    <Gift className="h-6 w-6 text-emerald-300" /> Promoção
-                  </DialogTitle>
-                  <DialogDescription className="leading-relaxed pt-1">
-                    {holidayPreview.message}
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="text-center py-5 rounded-2xl bg-gradient-to-r from-emerald-500/15 to-turquoise/15 border border-emerald-400/30">
                   <div className="text-5xl font-extrabold bg-gradient-to-r from-emerald-300 to-turquoise-glow bg-clip-text text-transparent py-1">
-                    {holidayPreview.percent}% OFF
+                    {modalPreview.percentual}% OFF
                   </div>
-                  <div className="text-sm font-bold text-foreground mt-1">{holidayPreview.code}</div>
+                  <div className="text-sm font-bold text-foreground mt-1">{modalPreview.codigo || "—"}</div>
                 </div>
               </>
             )}

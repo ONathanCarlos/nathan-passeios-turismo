@@ -2,7 +2,7 @@
 // Dashboard — visão geral consolidada (leads, cupons, reservas)
 // ============================================================
 import { useEffect, useState } from "react";
-import { fetchAdminStats } from "@/lib/db";
+import { fetchAdminStats, subscribeAdminRealtime } from "@/lib/db";
 import { RefreshCw, Users, Ticket, CalendarCheck2, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CmsHealth } from "../CmsHealth";
@@ -23,7 +23,10 @@ export const DashboardSection = () => {
   const [stats, setStats] = useState({ totalLeads: 0, cuponsAtivos: 0, reservasPendentes: 0, totalReservas: 0, conversao: 0 });
   const [loading, setLoading] = useState(false);
   const load = async () => { setLoading(true); try { setStats(await fetchAdminStats()); } finally { setLoading(false); } };
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    return subscribeAdminRealtime(load);
+  }, []);
 
   return (
     <div className="space-y-4">

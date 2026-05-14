@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Users } from "lucide-react";
+import { subscribeAdminRealtime } from "@/lib/db";
 
 type Lead = { id: string; nome: string; telefone: string; email: string | null; origem: string | null; created_at: string };
 
@@ -18,7 +19,10 @@ export const LeadsSection = () => {
     setRows((data || []) as Lead[]);
     setLoading(false);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    return subscribeAdminRealtime(load);
+  }, []);
 
   return (
     <div className="space-y-3">

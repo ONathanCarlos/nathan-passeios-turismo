@@ -4,7 +4,7 @@
 // localStorage aqui guarda apenas estado per-usuário (cupom
 // emitido, bloqueios por telefone, cupons especiais já usados).
 // ============================================================
-import { getAllCachedModais } from "./cmsCache";
+import { getAllCachedModais, type ModalCache } from "./cmsCache";
 import { isQrActive } from "./qrPromo";
 
 export const PROMO_KEY = "nathan_promo_v1";
@@ -42,6 +42,7 @@ export interface PromoData {
 
 // ---------- Cupons especiais ----------
 export interface SpecificCoupon {
+  key?: string;
   code: string;
   percent: number;
   /** ISO date "YYYY-MM-DD" — disponível apenas neste dia */
@@ -80,6 +81,34 @@ const MODAL_KEY_META: Record<string, Partial<SpecificCoupon> & { fallbackCode: s
   brasil:     { onlyDate: "2026-09-07", fallbackCode: "INDEPENDENCIA12" },
   natal:      { onlyDate: "2026-12-25", fallbackCode: "NATAL15" },
   anonovo:    { onlyDate: "2026-12-31", fallbackCode: "ANO15" },
+  blackfri:   { fallbackCode: "BF20" },
+  espanhol:   { fallbackCode: "HERMANO5" },
+  qr5:        { fallbackCode: "QR5" },
+  qr10:       { fallbackCode: "QR10" },
+};
+
+const pickModalText = (m: ModalCache, base: "titulo" | "mensagem") => {
+  const key = `${base}_pt` as const;
+  return m[key] || m[`${base}_en` as const] || m[`${base}_es` as const] || m[`${base}_fr` as const] || m[`${base}_it` as const] || "";
+};
+
+const extractRuleDate = (regra: any): string | undefined => {
+  if (!regra || typeof regra !== "object") return undefined;
+  const raw = regra.onlyDate || regra.only_date || regra.date || regra.data || regra.data_especifica;
+  return typeof raw === "string" && raw.trim() ? raw.trim() : undefined;
+};
+
+const extractRuleHours = (regra: any): number | undefined => {
+  if (!regra || typeof regra !== "object") return undefined;
+  const raw = regra.afterHoursIdle ?? regra.after_hours_idle ?? regra.afterHours ?? regra.horas ?? regra.idleHours;
+  const num = Number(raw);
+  return Number.isFinite(num) && num > 0 ? num : undefined;
+};
+
+const extractRuleReminder = (regra: any): boolean | undefined => {
+  if (!regra || typeof regra !== "object") return undefined;
+  const raw = regra.requiresReminder ?? regra.requires_reminder ?? regra.lembretes ?? regra.optin;
+  return typeof raw === "boolean" ? raw : undefined;
 };
 
 /** SPECIAL_COUPONS efetivos — fonte de verdade: CMS modais (Supabase). */
@@ -92,17 +121,22 @@ export const getSpecialCoupons = (): SpecificCoupon[] => {
   for (const m of cmsModais) {
     if (!m.ativo) continue;
     const meta = MODAL_KEY_META[m.key];
-    if (!meta) continue; // modal sem semântica de data/recovery
+    const ruleDate = extractRuleDate(m.regra);
+    const ruleHours = extractRuleHours(m.regra);
+    const ruleReminder = extractRuleReminder(m.regra);
+    const isSpecial = !!meta || !!ruleDate || !!ruleHours || !!ruleReminder;
+    if (!isSpecial) continue;
     merged.push({
+      key: m.key,
       code: (m.codigo || meta.fallbackCode || m.key).toUpperCase(),
       percent: m.percentual || 0,
-      onlyDate: meta.onlyDate,
-      afterHoursIdle: meta.afterHoursIdle,
-      requiresReminder: meta.requiresReminder,
-      message: m.mensagem_pt || meta.message || m.titulo_pt || "",
+      onlyDate: ruleDate || meta?.onlyDate,
+      afterHoursIdle: ruleHours ?? meta?.afterHoursIdle,
+      requiresReminder: ruleReminder ?? meta?.requiresReminder,
+      message: pickModalText(m, "mensagem") || meta?.message || pickModalText(m, "titulo") || "",
     });
   }
-  return merged;
+  return merged.length > 0 ? merged : [...BUILTIN_SPECIAL];
 };
 
 /** @deprecated use getSpecialCoupons() — mantido para compat */

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { fetchAdminStats, fetchAdminTable, AdminRow } from "@/lib/db";
+import { fetchAdminStats, fetchAdminTable, AdminRow, subscribeAdminRealtime } from "@/lib/db";
 import { RefreshCw, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -24,7 +24,10 @@ export const DbAdminTab = () => {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    return subscribeAdminRealtime(load);
+  }, []);
 
   return (
     <div className="space-y-4">

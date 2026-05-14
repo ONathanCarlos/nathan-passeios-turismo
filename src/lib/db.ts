@@ -7,6 +7,21 @@ import { supabase } from "@/integrations/supabase/client";
 
 const onlyDigits = (s: string) => (s || "").replace(/\D/g, "");
 
+type RealtimeCallback = () => void;
+
+export const subscribeAdminRealtime = (cb: RealtimeCallback) => {
+  const channel = supabase
+    .channel("admin-live-data")
+    .on("postgres_changes", { event: "*", schema: "public", table: "leads" }, cb)
+    .on("postgres_changes", { event: "*", schema: "public", table: "cupons" }, cb)
+    .on("postgres_changes", { event: "*", schema: "public", table: "reservas" }, cb)
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+};
+
 // ---------------- LEADS ----------------
 export async function syncLead(input: {
   nome: string;
@@ -237,4 +252,22 @@ export async function fetchAdminTable(limit = 100): Promise<AdminRow[]> {
       created_at: l.created_at,
     };
   });
+}
+
+export interface PendingReservationPhone {
+  telefone: string;
+  nome: string;
+  destino: string;
+  created_at: string;
+}
+
+export async function fetchPendingReservationPhones(limit = 200): Promise<PendingReservationPhone[]> {
+  const { data } = await supabase
+    .from("reservas")
+    .select("telefone, nome, destino, created_at")
+    .eq("status", "pendente")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  return (data || []) as PendingReservationPhone[];
 }

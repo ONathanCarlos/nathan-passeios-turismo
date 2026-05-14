@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, CalendarCheck2 } from "lucide-react";
+import { subscribeAdminRealtime } from "@/lib/db";
 
 type Reserva = {
   id: string; nome: string; telefone: string; email: string | null;
@@ -23,7 +24,10 @@ export const ReservasSection = () => {
     setRows((data || []) as Reserva[]);
     setLoading(false);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    return subscribeAdminRealtime(load);
+  }, []);
 
   return (
     <div className="space-y-3">
