@@ -45,7 +45,6 @@ const Index = () => {
   const setLang = (l: Lang) => { saveLang(l); setLangState(l); };
   const [screen, setScreen] = useState<Screen>("menu");
   const t = dict[lang];
-  const adminCfg = useAdminConfig();
   // Modo admin tem prioridade absoluta: oculta banners promocionais e modal QR.
   const admin = isAdminMode();
   const [qr, setQr] = useState(() => loadQrPromo());
