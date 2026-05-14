@@ -280,7 +280,17 @@ const T: Record<TourKey, Record<Lang, Texts>> = {
 
 import { getCachedTour } from "./cmsCache";
 
+const getTourBase = (key: TourKey, lang: Lang): TourDetail => {
+  return _getTour(key, lang);
+};
+
 export const getTour = (key: TourKey, lang: Lang): TourDetail => {
+  const base = _getTour(key, lang);
+  const db = getCachedTour(key);
+  return { ...base, video: db?.video_url || undefined };
+};
+
+const _getTour = (key: TourKey, lang: Lang): TourDetail => {
   const l = L[lang];
   const t = T[key][lang];
   // Fonte única: CMS (Supabase via cmsCache). Sem overrides persistidos.
