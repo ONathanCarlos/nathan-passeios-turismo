@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { fetchAdminStats } from "@/lib/db";
 import { RefreshCw, Users, Ticket, CalendarCheck2, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CmsHealth } from "../CmsHealth";
 
 const Card = ({ label, value, icon: Icon }: { label: string; value: number | string; icon: any }) => (
   <div className="glass-card rounded-xl p-4">
