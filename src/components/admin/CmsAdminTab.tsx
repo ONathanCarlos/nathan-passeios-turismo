@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/tooltip";
 import {
   useTours, useModais, useConfig, useDepoimentos,
-  useUpsertTour, useDeleteTour, useUpsertModal,
+  useUpsertTour, useDeleteTour, useUpsertModal, useDeleteModal,
   useUpsertConfig, useUpsertDepoimento, useDeleteDepoimento,
   uploadMedia, type CmsTour, type CmsModal, type CmsDepoimento,
 } from "@/lib/cms";
