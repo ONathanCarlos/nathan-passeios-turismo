@@ -210,6 +210,20 @@ export const useUpsertModal = () => {
   });
 };
 
+export const useDeleteModal = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("modais").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: async () => {
+      qc.invalidateQueries({ queryKey: ["cms", "modais"] });
+      await forceRefreshCms.modais();
+    },
+  });
+};
+
 export const useUpsertDepoimento = () => {
   const qc = useQueryClient();
   return useMutation({
