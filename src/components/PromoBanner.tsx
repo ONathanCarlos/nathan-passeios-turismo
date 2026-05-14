@@ -15,6 +15,7 @@ import {
   isWelcomeBlockedForPhone,
 } from "@/lib/promo";
 import { isQrActive, loadQrPromo, subscribeQrPromo, urlIsExactRoot } from "@/lib/qrPromo";
+import { subscribeCmsCache } from "@/lib/cmsCache";
 import {
   Dialog,
   DialogContent,
@@ -196,15 +197,21 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
     if (forceOpen) setOpen(true);
   }, [forceOpen]);
 
-  // Cupom comemorativo do dia + modal automático (1x por sessão)
+  // Cupom comemorativo do dia + modal automático (1x por sessão).
+  // Reavalia sempre que o CMS modais mudar (admin "Salvar e Aplicar").
   useEffect(() => {
-    const sp = getTodaySpecialCoupon(loadPromo());
-    if (!sp) return;
-    setSpecial(sp);
-    const flag = sessionStorage.getItem("nathan_special_modal_" + sp.code);
-    if (flag) return;
-    setSpecialOpen(true);
-    sessionStorage.setItem("nathan_special_modal_" + sp.code, "1");
+    const evaluate = () => {
+      const sp = getTodaySpecialCoupon(loadPromo());
+      setSpecial(sp);
+      if (!sp) return;
+      const flag = sessionStorage.getItem("nathan_special_modal_" + sp.code);
+      if (flag) return;
+      setSpecialOpen(true);
+      sessionStorage.setItem("nathan_special_modal_" + sp.code, "1");
+    };
+    evaluate();
+    const unsub = subscribeCmsCache(evaluate);
+    return unsub;
   }, []);
 
   // Alert one-time per session quando expira

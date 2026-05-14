@@ -16,8 +16,18 @@ type TourCache = {
   ordem: number;
 };
 
+export type ModalCache = {
+  key: string;
+  percentual: number;
+  codigo: string | null;
+  titulo_pt: string | null;
+  mensagem_pt: string | null;
+  ativo: boolean;
+};
+
 const tours: Partial<Record<TourKey, TourCache>> = {};
 const config: Record<string, string> = {};
+const modais: Record<string, ModalCache> = {};
 const listeners = new Set<() => void>();
 
 const emit = () => listeners.forEach((l) => l());
@@ -29,6 +39,8 @@ export const subscribeCmsCache = (cb: () => void) => {
 
 export const getCachedTour = (key: TourKey): TourCache | undefined => tours[key];
 export const getCachedConfig = (chave: string): string | undefined => config[chave];
+export const getCachedModal = (key: string): ModalCache | undefined => modais[key];
+export const getAllCachedModais = (): ModalCache[] => Object.values(modais);
 
 let booted = false;
 export async function bootCmsCache() {
@@ -40,11 +52,30 @@ export async function bootCmsCache() {
     .channel("cms-cache")
     .on("postgres_changes", { event: "*", schema: "public", table: "tours" }, () => refreshTours())
     .on("postgres_changes", { event: "*", schema: "public", table: "config_global" }, () => refreshConfig())
+    .on("postgres_changes", { event: "*", schema: "public", table: "modais" }, () => refreshModais())
     .subscribe();
 }
 
 async function refreshAll() {
-  await Promise.all([refreshTours(), refreshConfig()]);
+  await Promise.all([refreshTours(), refreshConfig(), refreshModais()]);
+}
+
+async function refreshModais() {
+  const { data } = await supabase.from("modais").select("key,percentual,codigo,titulo_pt,mensagem_pt,ativo");
+  if (!data) return;
+  // clear stale
+  for (const k of Object.keys(modais)) delete modais[k];
+  for (const r of data as any[]) {
+    modais[r.key] = {
+      key: r.key,
+      percentual: Number(r.percentual) || 0,
+      codigo: r.codigo ?? null,
+      titulo_pt: r.titulo_pt ?? null,
+      mensagem_pt: r.mensagem_pt ?? null,
+      ativo: !!r.ativo,
+    };
+  }
+  emit();
 }
 
 async function refreshTours() {
