@@ -84,41 +84,25 @@ const MODAL_KEY_META: Record<string, Partial<SpecificCoupon> & { fallbackCode: s
 
 /** SPECIAL_COUPONS efetivos — fonte de verdade: CMS modais (Supabase). */
 export const getSpecialCoupons = (): SpecificCoupon[] => {
-  const cfg = loadAdminConfig();
   const cmsModais = getAllCachedModais();
+  // Sem modais carregados → defaults estáticos (BUILTIN_SPECIAL).
+  if (cmsModais.length === 0) return [...BUILTIN_SPECIAL];
+
   const merged: SpecificCoupon[] = [];
-
-  // Se o CMS tem modais carregados, ele é a fonte de verdade
-  if (cmsModais.length > 0) {
-    for (const m of cmsModais) {
-      if (!m.ativo) continue;
-      const meta = MODAL_KEY_META[m.key];
-      if (!meta) continue; // modal sem semântica de data/recovery
-      merged.push({
-        code: (m.codigo || meta.fallbackCode || m.key).toUpperCase(),
-        percent: m.percentual || 0,
-        onlyDate: meta.onlyDate,
-        afterHoursIdle: meta.afterHoursIdle,
-        requiresReminder: meta.requiresReminder,
-        message: m.mensagem_pt || meta.message || m.titulo_pt || "",
-      });
-    }
-  } else {
-    // Fallback: builtins (antes do cache CMS carregar)
-    merged.push(...BUILTIN_SPECIAL);
+  for (const m of cmsModais) {
+    if (!m.ativo) continue;
+    const meta = MODAL_KEY_META[m.key];
+    if (!meta) continue; // modal sem semântica de data/recovery
+    merged.push({
+      code: (m.codigo || meta.fallbackCode || m.key).toUpperCase(),
+      percent: m.percentual || 0,
+      onlyDate: meta.onlyDate,
+      afterHoursIdle: meta.afterHoursIdle,
+      requiresReminder: meta.requiresReminder,
+      message: m.mensagem_pt || meta.message || m.titulo_pt || "",
+    });
   }
-
-  // Sobrepõe percent recovery via admin local (compat retroativa)
-  const recPct = cfg.coupon.recoveryPercent;
-  const recHrs = cfg.coupon.recoveryAfterHours;
-  return merged.map((c) => {
-    if (c.afterHoursIdle != null && (recPct != null || recHrs != null)) {
-      return { ...c,
-        percent: recPct ?? c.percent,
-        afterHoursIdle: recHrs ?? c.afterHoursIdle };
-    }
-    return c;
-  });
+  return merged;
 };
 
 /** @deprecated use getSpecialCoupons() — mantido para compat */
