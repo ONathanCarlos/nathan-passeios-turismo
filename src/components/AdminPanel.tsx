@@ -203,8 +203,13 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
             </section>
           </TabsContent>
 
-          {/* ---------------- CUPONS (legacy localStorage) ---------------- */}
+          {/* ---------------- CUPONS ---------------- */}
           <TabsContent value="coupons" className="mt-4 space-y-4">
+            <div className="glass-card rounded-xl p-3 border-turquoise/40 bg-turquoise/10 text-xs text-turquoise-glow">
+              ⚠ Percentuais, códigos e ativação de cupons promocionais agora vivem na aba <strong>Modais</strong> (fonte oficial: Lovable Cloud).
+              Os controles abaixo de percentual/validade/ativação são apenas histórico e <strong>não têm mais efeito no site público</strong>.
+              Use esta aba apenas para gerenciar <strong>cupons ativos no navegador</strong> e <strong>bloqueios por WhatsApp</strong>.
+            </div>
             {isQrActive() && (
               <div className="glass-card rounded-xl p-3 border-amber-400/40 bg-amber-500/10 text-xs text-amber-200">
                 🎟 Promoção QR ativa. Cupons manuais desativados enquanto a URL contiver <code>?promo=qrN</code>.
