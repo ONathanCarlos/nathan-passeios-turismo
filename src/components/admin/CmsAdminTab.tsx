@@ -377,13 +377,59 @@ export const ToursSection = () => {
 
 export const ModaisSection = () => {
   const modais = useModais();
+  const upsert = useUpsertModal();
+  const [nv, setNv] = useState({ key: "", titulo_pt: "", mensagem_pt: "", percentual: 10, codigo: "" });
   return (
     <TooltipProvider>
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div className="text-[11px] text-muted-foreground">
-          Edite título, percentual, código e mensagem dos modais promocionais.
+          Edite, ative/desative, traduza ou exclua qualquer modal promocional. Tudo é salvo no banco e refletido em tempo real no site.
         </div>
+
+        {/* Criar novo modal */}
+        <div className="glass-card rounded-xl p-4 space-y-2 border-turquoise/40">
+          <div className="text-xs font-bold text-turquoise-glow">+ Criar novo modal</div>
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+            <Input className="sm:col-span-3 bg-night/70 border-turquoise/40 h-9 text-xs"
+              placeholder="ID interno (ex: blackfri)"
+              value={nv.key} onChange={(e) => setNv({ ...nv, key: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "") })} />
+            <Input className="sm:col-span-5 bg-night/70 border-turquoise/40 h-9 text-xs"
+              placeholder="Título PT"
+              value={nv.titulo_pt} onChange={(e) => setNv({ ...nv, titulo_pt: e.target.value })} />
+            <Input type="number" className="sm:col-span-1 bg-night/70 border-turquoise/40 h-9 text-xs"
+              placeholder="%"
+              value={nv.percentual} onChange={(e) => setNv({ ...nv, percentual: parseInt(e.target.value) || 0 })} />
+            <Input className="sm:col-span-3 bg-night/70 border-turquoise/40 h-9 text-xs"
+              placeholder="Código (ex: BF20)"
+              value={nv.codigo} onChange={(e) => setNv({ ...nv, codigo: e.target.value.toUpperCase() })} />
+          </div>
+          <Textarea rows={2} className="bg-night/70 border-turquoise/30 text-xs"
+            placeholder="Mensagem PT"
+            value={nv.mensagem_pt} onChange={(e) => setNv({ ...nv, mensagem_pt: e.target.value })} />
+          <Button size="sm" className="bg-turquoise text-night hover:bg-turquoise/80"
+            disabled={!nv.key.trim() || !nv.titulo_pt.trim()}
+            onClick={async () => {
+              try {
+                await upsert.mutateAsync({
+                  key: nv.key.trim(),
+                  titulo_pt: nv.titulo_pt,
+                  mensagem_pt: nv.mensagem_pt,
+                  percentual: nv.percentual,
+                  codigo: nv.codigo || null,
+                  ativo: true,
+                });
+                setNv({ key: "", titulo_pt: "", mensagem_pt: "", percentual: 10, codigo: "" });
+                toast.success("Modal criado e publicado");
+              } catch (e: any) { toast.error(e?.message || "Erro ao criar"); }
+            }}>
+            <Plus className="h-3 w-3 mr-1" /> Criar modal
+          </Button>
+        </div>
+
         {modais.data?.map((m) => <ModalRow key={m.id} m={m} />)}
+        {modais.data?.length === 0 && (
+          <p className="text-xs text-muted-foreground text-center py-4">Nenhum modal cadastrado.</p>
+        )}
       </div>
     </TooltipProvider>
   );
