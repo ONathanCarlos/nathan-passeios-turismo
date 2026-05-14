@@ -13,7 +13,7 @@ import { PromoBanner } from "@/components/PromoBanner";
 import { COUPON_ELIGIBLE, tourPriceLabel, TOUR_PRICES, formatBRL } from "@/lib/prices";
 import { isAdminMode } from "@/lib/promo";
 import { AdminFab } from "@/components/AdminPanel";
-import { useAdminConfig } from "@/lib/adminConfig";
+
 import { QrPromoBoot } from "@/components/QrPromo";
 import { loadQrPromo, urlHasPromoParam, subscribeQrPromo } from "@/lib/qrPromo";
 import { useTours, pickLang } from "@/lib/cms";
@@ -45,7 +45,6 @@ const Index = () => {
   const setLang = (l: Lang) => { saveLang(l); setLangState(l); };
   const [screen, setScreen] = useState<Screen>("menu");
   const t = dict[lang];
-  const adminCfg = useAdminConfig();
   // Modo admin tem prioridade absoluta: oculta banners promocionais e modal QR.
   const admin = isAdminMode();
   const [qr, setQr] = useState(() => loadQrPromo());
@@ -124,16 +123,15 @@ const Index = () => {
 
   type Opt = { key: TourKey; image: string; title: string; desc: string; adultsOnly?: boolean };
   const cmsByKey = new Map((cmsTours || []).map((t) => [t.key, t]));
-  // Imagens/descrições do CMS têm prioridade; fallback para localStorage admin (legado) e por fim assets/i18n.
-  const ov = (k: TourKey, base: string) =>
-    cmsByKey.get(k)?.imagem_url || adminCfg.images[k] || base;
+  // Fonte única: CMS (Supabase). Sem fallbacks persistidos — assets/i18n base apenas se o CMS não tiver dado.
+  const ov = (k: TourKey, base: string) => cmsByKey.get(k)?.imagem_url || base;
   const od = (k: TourKey, base: string) => {
     const cms = cmsByKey.get(k);
     if (cms) {
       const v = pickLang(cms as any, "descricao", lang);
       if (v) return v;
     }
-    return adminCfg.descriptions[k]?.pt || adminCfg.descriptions[k]?.[lang] || base;
+    return base;
   };
   const ot = (k: TourKey, base: string) => {
     const cms = cmsByKey.get(k);

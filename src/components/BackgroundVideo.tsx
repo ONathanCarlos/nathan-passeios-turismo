@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { adminGetVideo, useAdminConfig } from "@/lib/adminConfig";
 
 interface Props {
   desktopSrc: string;
@@ -14,9 +13,8 @@ interface Props {
  *   Sem blur, sem deformação, sem redimensionamento forçado.
  */
 export const BackgroundVideo = ({ desktopSrc, mobileSrc }: Props) => {
-  useAdminConfig();
-  const desktop = adminGetVideo("desktop", desktopSrc);
-  const mobile = adminGetVideo("mobile", mobileSrc || desktopSrc);
+  const desktop = desktopSrc;
+  const mobile = mobileSrc || desktopSrc;
 
   const [isMobile, setIsMobile] = useState<boolean>(() =>
     typeof window !== "undefined" ? window.matchMedia("(max-width: 640px)").matches : false
