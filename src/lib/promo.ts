@@ -67,35 +67,55 @@ const BUILTIN_SPECIAL: SpecificCoupon[] = [
     message: "7 de Setembro! Comemore com 12% de desconto 🇧🇷" },
 ];
 
-/** SPECIAL_COUPONS efetivos (mescla builtins + admin overrides por code) */
+/**
+ * Mapeia `modais.key` (CMS) → metadados não-editáveis pelo CMS
+ * (data/recovery), unindo com percent/code/message/ativo do CMS.
+ * Modais sem entrada aqui são ignorados como cupom especial.
+ */
+const MODAL_KEY_META: Record<string, Partial<SpecificCoupon> & { fallbackCode: string }> = {
+  todevolta:  { afterHoursIdle: 72, requiresReminder: true, fallbackCode: "TODEVOLTA12" },
+  maes:       { onlyDate: "2026-05-10", fallbackCode: "TOURDASMAES12" },
+  namorados:  { onlyDate: "2026-06-12", fallbackCode: "AMORTURISMO12" },
+  pais:       { onlyDate: "2026-08-09", fallbackCode: "PAITURISTA12" },
+  brasil:     { onlyDate: "2026-09-07", fallbackCode: "INDEPENDENCIA12" },
+  natal:      { onlyDate: "2026-12-25", fallbackCode: "NATAL15" },
+  anonovo:    { onlyDate: "2026-12-31", fallbackCode: "ANO15" },
+};
+
+/** SPECIAL_COUPONS efetivos — fonte de verdade: CMS modais (Supabase). */
 export const getSpecialCoupons = (): SpecificCoupon[] => {
   const cfg = loadAdminConfig();
-  const overridesByCode = new Map(cfg.specials.map((s) => [s.code.toUpperCase(), s]));
+  const cmsModais = getAllCachedModais();
   const merged: SpecificCoupon[] = [];
-  for (const b of BUILTIN_SPECIAL) {
-    const ov = overridesByCode.get(b.code.toUpperCase());
-    if (ov) {
-      if (ov.enabled === false) { overridesByCode.delete(b.code.toUpperCase()); continue; }
-      merged.push({ ...b, ...ov });
-      overridesByCode.delete(b.code.toUpperCase());
-    } else merged.push(b);
+
+  // Se o CMS tem modais carregados, ele é a fonte de verdade
+  if (cmsModais.length > 0) {
+    for (const m of cmsModais) {
+      if (!m.ativo) continue;
+      const meta = MODAL_KEY_META[m.key];
+      if (!meta) continue; // modal sem semântica de data/recovery
+      merged.push({
+        code: (m.codigo || meta.fallbackCode || m.key).toUpperCase(),
+        percent: m.percentual || 0,
+        onlyDate: meta.onlyDate,
+        afterHoursIdle: meta.afterHoursIdle,
+        requiresReminder: meta.requiresReminder,
+        message: m.mensagem_pt || meta.message || m.titulo_pt || "",
+      });
+    }
+  } else {
+    // Fallback: builtins (antes do cache CMS carregar)
+    merged.push(...BUILTIN_SPECIAL);
   }
-  // adiciona novos do admin
-  for (const ov of overridesByCode.values()) {
-    if (ov.enabled === false) continue;
-    merged.push(ov);
-  }
-  // ajusta percent recovery via admin
+
+  // Sobrepõe percent recovery via admin local (compat retroativa)
   const recPct = cfg.coupon.recoveryPercent;
   const recHrs = cfg.coupon.recoveryAfterHours;
   return merged.map((c) => {
-    if (c.afterHoursIdle != null) {
+    if (c.afterHoursIdle != null && (recPct != null || recHrs != null)) {
       return { ...c,
         percent: recPct ?? c.percent,
         afterHoursIdle: recHrs ?? c.afterHoursIdle };
-    }
-    if (c.onlyDate && cfg.coupon.holidayPercent != null) {
-      return { ...c, percent: cfg.coupon.holidayPercent };
     }
     return c;
   });
