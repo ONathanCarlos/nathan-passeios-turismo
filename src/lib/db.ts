@@ -11,7 +11,7 @@ type RealtimeCallback = () => void;
 
 export const subscribeAdminRealtime = (cb: RealtimeCallback) => {
   const channel = supabase
-    .channel("admin-live-data")
+    .channel(`admin-live-data-${Math.random().toString(36).slice(2)}-${Date.now()}`)
     .on("postgres_changes", { event: "*", schema: "public", table: "leads" }, cb)
     .on("postgres_changes", { event: "*", schema: "public", table: "cupons" }, cb)
     .on("postgres_changes", { event: "*", schema: "public", table: "reservas" }, cb)
