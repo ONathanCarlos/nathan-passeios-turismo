@@ -20,8 +20,17 @@ export type ModalCache = {
   key: string;
   percentual: number;
   codigo: string | null;
+  regra: any;
   titulo_pt: string | null;
+  titulo_en: string | null;
+  titulo_es: string | null;
+  titulo_fr: string | null;
+  titulo_it: string | null;
   mensagem_pt: string | null;
+  mensagem_en: string | null;
+  mensagem_es: string | null;
+  mensagem_fr: string | null;
+  mensagem_it: string | null;
   ativo: boolean;
 };
 
@@ -64,7 +73,7 @@ async function refreshAll() {
 export const forceRefreshCms = { tours: () => refreshTours(), config: () => refreshConfig(), modais: () => refreshModais() };
 
 async function refreshModais() {
-  const { data } = await supabase.from("modais").select("key,percentual,codigo,titulo_pt,mensagem_pt,ativo");
+  const { data } = await supabase.from("modais").select("key,percentual,codigo,regra,titulo_pt,titulo_en,titulo_es,titulo_fr,titulo_it,mensagem_pt,mensagem_en,mensagem_es,mensagem_fr,mensagem_it,ativo");
   if (!data) return;
   // clear stale
   for (const k of Object.keys(modais)) delete modais[k];
@@ -73,8 +82,17 @@ async function refreshModais() {
       key: r.key,
       percentual: Number(r.percentual) || 0,
       codigo: r.codigo ?? null,
+      regra: r.regra ?? null,
       titulo_pt: r.titulo_pt ?? null,
+      titulo_en: r.titulo_en ?? null,
+      titulo_es: r.titulo_es ?? null,
+      titulo_fr: r.titulo_fr ?? null,
+      titulo_it: r.titulo_it ?? null,
       mensagem_pt: r.mensagem_pt ?? null,
+      mensagem_en: r.mensagem_en ?? null,
+      mensagem_es: r.mensagem_es ?? null,
+      mensagem_fr: r.mensagem_fr ?? null,
+      mensagem_it: r.mensagem_it ?? null,
       ativo: !!r.ativo,
     };
   }
