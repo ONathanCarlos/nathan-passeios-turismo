@@ -10,6 +10,7 @@ import type { TourKey } from "./tours";
 type TourCache = {
   preco: number | null;
   imagem_url: string | null;
+  video_url: string | null;
   nome: Partial<Record<"pt" | "en" | "es" | "fr" | "it", string>>;
   descricao: Partial<Record<"pt" | "en" | "es" | "fr" | "it", string>>;
   ativo: boolean;
@@ -106,6 +107,7 @@ async function refreshTours() {
     tours[r.key as TourKey] = {
       preco: r.preco != null ? Number(r.preco) : null,
       imagem_url: r.imagem_url ?? null,
+      video_url: r.video_url ?? null,
       nome: { pt: r.nome_pt, en: r.nome_en, es: r.nome_es, fr: r.nome_fr, it: r.nome_it },
       descricao: { pt: r.descricao_pt, en: r.descricao_en, es: r.descricao_es, fr: r.descricao_fr, it: r.descricao_it },
       ativo: !!r.ativo,

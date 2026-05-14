@@ -53,7 +53,15 @@ export type CmsModal = {
   id: string;
   key: string;
   titulo_pt: string | null;
+  titulo_en: string | null;
+  titulo_es: string | null;
+  titulo_fr: string | null;
+  titulo_it: string | null;
   mensagem_pt: string | null;
+  mensagem_en: string | null;
+  mensagem_es: string | null;
+  mensagem_fr: string | null;
+  mensagem_it: string | null;
   percentual: number;
   codigo: string | null;
   cor_borda: string | null;
@@ -193,6 +201,20 @@ export const useUpsertModal = () => {
   return useMutation({
     mutationFn: async (m: Partial<CmsModal> & { key: string }) => {
       const { error } = await supabase.from("modais").upsert(m as any, { onConflict: "key" });
+      if (error) throw error;
+    },
+    onSuccess: async () => {
+      qc.invalidateQueries({ queryKey: ["cms", "modais"] });
+      await forceRefreshCms.modais();
+    },
+  });
+};
+
+export const useDeleteModal = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("modais").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: async () => {

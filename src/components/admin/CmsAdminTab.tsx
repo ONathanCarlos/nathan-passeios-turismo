@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/tooltip";
 import {
   useTours, useModais, useConfig, useDepoimentos,
-  useUpsertTour, useDeleteTour, useUpsertModal,
+  useUpsertTour, useDeleteTour, useUpsertModal, useDeleteModal,
   useUpsertConfig, useUpsertDepoimento, useDeleteDepoimento,
   uploadMedia, type CmsTour, type CmsModal, type CmsDepoimento,
 } from "@/lib/cms";
@@ -150,7 +150,7 @@ const TourRow = ({ t }: { t: CmsTour }) => {
 
       {/* Imagem + Vídeo + Ações */}
       <div className="flex flex-wrap items-center gap-2">
-        {/* Mini preview */}
+        {/* Mini preview imagem */}
         <div className="w-16 h-12 rounded-md overflow-hidden border border-turquoise/30 bg-night/50 shrink-0">
           {draft.imagem_url ? (
             <img src={draft.imagem_url} alt="" className="w-full h-full object-cover" />
@@ -159,18 +159,42 @@ const TourRow = ({ t }: { t: CmsTour }) => {
           )}
         </div>
 
+        {/* Mini preview vídeo */}
+        <div className="w-16 h-12 rounded-md overflow-hidden border border-turquoise/30 bg-night/50 shrink-0 relative">
+          {draft.video_url ? (
+            <>
+              <video src={draft.video_url} muted playsInline preload="metadata" className="w-full h-full object-cover" />
+              <span className="absolute inset-0 flex items-center justify-center text-white/90 text-xs">▶</span>
+            </>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-[9px] text-muted-foreground">sem vídeo</div>
+          )}
+        </div>
+
         <label className="cursor-pointer inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-md bg-turquoise/15 border border-turquoise/40 hover:bg-turquoise/25 transition-colors">
           {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
-          Imagem principal
+          Imagem (capa do card)
           <input type="file" accept="image/*" className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f, "imagem_url"); }} />
         </label>
 
         <label className="cursor-pointer inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-md bg-turquoise/15 border border-turquoise/40 hover:bg-turquoise/25 transition-colors">
-          <Upload className="h-3 w-3" /> Vídeo
+          <Upload className="h-3 w-3" /> Vídeo (página de detalhes)
           <input type="file" accept="video/*" className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f, "video_url"); }} />
         </label>
+
+        {draft.video_url && (
+          <Button size="sm" variant="ghost" className="text-rose-300 hover:text-rose-200 text-xs"
+            onClick={async () => {
+              const next = { ...draft, video_url: null };
+              setDraft(next);
+              await upsert.mutateAsync(next);
+              toast.success("Vídeo removido");
+            }}>
+            <Trash2 className="h-3 w-3 mr-1" /> Remover vídeo
+          </Button>
+        )}
 
         <Button size="sm" onClick={save} disabled={upsert.isPending}
           className={`transition-colors ${saved ? "bg-emerald-500 text-white hover:bg-emerald-600" : "bg-turquoise text-night hover:bg-turquoise/80"}`}>
@@ -200,8 +224,10 @@ const TourRow = ({ t }: { t: CmsTour }) => {
 // ---------------- Sub: Modal Editor ----------------
 const ModalRow = ({ m }: { m: CmsModal }) => {
   const upsert = useUpsertModal();
+  const del = useDeleteModal();
   const [d, setD] = useState<CmsModal>(m);
   const [saved, setSaved] = useState(false);
+  const [showI18n, setShowI18n] = useState(false);
   return (
     <div className="glass-card rounded-xl p-4 space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
@@ -233,11 +259,38 @@ const ModalRow = ({ m }: { m: CmsModal }) => {
       </div>
       <Textarea rows={2} placeholder="Mensagem PT" className="bg-night/70 border-turquoise/30"
         value={d.mensagem_pt ?? ""} onChange={(e) => setD({ ...d, mensagem_pt: e.target.value })} />
-      <Button size="sm" className={`transition-colors ${saved ? "bg-emerald-500 text-white hover:bg-emerald-600" : "bg-turquoise text-night hover:bg-turquoise/80"}`}
-        onClick={async () => { await upsert.mutateAsync(d); setSaved(true); toast.success("Alterações salvas e publicadas"); setTimeout(() => setSaved(false), 2500); }}>
-        {saved ? <CheckCircle2 className="h-3 w-3 mr-1" /> : <Save className="h-3 w-3 mr-1" />}
-        {saved ? "Publicado" : "Salvar"}
-      </Button>
+
+      <button type="button" onClick={() => setShowI18n((v) => !v)}
+        className="text-[11px] text-turquoise-glow hover:underline">
+        {showI18n ? "− Ocultar idiomas" : "+ Editar idiomas (ES/EN/FR/IT)"}
+      </button>
+      {showI18n && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {(["es", "en", "fr", "it"] as const).map((lng) => (
+            <div key={lng} className="space-y-1.5 border border-turquoise/20 rounded-lg p-2 bg-night/40">
+              <div className="text-[10px] uppercase font-bold text-turquoise-glow">{lng}</div>
+              <Input className="bg-night/70 border-turquoise/30 h-8 text-xs" placeholder={`Título ${lng.toUpperCase()}`}
+                value={(d as any)[`titulo_${lng}`] ?? ""}
+                onChange={(e) => setD({ ...d, [`titulo_${lng}`]: e.target.value } as any)} />
+              <Textarea rows={2} className="bg-night/70 border-turquoise/30 text-xs" placeholder={`Mensagem ${lng.toUpperCase()}`}
+                value={(d as any)[`mensagem_${lng}`] ?? ""}
+                onChange={(e) => setD({ ...d, [`mensagem_${lng}`]: e.target.value } as any)} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex gap-2">
+        <Button size="sm" className={`transition-colors ${saved ? "bg-emerald-500 text-white hover:bg-emerald-600" : "bg-turquoise text-night hover:bg-turquoise/80"}`}
+          onClick={async () => { await upsert.mutateAsync(d); setSaved(true); toast.success("Modal salvo e publicado"); setTimeout(() => setSaved(false), 2500); }}>
+          {saved ? <CheckCircle2 className="h-3 w-3 mr-1" /> : <Save className="h-3 w-3 mr-1" />}
+          {saved ? "Publicado" : "Salvar"}
+        </Button>
+        <Button size="sm" variant="ghost" className="text-rose-300 hover:text-rose-200"
+          onClick={() => { if (confirm(`Excluir modal "${d.key}"? Esta ação não pode ser desfeita.`)) del.mutate(d.id); }}>
+          <Trash2 className="h-3 w-3 mr-1" /> Excluir
+        </Button>
+      </div>
     </div>
   );
 };
@@ -324,13 +377,59 @@ export const ToursSection = () => {
 
 export const ModaisSection = () => {
   const modais = useModais();
+  const upsert = useUpsertModal();
+  const [nv, setNv] = useState({ key: "", titulo_pt: "", mensagem_pt: "", percentual: 10, codigo: "" });
   return (
     <TooltipProvider>
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div className="text-[11px] text-muted-foreground">
-          Edite título, percentual, código e mensagem dos modais promocionais.
+          Edite, ative/desative, traduza ou exclua qualquer modal promocional. Tudo é salvo no banco e refletido em tempo real no site.
         </div>
+
+        {/* Criar novo modal */}
+        <div className="glass-card rounded-xl p-4 space-y-2 border-turquoise/40">
+          <div className="text-xs font-bold text-turquoise-glow">+ Criar novo modal</div>
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+            <Input className="sm:col-span-3 bg-night/70 border-turquoise/40 h-9 text-xs"
+              placeholder="ID interno (ex: blackfri)"
+              value={nv.key} onChange={(e) => setNv({ ...nv, key: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "") })} />
+            <Input className="sm:col-span-5 bg-night/70 border-turquoise/40 h-9 text-xs"
+              placeholder="Título PT"
+              value={nv.titulo_pt} onChange={(e) => setNv({ ...nv, titulo_pt: e.target.value })} />
+            <Input type="number" className="sm:col-span-1 bg-night/70 border-turquoise/40 h-9 text-xs"
+              placeholder="%"
+              value={nv.percentual} onChange={(e) => setNv({ ...nv, percentual: parseInt(e.target.value) || 0 })} />
+            <Input className="sm:col-span-3 bg-night/70 border-turquoise/40 h-9 text-xs"
+              placeholder="Código (ex: BF20)"
+              value={nv.codigo} onChange={(e) => setNv({ ...nv, codigo: e.target.value.toUpperCase() })} />
+          </div>
+          <Textarea rows={2} className="bg-night/70 border-turquoise/30 text-xs"
+            placeholder="Mensagem PT"
+            value={nv.mensagem_pt} onChange={(e) => setNv({ ...nv, mensagem_pt: e.target.value })} />
+          <Button size="sm" className="bg-turquoise text-night hover:bg-turquoise/80"
+            disabled={!nv.key.trim() || !nv.titulo_pt.trim()}
+            onClick={async () => {
+              try {
+                await upsert.mutateAsync({
+                  key: nv.key.trim(),
+                  titulo_pt: nv.titulo_pt,
+                  mensagem_pt: nv.mensagem_pt,
+                  percentual: nv.percentual,
+                  codigo: nv.codigo || null,
+                  ativo: true,
+                });
+                setNv({ key: "", titulo_pt: "", mensagem_pt: "", percentual: 10, codigo: "" });
+                toast.success("Modal criado e publicado");
+              } catch (e: any) { toast.error(e?.message || "Erro ao criar"); }
+            }}>
+            <Plus className="h-3 w-3 mr-1" /> Criar modal
+          </Button>
+        </div>
+
         {modais.data?.map((m) => <ModalRow key={m.id} m={m} />)}
+        {modais.data?.length === 0 && (
+          <p className="text-xs text-muted-foreground text-center py-4">Nenhum modal cadastrado.</p>
+        )}
       </div>
     </TooltipProvider>
   );

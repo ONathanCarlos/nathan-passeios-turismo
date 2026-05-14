@@ -15,6 +15,7 @@ import { isAdminMode } from "@/lib/promo";
 import { AdminFab } from "@/components/AdminPanel";
 
 import { QrPromoBoot } from "@/components/QrPromo";
+import { SpanishLangModal } from "@/components/SpanishLangModal";
 import { loadQrPromo, urlHasPromoParam, subscribeQrPromo } from "@/lib/qrPromo";
 import { useTours, pickLang } from "@/lib/cms";
 
@@ -82,6 +83,7 @@ const Index = () => {
     return (
       <>
         {!admin && <QrPromoBoot lang={lang} />}
+        {!admin && <SpanishLangModal lang={lang} />}
         {!admin && <PromoBanner lang={lang} />}
         <div className={admin ? "" : "pt-12"}>
           <PageTransition key={`details-${screen.details}`}>
@@ -169,6 +171,7 @@ const Index = () => {
   return (
     <>
     {!admin && <QrPromoBoot lang={lang} />}
+    {!admin && <SpanishLangModal lang={lang} />}
     {!admin && <PromoBanner lang={lang} />}
     <PageTransition key="menu"><main className={`relative min-h-screen px-4 ${admin ? "pt-6" : "pt-16 sm:pt-20"} py-6 sm:py-10 overflow-hidden`}>
       {/* Fundo estático ondulatório: gradiente azul-turquesa → azul escuro */}
