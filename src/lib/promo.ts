@@ -2,6 +2,7 @@
 // Sistema de Cupom Promocional — Nathan Passeios
 // ============================================================
 import { loadAdminConfig } from "./adminConfig";
+import { getAllCachedModais } from "./cmsCache";
 import { isQrActive } from "./qrPromo";
 
 export const PROMO_KEY = "nathan_promo_v1";
