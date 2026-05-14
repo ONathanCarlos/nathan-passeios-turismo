@@ -42,6 +42,7 @@ export const DashboardSection = () => {
         <Card label="Reservas pendentes" value={stats.reservasPendentes} icon={CalendarCheck2} />
         <Card label="Conversão" value={`${stats.conversao}%`} icon={TrendingUp} />
       </div>
+      <CmsHealth />
       <div className="glass-card rounded-xl p-4 text-xs text-muted-foreground">
         Use as abas <b>Reservas</b> e <b>Leads</b> para detalhes individuais. Todas as edições de conteúdo do site acontecem nas demais abas deste painel.
       </div>
