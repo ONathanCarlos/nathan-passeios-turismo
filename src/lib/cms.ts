@@ -4,6 +4,7 @@
 // ============================================================
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { forceRefreshCms } from "./cmsCache";
 import type { Lang } from "./i18n";
 
 // ----- Types -----
@@ -158,7 +159,10 @@ export const useUpsertTour = () => {
       const { error } = await supabase.from("tours").upsert(t as any, { onConflict: "key" });
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["cms", "tours"] }),
+    onSuccess: async () => {
+      qc.invalidateQueries({ queryKey: ["cms", "tours"] });
+      await forceRefreshCms.tours();
+    },
   });
 };
 
@@ -191,7 +195,10 @@ export const useUpsertModal = () => {
       const { error } = await supabase.from("modais").upsert(m as any, { onConflict: "key" });
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["cms", "modais"] }),
+    onSuccess: async () => {
+      qc.invalidateQueries({ queryKey: ["cms", "modais"] });
+      await forceRefreshCms.modais();
+    },
   });
 };
 
@@ -231,7 +238,10 @@ export const useUpsertConfig = () => {
         .upsert({ chave, valor } as any, { onConflict: "chave" });
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["cms", "config"] }),
+    onSuccess: async () => {
+      qc.invalidateQueries({ queryKey: ["cms", "config"] });
+      await forceRefreshCms.config();
+    },
   });
 };
 
