@@ -83,6 +83,7 @@ const Index = () => {
     return (
       <>
         {!admin && <QrPromoBoot lang={lang} />}
+        {!admin && <SpanishLangModal lang={lang} />}
         {!admin && <PromoBanner lang={lang} />}
         <div className={admin ? "" : "pt-12"}>
           <PageTransition key={`details-${screen.details}`}>
