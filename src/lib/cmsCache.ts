@@ -10,6 +10,7 @@ import type { TourKey } from "./tours";
 type TourCache = {
   preco: number | null;
   imagem_url: string | null;
+  video_url: string | null;
   nome: Partial<Record<"pt" | "en" | "es" | "fr" | "it", string>>;
   descricao: Partial<Record<"pt" | "en" | "es" | "fr" | "it", string>>;
   ativo: boolean;
