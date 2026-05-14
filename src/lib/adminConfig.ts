@@ -1,21 +1,26 @@
 // ============================================================
-// Admin Config Layer — overrides locais (localStorage)
-// Substitui dinamicamente preços, descrições, imagens, vídeos
-// e parâmetros de cupons sem alterar código fonte.
+// Admin Config Layer — DESCONTINUADO
+// ------------------------------------------------------------
+// Anteriormente armazenava overrides em localStorage
+// (preços, textos, imagens, vídeos, cupons). Agora a fonte
+// de verdade única é o Supabase (tabelas tours, modais,
+// config_global), lido pelo cmsCache + hooks de cms.ts.
+//
+// Este módulo é mantido como stub somente para preservar
+// assinaturas de import. Não lê nem escreve em localStorage.
 // ============================================================
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { TourKey } from "./tours";
 import { Lang } from "./i18n";
 
-const KEY = "nathan_admin_config_v1";
-const EVT = "nathan-admin-config-change";
+const LEGACY_KEY = "nathan_admin_config_v1";
 
 export interface AdminConfig {
   prices: Partial<Record<TourKey, number>>;
   descriptions: Partial<Record<TourKey, Partial<Record<Lang, string>>>>;
   titles: Partial<Record<TourKey, Partial<Record<Lang, string>>>>;
-  images: Partial<Record<TourKey, string>>;       // dataURL ou URL
-  videos: { mobile?: string; desktop?: string };  // dataURL ou URL
+  images: Partial<Record<TourKey, string>>;
+  videos: { mobile?: string; desktop?: string };
   coupon: {
     allEnabled?: boolean;
     welcomePercent?: number;
@@ -44,51 +49,21 @@ const DEFAULT: AdminConfig = {
   specials: [],
 };
 
-export const loadAdminConfig = (): AdminConfig => {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return DEFAULT;
-    return { ...DEFAULT, ...JSON.parse(raw) };
-  } catch { return DEFAULT; }
-};
+// Limpa qualquer resíduo legado uma única vez.
+try { if (typeof localStorage !== "undefined") localStorage.removeItem(LEGACY_KEY); } catch {}
 
-export const saveAdminConfig = (cfg: AdminConfig) => {
-  localStorage.setItem(KEY, JSON.stringify(cfg));
-  window.dispatchEvent(new CustomEvent(EVT));
-};
+export const loadAdminConfig = (): AdminConfig => DEFAULT;
+export const saveAdminConfig = (_cfg: AdminConfig) => { /* no-op: CMS é a fonte oficial */ };
+export const updateAdminConfig = (_patch: Partial<AdminConfig>) => { /* no-op */ };
 
-export const updateAdminConfig = (patch: Partial<AdminConfig>) => {
-  const cur = loadAdminConfig();
-  saveAdminConfig({ ...cur, ...patch });
-};
-
-/** Hook: re-renderiza quando a config mudar */
+/** Hook estático: retorna sempre os defaults; a reatividade real vem do cmsCache. */
 export const useAdminConfig = (): AdminConfig => {
-  const [cfg, setCfg] = useState<AdminConfig>(() => loadAdminConfig());
-  useEffect(() => {
-    const fn = () => setCfg(loadAdminConfig());
-    window.addEventListener(EVT, fn);
-    window.addEventListener("storage", fn);
-    return () => {
-      window.removeEventListener(EVT, fn);
-      window.removeEventListener("storage", fn);
-    };
-  }, []);
+  const [cfg] = useState<AdminConfig>(DEFAULT);
   return cfg;
 };
 
-// ----- Getters utilitários (não-reativos) -----
-export const adminGetPrice = (key: TourKey, fallback: number): number =>
-  loadAdminConfig().prices[key] ?? fallback;
-
-export const adminGetImage = (key: TourKey, fallback: string): string =>
-  loadAdminConfig().images[key] || fallback;
-
-export const adminGetDesc = (key: TourKey, lang: Lang, fallback: string): string =>
-  loadAdminConfig().descriptions[key]?.pt || loadAdminConfig().descriptions[key]?.[lang] || fallback;
-
-export const adminGetTitle = (key: TourKey, lang: Lang, fallback: string): string =>
-  loadAdminConfig().titles[key]?.pt || loadAdminConfig().titles[key]?.[lang] || fallback;
-
-export const adminGetVideo = (which: "mobile" | "desktop", fallback: string): string =>
-  loadAdminConfig().videos[which] || fallback;
+export const adminGetPrice = (_key: TourKey, fallback: number): number => fallback;
+export const adminGetImage = (_key: TourKey, fallback: string): string => fallback;
+export const adminGetDesc = (_key: TourKey, _lang: Lang, fallback: string): string => fallback;
+export const adminGetTitle = (_key: TourKey, _lang: Lang, fallback: string): string => fallback;
+export const adminGetVideo = (_which: "mobile" | "desktop", fallback: string): string => fallback;
