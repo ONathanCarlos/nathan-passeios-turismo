@@ -123,16 +123,15 @@ const Index = () => {
 
   type Opt = { key: TourKey; image: string; title: string; desc: string; adultsOnly?: boolean };
   const cmsByKey = new Map((cmsTours || []).map((t) => [t.key, t]));
-  // Imagens/descrições do CMS têm prioridade; fallback para localStorage admin (legado) e por fim assets/i18n.
-  const ov = (k: TourKey, base: string) =>
-    cmsByKey.get(k)?.imagem_url || adminCfg.images[k] || base;
+  // Fonte única: CMS (Supabase). Sem fallbacks persistidos — assets/i18n base apenas se o CMS não tiver dado.
+  const ov = (k: TourKey, base: string) => cmsByKey.get(k)?.imagem_url || base;
   const od = (k: TourKey, base: string) => {
     const cms = cmsByKey.get(k);
     if (cms) {
       const v = pickLang(cms as any, "descricao", lang);
       if (v) return v;
     }
-    return adminCfg.descriptions[k]?.pt || adminCfg.descriptions[k]?.[lang] || base;
+    return base;
   };
   const ot = (k: TourKey, base: string) => {
     const cms = cmsByKey.get(k);
