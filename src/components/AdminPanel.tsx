@@ -4,7 +4,7 @@
 // Reservas, Leads, Mídia, Configurações.
 // Toda configuração administrativa do site vive aqui.
 // ============================================================
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
@@ -30,6 +30,7 @@ import {
 } from "@/lib/promo";
 import { isQrActive } from "@/lib/qrPromo";
 import { fetchPendingReservationPhones, subscribeAdminRealtime, type PendingReservationPhone } from "@/lib/db";
+import { useModais, type CmsModal } from "@/lib/cms";
 import {
   ToursSection, ModaisSection, ConfigSection, DepoimentosSection,
 } from "./admin/CmsAdminTab";
@@ -58,12 +59,12 @@ const fileToDataUrl = (file: File): Promise<string> =>
 
 export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) => {
   const cfg = useAdminConfig();
+  const modais = useModais();
   const update = (patch: Partial<AdminConfig>) => saveAdminConfig({ ...loadAdminConfig(), ...patch });
   const [pendingPhones, setPendingPhones] = useState<PendingReservationPhone[]>([]);
   const [pendingLoading, setPendingLoading] = useState(false);
 
-  const [qrPreview, setQrPreview] = useState<{ percent: number; lang: Lang } | null>(null);
-  const [holidayPreview, setHolidayPreview] = useState<{ code: string; message: string; percent: number } | null>(null);
+  const [modalPreview, setModalPreview] = useState<CmsModal | null>(null);
 
   const loadPendingPhones = async () => {
     setPendingLoading(true);
@@ -74,10 +75,10 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
     }
   };
 
-  useState(() => {
+  useEffect(() => {
     loadPendingPhones();
-    return 0;
-  });
+    return subscribeAdminRealtime(loadPendingPhones);
+  }, []);
 
   const tabBtn = "flex flex-col items-center gap-0.5 text-[10px] py-1.5 data-[state=active]:text-turquoise-glow";
 
