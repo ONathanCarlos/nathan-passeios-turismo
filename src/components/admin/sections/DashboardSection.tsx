@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { fetchAdminStats } from "@/lib/db";
 import { RefreshCw, Users, Ticket, CalendarCheck2, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CmsHealth } from "../CmsHealth";
 
 const Card = ({ label, value, icon: Icon }: { label: string; value: number | string; icon: any }) => (
   <div className="glass-card rounded-xl p-4">
@@ -41,6 +42,7 @@ export const DashboardSection = () => {
         <Card label="Reservas pendentes" value={stats.reservasPendentes} icon={CalendarCheck2} />
         <Card label="Conversão" value={`${stats.conversao}%`} icon={TrendingUp} />
       </div>
+      <CmsHealth />
       <div className="glass-card rounded-xl p-4 text-xs text-muted-foreground">
         Use as abas <b>Reservas</b> e <b>Leads</b> para detalhes individuais. Todas as edições de conteúdo do site acontecem nas demais abas deste painel.
       </div>
