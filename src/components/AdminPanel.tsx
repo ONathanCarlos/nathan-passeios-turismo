@@ -17,7 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import {
   Settings2, Trash2, Upload, Plus, Save, Sparkles, Gift, Eye,
   LayoutDashboard, Compass, FileText, MessageSquare, Ticket,
-  CalendarCheck2, Users, Image as ImageIcon, Settings,
+  CalendarCheck2, Users, Image as ImageIcon, Settings, RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { TourKey } from "@/lib/tours";
@@ -429,51 +429,31 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Fechar</Button>
         </div>
 
-        {/* Preview: Modal QR */}
-        <Dialog open={!!qrPreview} onOpenChange={(v) => !v && setQrPreview(null)}>
-          <DialogContent className="bg-card border-amber-400/40 max-w-sm">
-            {qrPreview && (
+        <Dialog open={!!modalPreview} onOpenChange={(v) => !v && setModalPreview(null)}>
+          <DialogContent className={`bg-card max-w-sm ${modalPreview?.key?.startsWith("qr") ? "border-amber-400/40" : "border-emerald-400/40"}`}>
+            {modalPreview && (
               <>
                 <DialogHeader>
                   <DialogTitle className="text-foreground flex items-center gap-2 text-xl">
-                    <Sparkles className="h-6 w-6 text-amber-300" />
-                    {qrPreview.lang === "es" ? "¡Vaya... tú por aquí! 🎉" : "Opa... você por aqui? 🎉"}
+                    {modalPreview.key?.startsWith("qr") ? (
+                      <Sparkles className="h-6 w-6 text-amber-300" />
+                    ) : (
+                      <Gift className="h-6 w-6 text-emerald-300" />
+                    )}
+                    {modalPreview.titulo_pt || modalPreview.key}
                   </DialogTitle>
                   <DialogDescription className="leading-relaxed pt-1">
-                    {qrPreview.lang === "es" ? "Vimos que llegaste escaneando nuestro QR Code." : "Vimos que você chegou escaneando nosso QR Code."}
+                    {modalPreview.mensagem_pt || "Pré-visualização do modal persistido no CMS."}
                   </DialogDescription>
                 </DialogHeader>
-                <div className="text-center py-5 rounded-2xl bg-gradient-to-r from-amber-500/15 to-turquoise/15 border border-amber-400/30">
+                <div className={`text-center py-5 rounded-2xl bg-gradient-to-r border ${modalPreview.key?.startsWith("qr") ? "from-amber-500/15 border-amber-400/30" : "from-emerald-500/15 border-emerald-400/30"} to-turquoise/15`}>
                   <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                    {qrPreview.lang === "es" ? "Descuento activado" : "Desconto ativado"}
+                    {modalPreview.codigo || modalPreview.key}
                   </div>
-                  <div className="text-5xl font-extrabold bg-gradient-to-r from-amber-300 to-turquoise-glow bg-clip-text text-transparent py-1">
-                    {qrPreview.percent}% OFF
-                  </div>
-                </div>
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
-
-        {/* Preview: Modal comemorativo */}
-        <Dialog open={!!holidayPreview} onOpenChange={(v) => !v && setHolidayPreview(null)}>
-          <DialogContent className="bg-card border-emerald-400/40 max-w-sm">
-            {holidayPreview && (
-              <>
-                <DialogHeader>
-                  <DialogTitle className="text-foreground flex items-center gap-2 text-xl">
-                    <Gift className="h-6 w-6 text-emerald-300" /> Promoção
-                  </DialogTitle>
-                  <DialogDescription className="leading-relaxed pt-1">
-                    {holidayPreview.message}
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="text-center py-5 rounded-2xl bg-gradient-to-r from-emerald-500/15 to-turquoise/15 border border-emerald-400/30">
                   <div className="text-5xl font-extrabold bg-gradient-to-r from-emerald-300 to-turquoise-glow bg-clip-text text-transparent py-1">
-                    {holidayPreview.percent}% OFF
+                    {modalPreview.percentual}% OFF
                   </div>
-                  <div className="text-sm font-bold text-foreground mt-1">{holidayPreview.code}</div>
+                  <div className="text-sm font-bold text-foreground mt-1">{modalPreview.codigo || "—"}</div>
                 </div>
               </>
             )}
