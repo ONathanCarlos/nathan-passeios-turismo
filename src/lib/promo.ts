@@ -1,7 +1,9 @@
 // ============================================================
 // Sistema de Cupom Promocional — Nathan Passeios
+// Fonte única de configuração: CMS (Supabase, tabela `modais`).
+// localStorage aqui guarda apenas estado per-usuário (cupom
+// emitido, bloqueios por telefone, cupons especiais já usados).
 // ============================================================
-import { loadAdminConfig } from "./adminConfig";
 import { getAllCachedModais } from "./cmsCache";
 import { isQrActive } from "./qrPromo";
 
@@ -14,16 +16,14 @@ export const PROMO_VALIDITY_DAYS_DEFAULT = 3;
 export const PROMO_DISCOUNT = PROMO_DISCOUNT_DEFAULT;
 export const PROMO_VALIDITY_DAYS = PROMO_VALIDITY_DAYS_DEFAULT;
 
-const getAllEnabled = () => loadAdminConfig().coupon.allEnabled !== false;
-const getWelcomePercent = () => loadAdminConfig().coupon.welcomePercent ?? PROMO_DISCOUNT_DEFAULT;
-const getWelcomeDays = () => loadAdminConfig().coupon.welcomeValidityDays ?? PROMO_VALIDITY_DAYS_DEFAULT;
-// Quando QR está ativo, cupons padrão (boas-vindas) e recuperação ficam bloqueados.
-// Cupons comemorativos (holiday) continuam permitidos para acúmulo manual via admin.
-const getWelcomeEnabled = () => getAllEnabled() && !isQrActive() && loadAdminConfig().coupon.welcomeEnabled !== false;
-const getRecoveryEnabled = () => getAllEnabled() && !isQrActive() && loadAdminConfig().coupon.recoveryEnabled !== false;
-const getHolidayEnabled = () => getAllEnabled() && loadAdminConfig().coupon.holidayEnabled !== false;
+// Defaults estáticos. Sem leitura de localStorage para configuração.
+const getWelcomePercent = () => PROMO_DISCOUNT_DEFAULT;
+const getWelcomeDays = () => PROMO_VALIDITY_DAYS_DEFAULT;
+const getWelcomeEnabled = () => !isQrActive();
+const getRecoveryEnabled = () => !isQrActive();
+const getHolidayEnabled = () => true;
 
-export const isAllCouponsEnabled = () => getAllEnabled();
+export const isAllCouponsEnabled = () => true;
 
 export interface PromoData {
   nome: string;
