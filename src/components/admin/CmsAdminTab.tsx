@@ -150,7 +150,7 @@ const TourRow = ({ t }: { t: CmsTour }) => {
 
       {/* Imagem + Vídeo + Ações */}
       <div className="flex flex-wrap items-center gap-2">
-        {/* Mini preview */}
+        {/* Mini preview imagem */}
         <div className="w-16 h-12 rounded-md overflow-hidden border border-turquoise/30 bg-night/50 shrink-0">
           {draft.imagem_url ? (
             <img src={draft.imagem_url} alt="" className="w-full h-full object-cover" />
@@ -159,18 +159,42 @@ const TourRow = ({ t }: { t: CmsTour }) => {
           )}
         </div>
 
+        {/* Mini preview vídeo */}
+        <div className="w-16 h-12 rounded-md overflow-hidden border border-turquoise/30 bg-night/50 shrink-0 relative">
+          {draft.video_url ? (
+            <>
+              <video src={draft.video_url} muted playsInline preload="metadata" className="w-full h-full object-cover" />
+              <span className="absolute inset-0 flex items-center justify-center text-white/90 text-xs">▶</span>
+            </>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-[9px] text-muted-foreground">sem vídeo</div>
+          )}
+        </div>
+
         <label className="cursor-pointer inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-md bg-turquoise/15 border border-turquoise/40 hover:bg-turquoise/25 transition-colors">
           {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
-          Imagem principal
+          Imagem (capa do card)
           <input type="file" accept="image/*" className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f, "imagem_url"); }} />
         </label>
 
         <label className="cursor-pointer inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-md bg-turquoise/15 border border-turquoise/40 hover:bg-turquoise/25 transition-colors">
-          <Upload className="h-3 w-3" /> Vídeo
+          <Upload className="h-3 w-3" /> Vídeo (página de detalhes)
           <input type="file" accept="video/*" className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f, "video_url"); }} />
         </label>
+
+        {draft.video_url && (
+          <Button size="sm" variant="ghost" className="text-rose-300 hover:text-rose-200 text-xs"
+            onClick={async () => {
+              const next = { ...draft, video_url: null };
+              setDraft(next);
+              await upsert.mutateAsync(next);
+              toast.success("Vídeo removido");
+            }}>
+            <Trash2 className="h-3 w-3 mr-1" /> Remover vídeo
+          </Button>
+        )}
 
         <Button size="sm" onClick={save} disabled={upsert.isPending}
           className={`transition-colors ${saved ? "bg-emerald-500 text-white hover:bg-emerald-600" : "bg-turquoise text-night hover:bg-turquoise/80"}`}>
