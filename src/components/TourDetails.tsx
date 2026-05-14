@@ -49,14 +49,25 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook }: Pro
           <LanguageSwitcher lang={lang} onChange={onLangChange} />
         </header>
 
-        {/* Hero image */}
+        {/* Hero media (vídeo se existir, senão imagem) */}
         <section className="px-4">
           <div className="relative w-full overflow-hidden rounded-3xl border border-turquoise/25 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]">
-            <div className="aspect-[16/11] w-full">
-              <img src={tour.image} alt={tour.title} className="w-full h-full object-cover" />
+            <div className="aspect-[16/11] w-full bg-night">
+              {tour.video ? (
+                <video
+                  src={tour.video}
+                  poster={tour.image}
+                  controls
+                  playsInline
+                  preload="metadata"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <img src={tour.image} alt={tour.title} className="w-full h-full object-cover" />
+              )}
             </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-night via-night/30 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-5">
+            <div className="absolute inset-0 bg-gradient-to-t from-night via-night/30 to-transparent pointer-events-none" />
+            <div className="absolute bottom-0 left-0 right-0 p-5 pointer-events-none">
               <h1 className="text-2xl sm:text-3xl font-bold leading-tight text-foreground drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
                 <span className="bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent">
                   {tour.title}
