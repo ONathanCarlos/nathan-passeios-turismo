@@ -60,6 +60,9 @@ async function refreshAll() {
   await Promise.all([refreshTours(), refreshConfig(), refreshModais()]);
 }
 
+// Exposed so mutations can force-refresh as a fallback if realtime is slow.
+export const forceRefreshCms = { tours: () => refreshTours(), config: () => refreshConfig(), modais: () => refreshModais() };
+
 async function refreshModais() {
   const { data } = await supabase.from("modais").select("key,percentual,codigo,titulo_pt,mensagem_pt,ativo");
   if (!data) return;
