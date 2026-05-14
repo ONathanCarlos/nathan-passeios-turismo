@@ -253,3 +253,21 @@ export async function fetchAdminTable(limit = 100): Promise<AdminRow[]> {
     };
   });
 }
+
+export interface PendingReservationPhone {
+  telefone: string;
+  nome: string;
+  destino: string;
+  created_at: string;
+}
+
+export async function fetchPendingReservationPhones(limit = 200): Promise<PendingReservationPhone[]> {
+  const { data } = await supabase
+    .from("reservas")
+    .select("telefone, nome, destino, created_at")
+    .eq("status", "pendente")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  return (data || []) as PendingReservationPhone[];
+}
