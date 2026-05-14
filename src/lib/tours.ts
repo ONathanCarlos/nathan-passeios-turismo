@@ -26,6 +26,7 @@ export type TourSection = {
 export type TourDetail = {
   key: TourKey;
   image: string;
+  video?: string;
   title: string;
   hook: string;
   rating: number;
