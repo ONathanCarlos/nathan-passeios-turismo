@@ -13,7 +13,7 @@ import { PromoBanner } from "@/components/PromoBanner";
 import { COUPON_ELIGIBLE, tourPriceLabel, TOUR_PRICES, formatBRL } from "@/lib/prices";
 import { isAdminMode } from "@/lib/promo";
 import { AdminFab } from "@/components/AdminPanel";
-import { useAdminConfig } from "@/lib/adminConfig";
+
 import { QrPromoBoot } from "@/components/QrPromo";
 import { loadQrPromo, urlHasPromoParam, subscribeQrPromo } from "@/lib/qrPromo";
 import { useTours, pickLang } from "@/lib/cms";
