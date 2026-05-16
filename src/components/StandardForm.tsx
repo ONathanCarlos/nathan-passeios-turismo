@@ -23,7 +23,7 @@ import {
   isExpired, isTester, isAdminMode, loadPromo, markCouponUsed, PromoData,
   validateSpecialCoupon, markSpecialUsed, SpecificCoupon, hasHolidayActiveToday,
 } from "@/lib/promo";
-import { createReservaInDb, markCouponUsedInDb, syncLead } from "@/lib/db";
+import { createReservaInDb, markCouponUsedInDb, syncLead, updateReservaStatus } from "@/lib/db";
 import { Tag, Lock } from "lucide-react";
 
 type Payment = "cash" | "debit" | "credit" | "pix";
@@ -67,6 +67,7 @@ export const StandardForm = ({
   const [ages, setAges] = useState<string[]>([]);
   const [payment, setPayment] = useState<Payment | "">("");
   const [output, setOutput] = useState<{ text: string; rows: { label: string; value: string }[] } | null>(null);
+  const [reservaId, setReservaId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [shake, setShake] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState<PromoData | null>(null);
@@ -314,26 +315,65 @@ export const StandardForm = ({
       "Reserva feita pelo site https://www.nathanturismo.com.br",
     );
     setOutput({ text: lines.join("\n"), rows });
+
+    // ---- Persistência imediata como PENDENTE ----
+    // Garante que reservas abandonadas (sem clique no WhatsApp) fiquem registradas.
+    const waPersist = fullPhone(phone);
+    syncLead({ nome: name, telefone: waPersist, origem: tourKey ? `reserva:${tourKey}` : "reserva" });
+    createReservaInDb(
+      {
+        nome: name,
+        telefone: waPersist,
+        destino: title,
+        data_viagem: date ? date.toISOString().slice(0, 10) : null,
+        passageiros: parseInt(pax) || null,
+        cupom_aplicado: effectiveCoupon?.code ?? null,
+        valor_original: priceInfo?.original ?? null,
+        valor_com_desconto: priceInfo ? priceInfo.final : null,
+      },
+      "pendente",
+    ).then((id) => setReservaId(id));
   };
 
-  const handleReservationSent = () => {
+  const handleReservationSent = async () => {
     if (appliedSpecial) markSpecialUsed(appliedSpecial.code, name, fullPhone(phone));
     if (appliedCoupon) markCouponUsed();
-    // ---- Persistência no Lovable Cloud ----
     const wa = fullPhone(phone);
-    // Garante lead (caso reserva venha sem ter passado pelo modal de cupom)
-    syncLead({ nome: name, telefone: wa, origem: tourKey ? `reserva:${tourKey}` : "reserva" });
     const cupomAplicado = effectiveCoupon?.code ?? null;
-    createReservaInDb({
-      nome: name,
-      telefone: wa,
-      destino: title,
-      data_viagem: date ? date.toISOString().slice(0, 10) : null,
-      passageiros: parseInt(pax) || null,
-      cupom_aplicado: cupomAplicado,
-      valor_original: priceInfo?.original ?? null,
-      valor_com_desconto: priceInfo ? priceInfo.final : null,
-    });
+    // Atualiza reserva criada no momento do resumo para CONCLUÍDA.
+    // Se não houver id (ex.: insert anterior falhou), cria nova já como concluída.
+    if (reservaId) {
+      const ok = await updateReservaStatus(reservaId, "concluida");
+      if (!ok) {
+        await createReservaInDb(
+          {
+            nome: name,
+            telefone: wa,
+            destino: title,
+            data_viagem: date ? date.toISOString().slice(0, 10) : null,
+            passageiros: parseInt(pax) || null,
+            cupom_aplicado: cupomAplicado,
+            valor_original: priceInfo?.original ?? null,
+            valor_com_desconto: priceInfo ? priceInfo.final : null,
+          },
+          "concluida",
+        );
+      }
+    } else {
+      await createReservaInDb(
+        {
+          nome: name,
+          telefone: wa,
+          destino: title,
+          data_viagem: date ? date.toISOString().slice(0, 10) : null,
+          passageiros: parseInt(pax) || null,
+          cupom_aplicado: cupomAplicado,
+          valor_original: priceInfo?.original ?? null,
+          valor_com_desconto: priceInfo ? priceInfo.final : null,
+        },
+        "concluida",
+      );
+    }
     if (cupomAplicado) markCouponUsedInDb(cupomAplicado);
   };
 

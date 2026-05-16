@@ -72,10 +72,10 @@ export const DbAdminTab = () => {
                 <TableCell>
                   {r.status ? (
                     <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded ${
-                      r.status === "confirmado" ? "bg-emerald-500/20 text-emerald-300" :
-                      r.status === "cancelado" ? "bg-rose-500/20 text-rose-300" :
-                      "bg-amber-500/20 text-amber-300"
-                    }`}>{r.status}</span>
+                      r.status === "concluida"
+                        ? "bg-emerald-700/30 text-emerald-200 border border-emerald-500/40"
+                        : "bg-amber-500/20 text-amber-200 border border-amber-400/40"
+                    }`}>{r.status === "concluida" ? "Concluída" : "Pendente"}</span>
                   ) : "—"}
                 </TableCell>
               </TableRow>

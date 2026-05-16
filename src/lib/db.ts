@@ -158,22 +158,45 @@ export interface NewReserva {
   valor_com_desconto?: number | null;
 }
 
-export async function createReservaInDb(r: NewReserva) {
+export async function createReservaInDb(
+  r: NewReserva,
+  status: "pendente" | "concluida" = "pendente",
+): Promise<string | null> {
   try {
-    await supabase.from("reservas").insert({
-      nome: r.nome,
-      telefone: onlyDigits(r.telefone),
-      email: r.email || null,
-      destino: r.destino,
-      data_viagem: r.data_viagem || null,
-      passageiros: r.passageiros ?? null,
-      cupom_aplicado: r.cupom_aplicado || null,
-      valor_original: r.valor_original ?? null,
-      valor_com_desconto: r.valor_com_desconto ?? null,
-      status: "pendente",
-    });
+    const { data } = await supabase
+      .from("reservas")
+      .insert({
+        nome: r.nome,
+        telefone: onlyDigits(r.telefone),
+        email: r.email || null,
+        destino: r.destino,
+        data_viagem: r.data_viagem || null,
+        passageiros: r.passageiros ?? null,
+        cupom_aplicado: r.cupom_aplicado || null,
+        valor_original: r.valor_original ?? null,
+        valor_com_desconto: r.valor_com_desconto ?? null,
+        status,
+      })
+      .select("id")
+      .maybeSingle();
+    return (data?.id as string) ?? null;
   } catch (e) {
     console.warn("[db] createReservaInDb falhou", e);
+    return null;
+  }
+}
+
+export async function updateReservaStatus(
+  id: string,
+  status: "pendente" | "concluida",
+): Promise<boolean> {
+  try {
+    const { error } = await supabase.from("reservas").update({ status }).eq("id", id);
+    if (error) throw error;
+    return true;
+  } catch (e) {
+    console.warn("[db] updateReservaStatus falhou", e);
+    return false;
   }
 }
 
