@@ -67,6 +67,7 @@ export const StandardForm = ({
   const [ages, setAges] = useState<string[]>([]);
   const [payment, setPayment] = useState<Payment | "">("");
   const [output, setOutput] = useState<{ text: string; rows: { label: string; value: string }[] } | null>(null);
+  const [reservaId, setReservaId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [shake, setShake] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState<PromoData | null>(null);
