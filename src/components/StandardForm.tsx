@@ -23,7 +23,7 @@ import {
   isExpired, isTester, isAdminMode, loadPromo, markCouponUsed, PromoData,
   validateSpecialCoupon, markSpecialUsed, SpecificCoupon, hasHolidayActiveToday,
 } from "@/lib/promo";
-import { createReservaInDb, markCouponUsedInDb, syncLead } from "@/lib/db";
+import { createReservaInDb, markCouponUsedInDb, syncLead, updateReservaStatus } from "@/lib/db";
 import { Tag, Lock } from "lucide-react";
 
 type Payment = "cash" | "debit" | "credit" | "pix";
