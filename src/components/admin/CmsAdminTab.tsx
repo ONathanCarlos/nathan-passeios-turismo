@@ -45,6 +45,10 @@ const TourRow = ({ t }: { t: CmsTour }) => {
   const [draft, setDraft] = useState<CmsTour>(t);
   const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  const update = <K extends keyof CmsTour>(key: K, value: CmsTour[K]) =>
+    setDraft((prev) => ({ ...prev, [key]: value }));
 
   const save = async () => {
     await upsert.mutateAsync(draft);
@@ -68,67 +72,57 @@ const TourRow = ({ t }: { t: CmsTour }) => {
     <div className="glass-card rounded-xl p-4 space-y-3">
       {/* Header: nome + preço + ordem + ativo */}
       <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-        {/* Nome */}
         <div className="sm:col-span-5 space-y-1">
           <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
             Nome do passeio
           </Label>
           <Input
-            className="bg-night/70 border-turquoise/40"
-            value={draft.nome_pt}
-            onChange={(e) => setDraft({ ...draft, nome_pt: e.target.value })}
+            className="bg-night/70 border-turquoise/40 text-foreground"
+            value={draft.nome_pt ?? ""}
+            onChange={(e) => update("nome_pt", e.target.value)}
             placeholder="Passeio de Escuna em Búzios"
           />
         </div>
 
-        {/* Preço */}
         <div className="sm:col-span-2 space-y-1">
           <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
             Preço (R$)
           </Label>
           <Input
             type="number" min={0}
-            className="bg-night/70 border-turquoise/40"
-            value={draft.preco}
-            onChange={(e) => setDraft({ ...draft, preco: parseFloat(e.target.value) || 0 })}
+            className="bg-night/70 border-turquoise/40 text-foreground"
+            value={draft.preco ?? 0}
+            onChange={(e) => update("preco", parseFloat(e.target.value) || 0)}
             placeholder="Ex: 220"
           />
         </div>
 
-        {/* Ordem */}
         <div className="sm:col-span-2 space-y-1">
           <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center">
-            Ordem de exibição
-            <HelpTooltip>
-              Define a posição em que o passeio aparece no site.<br />
-              Exemplo: 1 = aparece primeiro
-            </HelpTooltip>
+            Ordem
+            <HelpTooltip>Posição em que o passeio aparece. 1 = primeiro.</HelpTooltip>
           </Label>
           <Input
             type="number"
-            className="bg-night/70 border-turquoise/40"
-            value={draft.ordem}
-            onChange={(e) => setDraft({ ...draft, ordem: parseInt(e.target.value) || 0 })}
+            className="bg-night/70 border-turquoise/40 text-foreground"
+            value={draft.ordem ?? 0}
+            onChange={(e) => update("ordem", parseInt(e.target.value) || 0)}
             placeholder="Ex: 1"
           />
         </div>
 
-        {/* Ativo/Inativo */}
         <div className="sm:col-span-3 space-y-1">
           <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center">
             Ativo / Inativo
-            <HelpTooltip>
-              Controla se o passeio aparece publicamente no site.<br />
-              Desativado = invisível para visitantes.
-            </HelpTooltip>
+            <HelpTooltip>Controla se o passeio aparece publicamente no site.</HelpTooltip>
           </Label>
           <div className="flex items-center gap-2 h-10">
             <Switch
-              checked={draft.ativo}
-              onCheckedChange={(v) => setDraft({ ...draft, ativo: v })}
+              checked={!!draft.ativo}
+              onCheckedChange={(v) => update("ativo", v)}
             />
             <span className={`text-xs font-medium ${draft.ativo ? "text-emerald-400" : "text-rose-300"}`}>
-              {draft.ativo ? "Ativo — visível no site" : "Inativo — oculto"}
+              {draft.ativo ? "Ativo — visível" : "Inativo — oculto"}
             </span>
           </div>
         </div>
@@ -143,14 +137,74 @@ const TourRow = ({ t }: { t: CmsTour }) => {
           rows={2}
           placeholder="Texto exibido no card público"
           value={draft.descricao_pt ?? ""}
-          onChange={(e) => setDraft({ ...draft, descricao_pt: e.target.value })}
-          className="bg-night/70 border-turquoise/30"
+          onChange={(e) => update("descricao_pt", e.target.value)}
+          className="bg-night/70 border-turquoise/30 text-foreground"
         />
       </div>
 
+      {/* Toggle detalhes */}
+      <button type="button" onClick={() => setExpanded((v) => !v)}
+        className="text-[11px] text-turquoise-glow hover:underline">
+        {expanded ? "− Ocultar detalhes do passeio" : "+ Editar detalhes (capacidade, duração, horário, local, info, observações)"}
+      </button>
+
+      {expanded && (
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 border-t border-turquoise/20 pt-3">
+          <div className="sm:col-span-3 space-y-1">
+            <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
+              Capacidade máx. (passageiros)
+            </Label>
+            <Input type="number" min={0}
+              className="bg-night/70 border-turquoise/40 text-foreground"
+              value={draft.capacidade_max ?? ""}
+              onChange={(e) => update("capacidade_max", e.target.value === "" ? null : parseInt(e.target.value) || 0)}
+              placeholder="Ex: 30" />
+          </div>
+          <div className="sm:col-span-3 space-y-1">
+            <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Duração</Label>
+            <Input
+              className="bg-night/70 border-turquoise/40 text-foreground"
+              value={draft.duracao ?? ""}
+              onChange={(e) => update("duracao", e.target.value)}
+              placeholder="Ex: 4 horas" />
+          </div>
+          <div className="sm:col-span-3 space-y-1">
+            <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Horário</Label>
+            <Input
+              className="bg-night/70 border-turquoise/40 text-foreground"
+              value={draft.horario ?? ""}
+              onChange={(e) => update("horario", e.target.value)}
+              placeholder="Ex: 09h às 13h" />
+          </div>
+          <div className="sm:col-span-3 space-y-1">
+            <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Local de saída</Label>
+            <Input
+              className="bg-night/70 border-turquoise/40 text-foreground"
+              value={draft.local_saida ?? ""}
+              onChange={(e) => update("local_saida", e.target.value)}
+              placeholder="Ex: Píer da Orla Bardot" />
+          </div>
+          <div className="sm:col-span-6 space-y-1">
+            <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Informações adicionais</Label>
+            <Textarea rows={3}
+              className="bg-night/70 border-turquoise/30 text-foreground"
+              value={draft.info_adicional ?? ""}
+              onChange={(e) => update("info_adicional", e.target.value)}
+              placeholder="O que está incluso, paradas, almoço..." />
+          </div>
+          <div className="sm:col-span-6 space-y-1">
+            <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Observações importantes</Label>
+            <Textarea rows={3}
+              className="bg-night/70 border-turquoise/30 text-foreground"
+              value={draft.observacoes ?? ""}
+              onChange={(e) => update("observacoes", e.target.value)}
+              placeholder="Levar protetor solar, água..." />
+          </div>
+        </div>
+      )}
+
       {/* Imagem + Vídeo + Ações */}
       <div className="flex flex-wrap items-center gap-2">
-        {/* Mini preview imagem */}
         <div className="w-16 h-12 rounded-md overflow-hidden border border-turquoise/30 bg-night/50 shrink-0">
           {draft.imagem_url ? (
             <img src={draft.imagem_url} alt="" className="w-full h-full object-cover" />
@@ -159,7 +213,6 @@ const TourRow = ({ t }: { t: CmsTour }) => {
           )}
         </div>
 
-        {/* Mini preview vídeo */}
         <div className="w-16 h-12 rounded-md overflow-hidden border border-turquoise/30 bg-night/50 shrink-0 relative">
           {draft.video_url ? (
             <>
@@ -173,7 +226,7 @@ const TourRow = ({ t }: { t: CmsTour }) => {
 
         <label className="cursor-pointer inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-md bg-turquoise/15 border border-turquoise/40 hover:bg-turquoise/25 transition-colors">
           {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
-          Imagem (capa do card)
+          Imagem (capa)
           <input type="file" accept="image/*" className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f, "imagem_url"); }} />
         </label>
@@ -203,18 +256,14 @@ const TourRow = ({ t }: { t: CmsTour }) => {
         </Button>
 
         <Button size="sm" variant="ghost" className="text-rose-300 hover:text-rose-200"
-          onClick={() => { if (confirm(`Excluir ${draft.nome_pt}?`)) del.mutate(draft.id); }}>
-          <Trash2 className="h-3 w-3" />
+          onClick={() => { if (confirm(`Excluir definitivamente "${draft.nome_pt}"? Esta ação não pode ser desfeita.`)) del.mutate(draft.id); }}>
+          <Trash2 className="h-3 w-3 mr-1" /> Excluir
         </Button>
 
-        {/* Identificador interno (somente leitura) */}
         <div className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground bg-night/40 px-2 py-1 rounded">
           <span>ID interno:</span>
           <code className="text-turquoise-glow/80">{draft.key}</code>
-          <HelpTooltip>
-            Usado pelo sistema internamente.<br />
-            Não deve ser alterado manualmente.
-          </HelpTooltip>
+          <HelpTooltip>Identificador interno — não altere manualmente.</HelpTooltip>
         </div>
       </div>
     </div>
