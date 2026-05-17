@@ -344,6 +344,7 @@ export type Database = {
       tours: {
         Row: {
           ativo: boolean
+          capacidade_max: number | null
           created_at: string
           descricao_en: string | null
           descricao_es: string | null
@@ -351,14 +352,19 @@ export type Database = {
           descricao_it: string | null
           descricao_pt: string | null
           destaque: boolean
+          duracao: string | null
+          horario: string | null
           id: string
           imagem_url: string | null
+          info_adicional: string | null
           key: string
+          local_saida: string | null
           nome_en: string | null
           nome_es: string | null
           nome_fr: string | null
           nome_it: string | null
           nome_pt: string
+          observacoes: string | null
           ordem: number
           preco: number
           updated_at: string
@@ -366,6 +372,7 @@ export type Database = {
         }
         Insert: {
           ativo?: boolean
+          capacidade_max?: number | null
           created_at?: string
           descricao_en?: string | null
           descricao_es?: string | null
@@ -373,14 +380,19 @@ export type Database = {
           descricao_it?: string | null
           descricao_pt?: string | null
           destaque?: boolean
+          duracao?: string | null
+          horario?: string | null
           id?: string
           imagem_url?: string | null
+          info_adicional?: string | null
           key: string
+          local_saida?: string | null
           nome_en?: string | null
           nome_es?: string | null
           nome_fr?: string | null
           nome_it?: string | null
           nome_pt: string
+          observacoes?: string | null
           ordem?: number
           preco?: number
           updated_at?: string
@@ -388,6 +400,7 @@ export type Database = {
         }
         Update: {
           ativo?: boolean
+          capacidade_max?: number | null
           created_at?: string
           descricao_en?: string | null
           descricao_es?: string | null
@@ -395,14 +408,19 @@ export type Database = {
           descricao_it?: string | null
           descricao_pt?: string | null
           destaque?: boolean
+          duracao?: string | null
+          horario?: string | null
           id?: string
           imagem_url?: string | null
+          info_adicional?: string | null
           key?: string
+          local_saida?: string | null
           nome_en?: string | null
           nome_es?: string | null
           nome_fr?: string | null
           nome_it?: string | null
           nome_pt?: string
+          observacoes?: string | null
           ordem?: number
           preco?: number
           updated_at?: string
