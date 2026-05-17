@@ -27,6 +27,12 @@ export type CmsTour = {
   destaque: boolean;
   ativo: boolean;
   ordem: number;
+  capacidade_max: number | null;
+  duracao: string | null;
+  horario: string | null;
+  local_saida: string | null;
+  info_adicional: string | null;
+  observacoes: string | null;
 };
 
 export type CmsHome = {
