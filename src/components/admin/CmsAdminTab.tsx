@@ -401,24 +401,71 @@ const DepRow = ({ d }: { d: CmsDepoimento }) => {
 
 export const ToursSection = () => {
   const tours = useTours(false);
+  const upsert = useUpsertTour();
+  const [nv, setNv] = useState({ key: "", nome_pt: "", preco: 0, descricao_pt: "" });
   return (
     <TooltipProvider>
       <div className="space-y-3">
         <div className="glass-card rounded-xl p-4 border-turquoise/30 bg-turquoise/5 space-y-2">
           <h4 className="text-sm font-bold text-turquoise-glow flex items-center gap-2">
             <HelpCircle className="h-4 w-4" />
-            COMO EDITAR PASSEIOS
+            COMO GERENCIAR PASSEIOS
           </h4>
           <ol className="text-xs text-foreground/80 space-y-1 list-decimal list-inside">
-            <li>Edite nome, preço ou descrição nos campos abaixo</li>
-            <li>Ajuste a ordem de exibição (menor número = aparece primeiro)</li>
-            <li>Ative ou desative o passeio conforme disponibilidade</li>
-            <li>Clique em <b>Salvar</b> em cada card</li>
-            <li>As alterações aparecem automaticamente no site para todos os visitantes</li>
+            <li>Crie um novo passeio no formulário abaixo, ou edite um existente</li>
+            <li>Use "+ Editar detalhes" para capacidade, duração, horário, local de saída, info e observações</li>
+            <li>Envie imagem (capa) e vídeo (página de detalhes) com os botões de upload</li>
+            <li>Clique em <b>Salvar</b> para publicar — as mudanças aparecem em tempo real no site</li>
+            <li>Use <b>Excluir</b> para remover um passeio (pede confirmação)</li>
           </ol>
         </div>
+
+        {/* Criar novo passeio */}
+        <div className="glass-card rounded-xl p-4 space-y-2 border-turquoise/40">
+          <div className="text-xs font-bold text-turquoise-glow">+ Criar novo passeio</div>
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+            <Input className="sm:col-span-3 bg-night/70 border-turquoise/40 h-9 text-xs text-foreground"
+              placeholder="ID interno (ex: lagoa_azul)"
+              value={nv.key}
+              onChange={(e) => setNv({ ...nv, key: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "") })} />
+            <Input className="sm:col-span-6 bg-night/70 border-turquoise/40 h-9 text-xs text-foreground"
+              placeholder="Nome do passeio"
+              value={nv.nome_pt}
+              onChange={(e) => setNv({ ...nv, nome_pt: e.target.value })} />
+            <Input type="number" className="sm:col-span-3 bg-night/70 border-turquoise/40 h-9 text-xs text-foreground"
+              placeholder="Preço (R$)"
+              value={nv.preco}
+              onChange={(e) => setNv({ ...nv, preco: parseFloat(e.target.value) || 0 })} />
+          </div>
+          <Textarea rows={2} className="bg-night/70 border-turquoise/30 text-xs text-foreground"
+            placeholder="Descrição curta"
+            value={nv.descricao_pt}
+            onChange={(e) => setNv({ ...nv, descricao_pt: e.target.value })} />
+          <Button size="sm" className="bg-turquoise text-night hover:bg-turquoise/80"
+            disabled={!nv.key.trim() || !nv.nome_pt.trim() || upsert.isPending}
+            onClick={async () => {
+              try {
+                await upsert.mutateAsync({
+                  key: nv.key.trim(),
+                  nome_pt: nv.nome_pt.trim(),
+                  preco: nv.preco,
+                  descricao_pt: nv.descricao_pt,
+                  ativo: true,
+                  ordem: (tours.data?.length ?? 0) + 1,
+                } as any);
+                setNv({ key: "", nome_pt: "", preco: 0, descricao_pt: "" });
+                toast.success("Passeio criado e publicado");
+              } catch (e: any) { toast.error(e?.message || "Erro ao criar passeio"); }
+            }}>
+            <Plus className="h-3 w-3 mr-1" /> Criar passeio
+          </Button>
+        </div>
+
         {tours.isLoading && <Loader2 className="h-4 w-4 animate-spin text-turquoise mx-auto" />}
         {tours.data?.map((t) => <TourRow key={t.id} t={t} />)}
+        {tours.data?.length === 0 && !tours.isLoading && (
+          <p className="text-xs text-muted-foreground text-center py-4">Nenhum passeio cadastrado ainda.</p>
+        )}
       </div>
     </TooltipProvider>
   );
