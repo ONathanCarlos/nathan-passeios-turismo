@@ -30,7 +30,7 @@ import {
 } from "@/lib/promo";
 import { isQrActive } from "@/lib/qrPromo";
 import { fetchPendingReservationPhones, subscribeAdminRealtime, type PendingReservationPhone } from "@/lib/db";
-import { useModais, type CmsModal } from "@/lib/cms";
+import { useModais, useTours, useUpsertTour, type CmsModal, type CmsTour } from "@/lib/cms";
 import {
   ToursSection, ModaisSection, ConfigSection, DepoimentosSection,
 } from "./admin/CmsAdminTab";
