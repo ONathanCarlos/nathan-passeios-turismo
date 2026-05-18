@@ -57,6 +57,59 @@ const fileToDataUrl = (file: File): Promise<string> =>
     r.readAsDataURL(file);
   });
 
+// ------------------------------------------------------------
+// Editor inline de descrições por passeio (grava em tours.descricao_pt)
+// ------------------------------------------------------------
+const TourDescriptionsEditor = () => {
+  const tours = useTours(false);
+  const upsert = useUpsertTour();
+  const list = (tours.data || []).slice().sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0));
+  if (tours.isLoading) return <div className="text-xs text-muted-foreground">Carregando…</div>;
+  return (
+    <div className="space-y-2">
+      {list.map((t) => <TourDescriptionRow key={t.id} t={t} onSave={(next) => upsert.mutateAsync(next)} pending={upsert.isPending} />)}
+    </div>
+  );
+};
+
+const TourDescriptionRow = ({ t, onSave, pending }: { t: CmsTour; onSave: (t: CmsTour) => Promise<unknown>; pending: boolean }) => {
+  const [value, setValue] = useState<string>(t.descricao_pt ?? "");
+  const [saved, setSaved] = useState(false);
+  const dirty = value !== (t.descricao_pt ?? "");
+  return (
+    <div className="glass-card rounded-xl p-3 space-y-2">
+      <Label className="font-semibold text-foreground">{t.nome_pt}</Label>
+      <Textarea
+        rows={2}
+        placeholder="descrição em português"
+        className="bg-night/70 border-turquoise/30 text-foreground"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+      />
+      <div className="flex justify-end">
+        <Button
+          size="sm"
+          disabled={!dirty || pending}
+          className={`transition-colors ${saved ? "bg-emerald-500 text-white hover:bg-emerald-600" : "bg-turquoise text-night hover:bg-turquoise/80"}`}
+          onClick={async () => {
+            try {
+              await onSave({ ...t, descricao_pt: value });
+              setSaved(true);
+              toast.success(`Descrição de "${t.nome_pt}" salva e publicada`);
+              setTimeout(() => setSaved(false), 2500);
+            } catch (e: any) {
+              toast.error(e?.message || "Erro ao salvar");
+            }
+          }}
+        >
+          <Save className="h-3 w-3 mr-1" />
+          {saved ? "Publicado" : "Salvar"}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) => {
   const cfg = useAdminConfig();
   const modais = useModais();
