@@ -30,7 +30,7 @@ import {
 } from "@/lib/promo";
 import { isQrActive } from "@/lib/qrPromo";
 import { fetchPendingReservationPhones, subscribeAdminRealtime, type PendingReservationPhone } from "@/lib/db";
-import { useModais, type CmsModal } from "@/lib/cms";
+import { useModais, useTours, useUpsertTour, type CmsModal, type CmsTour } from "@/lib/cms";
 import {
   ToursSection, ModaisSection, ConfigSection, DepoimentosSection,
 } from "./admin/CmsAdminTab";
@@ -56,6 +56,59 @@ const fileToDataUrl = (file: File): Promise<string> =>
     r.onerror = reject;
     r.readAsDataURL(file);
   });
+
+// ------------------------------------------------------------
+// Editor inline de descrições por passeio (grava em tours.descricao_pt)
+// ------------------------------------------------------------
+const TourDescriptionsEditor = () => {
+  const tours = useTours(false);
+  const upsert = useUpsertTour();
+  const list = (tours.data || []).slice().sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0));
+  if (tours.isLoading) return <div className="text-xs text-muted-foreground">Carregando…</div>;
+  return (
+    <div className="space-y-2">
+      {list.map((t) => <TourDescriptionRow key={t.id} t={t} onSave={(next) => upsert.mutateAsync(next)} pending={upsert.isPending} />)}
+    </div>
+  );
+};
+
+const TourDescriptionRow = ({ t, onSave, pending }: { t: CmsTour; onSave: (t: CmsTour) => Promise<unknown>; pending: boolean }) => {
+  const [value, setValue] = useState<string>(t.descricao_pt ?? "");
+  const [saved, setSaved] = useState(false);
+  const dirty = value !== (t.descricao_pt ?? "");
+  return (
+    <div className="glass-card rounded-xl p-3 space-y-2">
+      <Label className="font-semibold text-foreground">{t.nome_pt}</Label>
+      <Textarea
+        rows={2}
+        placeholder="descrição em português"
+        className="bg-night/70 border-turquoise/30 text-foreground"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+      />
+      <div className="flex justify-end">
+        <Button
+          size="sm"
+          disabled={!dirty || pending}
+          className={`transition-colors ${saved ? "bg-emerald-500 text-white hover:bg-emerald-600" : "bg-turquoise text-night hover:bg-turquoise/80"}`}
+          onClick={async () => {
+            try {
+              await onSave({ ...t, descricao_pt: value });
+              setSaved(true);
+              toast.success(`Descrição de "${t.nome_pt}" salva e publicada`);
+              setTimeout(() => setSaved(false), 2500);
+            } catch (e: any) {
+              toast.error(e?.message || "Erro ao salvar");
+            }
+          }}
+        >
+          <Save className="h-3 w-3 mr-1" />
+          {saved ? "Publicado" : "Salvar"}
+        </Button>
+      </div>
+    </div>
+  );
+};
 
 export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) => {
   const cfg = useAdminConfig();
@@ -126,36 +179,11 @@ export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange
             </section>
 
             <section className="space-y-3">
-              <h3 className="text-sm font-bold text-turquoise-glow">Descrições por passeio (override local)</h3>
+              <h3 className="text-sm font-bold text-turquoise-glow">Descrições por passeio</h3>
               <div className="glass-card rounded-xl p-3 border-turquoise/30 bg-turquoise/5 text-xs text-turquoise-glow">
-                ✍️ Edite somente em <b>Português</b>. O tradutor multilíngue do site (PT/ES/EN/FR/IT) usará este texto como base.
+                ✍️ Edite em <b>Português</b> e clique em <b>Salvar</b>. O tradutor multilíngue do site (PT/ES/EN/FR/IT) usará este texto como base.
               </div>
-              {TOUR_KEYS.map(({ key, label }) => {
-                const baseDesc = dict.pt[`desc${key.charAt(0).toUpperCase() + key.slice(1)}` as keyof typeof dict["pt"]] as string | undefined;
-                const ptOverride = cfg.descriptions[key]?.pt;
-                return (
-                  <div key={key} className="glass-card rounded-xl p-3 space-y-2">
-                    <Label className="font-semibold text-foreground">{label}</Label>
-                    <Textarea
-                      rows={2}
-                      placeholder={baseDesc || "descrição em português"}
-                      className="bg-night/70 border-turquoise/30 text-foreground"
-                      value={ptOverride ?? ""}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        const all = { ...cfg.descriptions };
-                        const cur = { ...(all[key] || {}) };
-                        if (v === "") delete cur.pt; else cur.pt = v;
-                        all[key] = cur;
-                        update({ descriptions: all });
-                      }}
-                    />
-                  </div>
-                );
-              })}
-              <p className="text-[11px] text-muted-foreground">
-                Dica: preferimos editar nome/descrição diretamente em <b>Passeios</b> (persistente no backend). Esta seção mantém compatibilidade com edições locais.
-              </p>
+              <TourDescriptionsEditor />
             </section>
           </TabsContent>
 
