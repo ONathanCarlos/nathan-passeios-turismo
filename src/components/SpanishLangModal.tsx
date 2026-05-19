@@ -26,6 +26,12 @@ const DEFAULTS = {
   code: "HERMANO5",
 };
 
+const urlHasLangEs = (): boolean => {
+  if (typeof window === "undefined") return false;
+  const raw = new URLSearchParams(window.location.search).get("lang");
+  return !!raw && raw.trim().toLowerCase().startsWith("es");
+};
+
 export const SpanishLangModal = ({ lang }: Props) => {
   const [open, setOpen] = useState(false);
   const [, force] = useState(0);
@@ -35,11 +41,13 @@ export const SpanishLangModal = ({ lang }: Props) => {
 
   useEffect(() => {
     if (lang !== "es") return;
-    try {
-      if (sessionStorage.getItem(SESSION_KEY)) return;
-    } catch {}
-    // Pequeno delay para não competir com o boot.
-    const t = setTimeout(() => setOpen(true), 600);
+    // Quando o link ?lang=es é compartilhado, sempre abrimos o modal.
+    // Quando o usuário apenas trocou o idioma manualmente, respeita gate de sessão.
+    const fromUrl = urlHasLangEs();
+    if (!fromUrl) {
+      try { if (sessionStorage.getItem(SESSION_KEY)) return; } catch {}
+    }
+    const t = setTimeout(() => setOpen(true), 500);
     return () => clearTimeout(t);
   }, [lang]);
 
