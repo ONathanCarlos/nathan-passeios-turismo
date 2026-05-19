@@ -174,6 +174,7 @@ const Index = () => {
     <>
     {!admin && <QrPromoBoot lang={lang} />}
     {!admin && <SpanishLangModal lang={lang} />}
+    {!admin && <CampaignPromoModal lang={lang} />}
     {!admin && <PromoBanner lang={lang} />}
     <PageTransition key="menu"><main className={`relative min-h-screen px-4 ${admin ? "pt-6" : "pt-16 sm:pt-20"} py-6 sm:py-10 overflow-hidden`}>
       {/* Fundo estático ondulatório: gradiente azul-turquesa → azul escuro */}
