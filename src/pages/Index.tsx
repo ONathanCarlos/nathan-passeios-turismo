@@ -16,6 +16,7 @@ import { AdminFab } from "@/components/AdminPanel";
 
 import { QrPromoBoot } from "@/components/QrPromo";
 import { SpanishLangModal } from "@/components/SpanishLangModal";
+import { CampaignPromoModal } from "@/components/CampaignPromoModal";
 import { loadQrPromo, urlHasPromoParam, subscribeQrPromo } from "@/lib/qrPromo";
 import { useTours, pickLang } from "@/lib/cms";
 
