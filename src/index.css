@@ -82,10 +82,6 @@
       background-attachment: scroll;
     }
   }
-  /* Off-screen images skip decode/paint work until near viewport */
-  img {
-    content-visibility: auto;
-  }
   body::before {
     content: "";
     position: fixed;
