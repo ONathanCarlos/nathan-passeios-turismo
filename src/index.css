@@ -64,6 +64,8 @@
   html {
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
+    /* Hint browsers to dedicate a compositor layer to the document */
+    text-rendering: optimizeSpeed;
   }
   body {
     @apply text-foreground;
@@ -72,6 +74,17 @@
     background-size: cover;
     font-family: 'Comfortaa', system-ui, sans-serif;
     position: relative;
+  }
+  /* Mobile: `background-attachment: fixed` is a notorious scroll-jank source.
+     Disable on small screens where the ocean-static-bg overlay covers it anyway. */
+  @media (max-width: 640px) {
+    body {
+      background-attachment: scroll;
+    }
+  }
+  /* Off-screen images skip decode/paint work until near viewport */
+  img {
+    content-visibility: auto;
   }
   body::before {
     content: "";
