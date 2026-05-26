@@ -296,6 +296,84 @@ export type Database = {
         }
         Relationships: []
       }
+      pacotes: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          descricao_en: string | null
+          descricao_es: string | null
+          descricao_fr: string | null
+          descricao_it: string | null
+          descricao_pt: string | null
+          destaque: boolean
+          id: string
+          imagem_url: string | null
+          info_adicional: string | null
+          key: string
+          nome_en: string | null
+          nome_es: string | null
+          nome_fr: string | null
+          nome_it: string | null
+          nome_pt: string
+          observacoes: string | null
+          ordem: number
+          preco: number
+          tour_keys: string[]
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          descricao_en?: string | null
+          descricao_es?: string | null
+          descricao_fr?: string | null
+          descricao_it?: string | null
+          descricao_pt?: string | null
+          destaque?: boolean
+          id?: string
+          imagem_url?: string | null
+          info_adicional?: string | null
+          key: string
+          nome_en?: string | null
+          nome_es?: string | null
+          nome_fr?: string | null
+          nome_it?: string | null
+          nome_pt: string
+          observacoes?: string | null
+          ordem?: number
+          preco?: number
+          tour_keys?: string[]
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          descricao_en?: string | null
+          descricao_es?: string | null
+          descricao_fr?: string | null
+          descricao_it?: string | null
+          descricao_pt?: string | null
+          destaque?: boolean
+          id?: string
+          imagem_url?: string | null
+          info_adicional?: string | null
+          key?: string
+          nome_en?: string | null
+          nome_es?: string | null
+          nome_fr?: string | null
+          nome_it?: string | null
+          nome_pt?: string
+          observacoes?: string | null
+          ordem?: number
+          preco?: number
+          tour_keys?: string[]
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       reservas: {
         Row: {
           created_at: string
