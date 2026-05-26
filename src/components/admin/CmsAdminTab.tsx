@@ -624,6 +624,8 @@ export const DepoimentosSection = () => {
 
 // ---------------- Sub: Pacotes Editor ----------------
 import { usePacotes, useUpsertPacote, useDeletePacote, type Pacote } from "@/lib/pacotes";
+import { PacoteCardPreview } from "@/components/PacoteCardPreview";
+
 
 const PacoteRow = ({ p, allTourKeys, tourImages }: { p: Pacote; allTourKeys: { key: string; nome_pt: string }[]; tourImages: Record<string, string> }) => {
   const upsert = useUpsertPacote();
