@@ -44,6 +44,8 @@ interface Props {
   requirePousada?: boolean;
   /** tour key for price + coupon application */
   tourKey?: TourKey;
+  /** valor fixo de pacote promocional (R$). Cupons NÃO se aplicam. */
+  packagePrice?: number;
 }
 
 const fieldClass =
@@ -52,7 +54,9 @@ const fieldClass =
 export const StandardForm = ({
   lang, onLangChange, onBack, title, backgroundImage,
   adultsOnly = false, requireCpf = false, notice, requirePousada = false, tourKey,
+  packagePrice,
 }: Props) => {
+  const isPackage = typeof packagePrice === "number";
   const t = dict[lang];
   const [name, setName] = useState("");
   const [cpf, setCpf] = useState("");
@@ -75,7 +79,8 @@ export const StandardForm = ({
   const [manualCode, setManualCode] = useState("");
   const [couponPromptOpen, setCouponPromptOpen] = useState(false);
   const couponsAllowed = urlIsExactRoot() && !loadQrPromo();
-  const eligible = (tourKey ? COUPON_ELIGIBLE.has(tourKey) : false) && couponsAllowed;
+  // Cupons NUNCA se aplicam a pacotes promocionais.
+  const eligible = !isPackage && (tourKey ? COUPON_ELIGIBLE.has(tourKey) : false) && couponsAllowed;
   const requiredMsg = lang === "pt" ? "Preenchimento obrigatório" : lang === "es" ? "Campo obligatorio" : "Required field";
   const ineligibleMsg = lang === "pt" ? "Cupom indisponível para este passeio."
     : lang === "es" ? "Cupón no disponible para este paseo."
@@ -159,6 +164,12 @@ export const StandardForm = ({
 
   // Cálculo de preço (quando aplicável)
   const priceInfo = useMemo(() => {
+    if (isPackage) {
+      // Pacote promocional: valor fixo por passageiro, sem cupons/QR.
+      const paxN = Math.max(1, parseInt(pax) || 1);
+      const original = (packagePrice as number) * paxN;
+      return { original, discount: 0, final: original, meta: { value: packagePrice as number }, qrPercent: 0, qrApplied: false, baseOriginal: original };
+    }
     if (!tourKey) return null;
     const meta = TOUR_PRICES[tourKey];
     const paxN = Math.max(1, parseInt(pax) || 1);
@@ -177,7 +188,7 @@ export const StandardForm = ({
     const discount = effectiveCoupon ? (original * effectiveCoupon.percent) / 100 : 0;
     const final = original - discount;
     return { original, discount, final, meta, qrPercent: qr?.percent ?? 0, qrApplied: !!qr, baseOriginal };
-  }, [tourKey, pax, hasKids, ages, adultsOnly, effectiveCoupon]);
+  }, [tourKey, pax, hasKids, ages, adultsOnly, effectiveCoupon, isPackage, packagePrice]);
 
   const kidsN = Math.min(8, Math.max(0, parseInt(kidsCount) || 0));
 
