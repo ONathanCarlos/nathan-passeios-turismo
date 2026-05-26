@@ -22,10 +22,12 @@ import catamaraImg from "@/assets/catamara.jpg";
 import caboFrioImg from "@/assets/cabo-frio.jpg";
 import lanchaImg from "@/assets/lancha.jpg";
 import jardineiraImg from "@/assets/jardineira.jpg";
+import almocoImg from "@/assets/almoco.jpg";
 
 const FALLBACK: Record<string, string> = {
   escuna: escunaImg, buggy: buggyImg, arraial: arraialImg, mergulho: mergulhoImg,
   catamara: catamaraImg, cabofrio: caboFrioImg, lancha: lanchaImg, jardineira: jardineiraImg,
+  almoco: almocoImg,
 };
 
 const SLOGAN: Record<Lang, string> = {
