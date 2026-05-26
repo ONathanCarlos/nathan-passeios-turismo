@@ -102,6 +102,18 @@ const Home = () => {
   const C = COPY[lang];
   const { data: cmsTours } = useTours(true);
 
+  // Promo state: highlight Passeios Avulsos when a campaign/coupon is active
+  const [promoTick, setPromoTick] = useState(0);
+  useEffect(() => subscribeQrPromo(() => setPromoTick((n) => n + 1)), []);
+  const promoActive = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    const sp = new URLSearchParams(window.location.search);
+    const hasPromoParam = sp.has("promo");
+    const hasLangEs = (sp.get("lang") || "").toLowerCase().startsWith("es");
+    return hasPromoParam || hasLangEs || isQrActive() || urlHasPromoParam() || !!loadPromo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [promoTick, lang]);
+
   useEffect(() => { document.title = "Nathan Turismo · Búzios"; }, []);
 
   const imgOf = (key: string) =>
@@ -138,6 +150,16 @@ const Home = () => {
           <p className="text-foreground/85 text-sm sm:text-base">{C.welcome}</p>
         </header>
 
+        {/* Promo hint banner — only when a coupon/campaign is active */}
+        {promoActive && (
+          <div className="mb-5 mx-auto max-w-xl rounded-2xl border border-amber-400/50 bg-gradient-to-r from-amber-500/15 via-amber-400/10 to-turquoise/15 px-4 py-3 flex items-center gap-3 shadow-[0_0_24px_hsl(var(--turquoise)/0.25)] animate-in fade-in slide-in-from-top-2 duration-500">
+            <Sparkles className="h-5 w-5 text-amber-300 shrink-0" />
+            <p className="text-xs sm:text-sm font-semibold text-amber-100 leading-snug">
+              {C.promoHint}
+            </p>
+          </div>
+        )}
+
         {/* Two big choices */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <BigChoice
@@ -145,6 +167,8 @@ const Home = () => {
             title={C.avulsosTitle}
             desc={C.avulsosDesc}
             onClick={() => nav("/passeios")}
+            highlight={promoActive}
+            highlightLabel={promoActive ? C.promoHint : undefined}
           />
           <BigChoice
             quadrants={pacotesImgs}
