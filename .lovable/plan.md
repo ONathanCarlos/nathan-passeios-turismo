@@ -1,109 +1,95 @@
+# Plano — Rodada de melhorias estratégicas
 
-# Reforma do site de turismo
+Tudo abaixo preserva: fluxo de reserva, WhatsApp, multilíngue, cupons, integração de passeios. Mudanças focadas em conversão, clareza visual e operação.
 
-Vou dividir em 7 blocos de trabalho. Páginas de reserva e fluxo de envio não serão tocados (apenas a frase inicial da mensagem WhatsApp).
+## 1. Schema do banco (uma migração consolidada)
 
-## 1. Nova Home principal (`/`)
+```text
+ALTER TABLE pacotes ADD COLUMN preco_original numeric;        -- soma "de" para mostrar economia
+ALTER TABLE pacotes ADD COLUMN badge text;                    -- ex.: "mais_vendido", "premium"
+ALTER TABLE pacotes ADD COLUMN urgencia text;                 -- ex.: "Alta procura hoje"
 
-Criar nova página `src/pages/Home.tsx` como rota raiz (`/`). Conteúdo:
-- Hero curto com headline turística.
-- Dois grandes botões/cards de navegação:
-  - **Passeios Avulsos** → leva para `/passeios` (atual Index).
-  - **Pacotes de Passeios** → leva para `/pacotes`.
-- Cada botão tem **ícone composto de 4 quadradinhos** com imagens:
-  - Avulsos: Escuna, Buggy, Arraial do Cabo, Mergulho (puxadas de `tours` por `key`).
-  - Pacotes: Catamarã, Cabo Frio, Lancha Privada, Jardineira.
-- Frase comercial nos pacotes: *"Mais experiências por menos: aproveite os melhores combos de Búzios com preços especiais."*
+ALTER TABLE tours   ADD COLUMN badge text;
+ALTER TABLE tours   ADD COLUMN urgencia text;
+```
 
-A home atual (`Index.tsx`) move para rota `/passeios`. **Nenhuma alteração estrutural** nela. Roteamento atualizado em `App.tsx`.
+Badges suportadas (enum livre em string, render mapeado no front):
+`mais_vendido` 🔥 · `favorito` ⭐ · `hermanos` 🇦🇷 · `premium` 💎 · `experiencia_completa` 🏝️
 
-## 2. Sistema de Pacotes
+## 2. Admin — Pacotes
 
-### Banco de dados (nova tabela `pacotes`)
-Colunas: `id`, `key` (slug), `nome_pt/en/es/fr/it`, `descricao_pt/...`, `preco`, `tour_keys` (text[]) — lista de keys de tours que compõem o pacote, `imagem_url` (opcional override), `video_url` (opcional), `ativo`, `destaque`, `ordem`, `info_adicional`, timestamps. RLS pública aberta (mesma postura das outras tabelas).
+Em `CmsAdminTab.tsx → PacoteRow`:
+- Adicionar campos: `preco_original`, `badge` (select), `urgencia` (texto livre).
+- **Preview em tempo real**: painel lateral/colapsável que renderiza o `<PacoteCard>` real (mesmo componente do site) usando o `draft` em memória — atualiza ao digitar, sem precisar salvar. Mostra: imagem composta, nome, descrição, preço, "de/por", economia, badge, urgência.
 
-Seed inicial com os 6 pacotes listados:
-- Búzios Paradise (Escuna+Buggy+Almoço) — 205
-- Mar & Terra (Escuna+Buggy) — 160
-- Buggy & Food (Buggy+Almoço) — 150
-- Perfeição de Búzios (Escuna+Almoço) — 110
-- Dive & Drive (Mergulho+Buggy) — 280
-- Brigitte Bardot (Catamarã+Jardineira) — 200
+Em `TourRow`: adicionar `badge` e `urgencia` (mesmo padrão).
 
-### Página `/pacotes` (`src/pages/Pacotes.tsx`)
-- Frase comercial em destaque.
-- Lista de cards. Cada card:
-  - **Imagem composta** gerada dinamicamente a partir de `tour_keys`: 1→full, 2→split lado a lado, 3→split com 1 grande + 2 pequenas.
-  - Imagens reaproveitam `tours.imagem_url` pelo `key`. Almoço usa um tour `key='almoco'` (criado no seed se não existir).
-  - Nome, preço, descrição.
-  - Botões "Ver Detalhes" e "Reservar Agora".
-- "Ver Detalhes" → `/pacotes/:key` que renderiza os detalhes de cada tour componente em sequência (reusa `TourDetails`).
-- "Reservar Agora" → leva ao formulário padrão com o pacote pré-selecionado (mesmo `StandardForm`, destino = nome do pacote, preço = `pacote.preco`).
+## 3. Pacotes — destaque de economia + comparação
 
-### Admin (`/admin`)
-Nova aba **"Pacotes"** em `CmsAdminTab` (ou seção dedicada) com CRUD completo: criar, editar nome/descrição/preço/mídia/vídeo, selecionar `tour_keys` (multiselect dos tours existentes), ativar/desativar, ordem, destaque. Mesma UX dos passeios.
+Em `Pacotes.tsx` e `PacoteDetalhes.tsx`:
+- Se `preco_original > preco`: mostrar `De R$ X / por R$ Y / Economize R$ Z` com visual elegante (amber/turquesa).
+- Em `PacoteDetalhes`, nova seção **"Você economiza"**: lista cada `tour_key` com seu preço de `TOUR_PRICES`, soma, preço do pacote, economia. Caixa destacada.
+- Se `preco_original` estiver vazio, calcular automaticamente da soma dos `tour_keys` (fallback inteligente).
 
-## 3. Regra de cupons/modais — só para avulsos
+## 4. Selos visuais (badges) nos cards
 
-- `CampaignPromoModal`, `SpanishLangModal`, `PromoBanner`, `QrPromoBoot` continuam ativos **apenas** nas rotas `/`, `/passeios` (não em `/pacotes`).
-- Aviso "*Desconto válido apenas para passeios avulsos." adicionado:
-  - rodapé dos modais promocionais (`CampaignPromoModal`, `SpanishLangModal`);
-  - rodapé do `PromoBanner`.
-- No `StandardForm`, quando `destino` for de um pacote, ignorar/desabilitar campo de cupom e qualquer desconto automático aplicado por promo URL.
+- Novo componente `<TourBadge type="..." />` com mapeamento ícone+texto+cor.
+- Renderizado em: cards de `Index.tsx` (avulsos), cards de `Pacotes.tsx`, hero de `PacoteDetalhes.tsx` e `TourDetails.tsx`.
+- Posição: topo-direito do card (abaixo do "+18" quando houver).
 
-## 4. Tema visual: preto + turquesa, degradê
+## 5. Indicadores de urgência
 
-`src/index.css`:
-- Substituir tokens `--deep-blue` / `--night` por preto (`0 0% 0%` / `0 0% 6%`). `--turquoise` mantido.
-- Trocar background listrado (`.ocean-static-bg`) por **gradiente moderno** preto→preto-azulado→turquesa sutil, com radial highlight. Sem stripes.
-- Tipografia/espaçamentos inalterados.
+- Pequena tag discreta abaixo do preço com pulsação suave (ex.: `Alta procura hoje`).
+- Configurável no admin (campo livre `urgencia`). Vazio = não exibe.
 
-## 5. WhatsApp flutuante + Botão voltar ao topo
+## 6. Depoimentos (avaliações)
 
-- `WhatsAppFab`: garantir `position: fixed` em todo scroll (já é fixed; verificar e mover montagem para layout raiz se necessário, exibir desde o topo).
-- Novo `ScrollToTopFab.tsx`: seta discreta, `fixed bottom-24 right-6`, aparece após `scrollY > 400`, smooth scroll para topo.
-- Ambos montados no layout raiz (renderizados em `App.tsx` fora das rotas), aparecem em todas as páginas exceto `/admin`.
+Tabela `depoimentos` já existe + admin já está implementado. Falta apenas:
+- Criar `<DepoimentosSection lang />` (carrossel/grid) com avatar/iniciais, estrelas, texto curto, nome.
+- Embedar em `Home.tsx` (antes do footer) e em `Index.tsx` (após a grade de passeios).
 
-## 6. Fluidez
+## 7. Promo automática + scroll suave
 
-- Adicionar `scroll-behavior: smooth` no `html` e `content-visibility: auto` em seções longas da home.
-- `will-change: transform` apenas em elementos animados específicos.
-- Manter otimizações anteriores (lazy admin, sem background-attachment fixed mobile).
+Em `Home.tsx` (já tem highlight visual): adicionar `useEffect` que detecta `promoActive` e faz `scrollIntoView({ behavior: "smooth" })` no card "Passeios Avulsos" depois de ~600ms.
 
-## 7. Mensagem do WhatsApp
+## 8. Confirmação visual pré-WhatsApp
 
-Em `StandardForm.tsx`, no builder da mensagem, prefixar:
-> "Olá Nathan! Aqui está minha reserva completa!\n\n"
-Restante intocado.
+O `SummaryOutput` atual já é um resumo elegante com botão "Enviar" — ele já cumpre essa função. Vou:
+- Reforçar visualmente: badge "Revise antes de enviar" no topo.
+- Trocar o texto do botão para "Confirmar e enviar para WhatsApp".
+- Adicionar pequeno checkbox "Confirmo que os dados estão corretos" (opcional, não bloqueia).
 
-## Detalhes técnicos
+## 9. Home — hero emocional/comercial
 
-- Composição de imagem do pacote: componente `PackageCover` que recebe array de URLs e renderiza grid CSS (1, 2 ou 4 células — para 3 usa layout 1 grande + 2 pequenas).
-- Slug do pacote = `key`. URLs: `/pacotes`, `/pacotes/:key`.
-- `useTours()` reutilizado para resolver imagens via map `key → tour`.
-- Hook novo `usePacotes()` espelhando padrão de `useTours`.
-- Tipos: regenerados automaticamente após migração.
-- i18n: nomes/descrições traduzidos como nos tours; fallback PT.
-- A frase de aviso vai para `i18n.ts` para suportar idiomas.
+Em `Home.tsx`, substituir o `welcome` curto por bloco emocional com:
+- Headline forte (i18n 5 idiomas): "Explore Búzios do seu jeito."
+- Subhead: "Experiências incríveis, passeios inesquecíveis e os melhores combos da região."
+- 3 micro-selos de confiança (ex.: ⭐ 4.9 · 🛡️ Reserva segura · 🌐 5 idiomas).
 
-## Arquivos novos
-- `supabase/migrations/<ts>_pacotes.sql`
-- `src/pages/Home.tsx`
-- `src/pages/Pacotes.tsx`
-- `src/pages/PacoteDetalhes.tsx`
-- `src/components/PackageCover.tsx`
-- `src/components/ScrollToTopFab.tsx`
-- `src/components/admin/sections/PacotesSection.tsx` (ou aba no `CmsAdminTab`)
-- `src/lib/pacotes.ts`
+## 10. Performance mobile
 
-## Arquivos editados
-- `src/App.tsx` (rotas + FABs globais)
-- `src/index.css` (tema preto + gradiente)
-- `src/components/StandardForm.tsx` (prefixo msg + bloquear cupom em pacote)
-- `src/components/CampaignPromoModal.tsx`, `SpanishLangModal.tsx`, `PromoBanner.tsx` (aviso)
-- `src/components/admin/CmsAdminTab.tsx` (CRUD pacotes)
-- `src/pages/Index.tsx` (sem mudanças estruturais; só remover montagem dupla de FABs se aplicável)
+- Todas as `<img>` já têm `loading="lazy"`. Adicionar `decoding="async"` e `fetchpriority` nos LCPs.
+- Comprimir os assets `src/assets/*.jpg` maiores que 300 KB (script `sharp`/`squoosh`) — mantém PNG/JPG no mesmo nome.
+- Lazy-import de rotas pesadas no `App.tsx` (`React.lazy` para `/admin`, `/passeios`, `/pacotes/:key`).
+- `<video>` com `preload="metadata"` (já está) e `poster` (já está).
 
-## Não será alterado
-- Lógica e UI de reserva e conclusão da reserva.
-- Estrutura visual da página de passeios avulsos atual.
+## Arquivos afetados
+
+- `supabase/migrations/<new>.sql` (1 migração)
+- `src/lib/pacotes.ts` (tipos)
+- `src/components/admin/CmsAdminTab.tsx` (preview + novos campos)
+- `src/components/TourBadge.tsx` (novo)
+- `src/components/DepoimentosSection.tsx` (novo)
+- `src/components/SavingsBox.tsx` (novo)
+- `src/pages/Home.tsx`, `src/pages/Index.tsx`, `src/pages/Pacotes.tsx`, `src/pages/PacoteDetalhes.tsx`
+- `src/components/SummaryOutput.tsx`
+- `src/App.tsx` (lazy routes)
+
+## Fora de escopo (não toco)
+
+- `StandardForm` lógica de cupom/preço/criação de reserva.
+- Fluxo de WhatsApp / payload da mensagem.
+- `TourDetails` lógica de QR/preço.
+- `supabase/integrations/*`, `.env`.
+
+Confirma que posso seguir com tudo isso? Se quiser tirar/adicionar algo, me avise.

@@ -299,6 +299,7 @@ export type Database = {
       pacotes: {
         Row: {
           ativo: boolean
+          badge: string | null
           created_at: string
           descricao_en: string | null
           descricao_es: string | null
@@ -318,12 +319,15 @@ export type Database = {
           observacoes: string | null
           ordem: number
           preco: number
+          preco_original: number | null
           tour_keys: string[]
           updated_at: string
+          urgencia: string | null
           video_url: string | null
         }
         Insert: {
           ativo?: boolean
+          badge?: string | null
           created_at?: string
           descricao_en?: string | null
           descricao_es?: string | null
@@ -343,12 +347,15 @@ export type Database = {
           observacoes?: string | null
           ordem?: number
           preco?: number
+          preco_original?: number | null
           tour_keys?: string[]
           updated_at?: string
+          urgencia?: string | null
           video_url?: string | null
         }
         Update: {
           ativo?: boolean
+          badge?: string | null
           created_at?: string
           descricao_en?: string | null
           descricao_es?: string | null
@@ -368,8 +375,10 @@ export type Database = {
           observacoes?: string | null
           ordem?: number
           preco?: number
+          preco_original?: number | null
           tour_keys?: string[]
           updated_at?: string
+          urgencia?: string | null
           video_url?: string | null
         }
         Relationships: []
@@ -422,6 +431,7 @@ export type Database = {
       tours: {
         Row: {
           ativo: boolean
+          badge: string | null
           capacidade_max: number | null
           created_at: string
           descricao_en: string | null
@@ -446,10 +456,12 @@ export type Database = {
           ordem: number
           preco: number
           updated_at: string
+          urgencia: string | null
           video_url: string | null
         }
         Insert: {
           ativo?: boolean
+          badge?: string | null
           capacidade_max?: number | null
           created_at?: string
           descricao_en?: string | null
@@ -474,10 +486,12 @@ export type Database = {
           ordem?: number
           preco?: number
           updated_at?: string
+          urgencia?: string | null
           video_url?: string | null
         }
         Update: {
           ativo?: boolean
+          badge?: string | null
           capacidade_max?: number | null
           created_at?: string
           descricao_en?: string | null
@@ -502,6 +516,7 @@ export type Database = {
           ordem?: number
           preco?: number
           updated_at?: string
+          urgencia?: string | null
           video_url?: string | null
         }
         Relationships: []
