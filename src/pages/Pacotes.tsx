@@ -171,6 +171,7 @@ const Pacotes = () => {
         </footer>
       </div>
       <WhatsAppFab lang={lang} />
+      {isAdminMode() && <AdminFab />}
     </main>
   );
 };
