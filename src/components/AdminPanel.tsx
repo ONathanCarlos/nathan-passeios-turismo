@@ -17,7 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import {
   Settings2, Trash2, Upload, Plus, Save, Sparkles, Gift, Eye,
   LayoutDashboard, Compass, FileText, MessageSquare, Ticket,
-  CalendarCheck2, Users, Image as ImageIcon, Settings, RefreshCw,
+  CalendarCheck2, Users, Image as ImageIcon, Settings, RefreshCw, Package,
 } from "lucide-react";
 import { toast } from "sonner";
 import { TourKey } from "@/lib/tours";
