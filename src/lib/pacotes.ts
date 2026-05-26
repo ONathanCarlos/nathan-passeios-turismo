@@ -20,6 +20,7 @@ export type Pacote = {
   descricao_fr: string | null;
   descricao_it: string | null;
   preco: number;
+  preco_original: number | null;
   tour_keys: string[];
   imagem_url: string | null;
   video_url: string | null;
@@ -28,6 +29,8 @@ export type Pacote = {
   ordem: number;
   info_adicional: string | null;
   observacoes: string | null;
+  badge: string | null;
+  urgencia: string | null;
 };
 
 const db = () => supabase.from("pacotes" as any);

@@ -33,6 +33,8 @@ export type CmsTour = {
   local_saida: string | null;
   info_adicional: string | null;
   observacoes: string | null;
+  badge: string | null;
+  urgencia: string | null;
 };
 
 export type CmsHome = {

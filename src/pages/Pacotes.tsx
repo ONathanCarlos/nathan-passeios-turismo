@@ -10,9 +10,13 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { usePacotes, pickPacoteLang } from "@/lib/pacotes";
 import { useTours } from "@/lib/cms";
-import { formatBRL } from "@/lib/prices";
+import { TOUR_PRICES } from "@/lib/prices";
 import { PackageCover } from "@/components/PackageCover";
+import { PriceWithDiscount } from "@/components/SavingsBox";
+import { TourBadge, UrgencyTag } from "@/components/TourBadge";
+import { DepoimentosSection } from "@/components/DepoimentosSection";
 import { ArrowLeft, Sparkles } from "lucide-react";
+import type { TourKey } from "@/lib/tours";
 
 import escunaImg from "@/assets/escuna.jpg";
 import buggyImg from "@/assets/buggy.jpg";
@@ -45,6 +49,9 @@ const L = {
   back:    { pt: "Voltar", es: "Volver", en: "Back", fr: "Retour", it: "Indietro" },
 };
 
+// Inclui pseudo-tour "almoco" como item agregável (R$50 padrão).
+const PSEUDO_PRICES: Record<string, number> = { almoco: 50 };
+
 const Pacotes = () => {
   const nav = useNavigate();
   const [lang, setLangState] = useState<Lang>(() => loadLang());
@@ -57,6 +64,14 @@ const Pacotes = () => {
 
   const imgOf = (key: string) =>
     tours?.find((x) => x.key === key)?.imagem_url || FALLBACK[key] || "";
+
+  // Soma estimada se preco_original não vier do banco
+  const estimateOriginal = (tour_keys: string[]) =>
+    tour_keys.reduce((sum, k) => {
+      const real = TOUR_PRICES[k as TourKey]?.value;
+      if (typeof real === "number") return sum + real;
+      return sum + (PSEUDO_PRICES[k] || 0);
+    }, 0);
 
   return (
     <main className="relative min-h-screen px-4 pt-10 pb-16 overflow-hidden">
@@ -95,7 +110,8 @@ const Pacotes = () => {
           {(pacotes || []).map((p) => {
             const nome = pickPacoteLang(p, "nome", lang) || p.nome_pt;
             const desc = pickPacoteLang(p, "descricao", lang);
-            const imgs = p.tour_keys.map(imgOf).filter(Boolean);
+            const imgs = p.imagem_url ? [p.imagem_url] : p.tour_keys.map(imgOf).filter(Boolean);
+            const originalPrice = p.preco_original ?? estimateOriginal(p.tour_keys);
             return (
               <article key={p.id} className="group glass-card rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:border-turquoise/60 hover:-translate-y-1 hover:turquoise-glow">
                 <div className="relative aspect-[4/3] overflow-hidden bg-night">
@@ -104,13 +120,24 @@ const Pacotes = () => {
                   <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-md bg-amber-400/95 px-2 py-0.5 text-[10px] font-extrabold text-night uppercase tracking-wider shadow-lg">
                     <Sparkles className="w-3 h-3" /> {L.combo[lang]}
                   </span>
+                  {p.badge && (
+                    <div className="absolute top-3 right-3">
+                      <TourBadge type={p.badge} lang={lang} />
+                    </div>
+                  )}
                 </div>
                 <div className="p-4 flex flex-col flex-1">
                   <h3 className="text-lg font-bold text-foreground leading-tight">{nome}</h3>
                   {desc && <p className="mt-1.5 text-sm text-muted-foreground leading-snug flex-1">{desc}</p>}
-                  <p className="mt-3 text-2xl font-extrabold bg-gradient-to-r from-amber-300 to-turquoise-glow bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
-                    {formatBRL(p.preco)}
-                  </p>
+                  <div className="mt-3">
+                    <PriceWithDiscount
+                      price={p.preco}
+                      originalPrice={originalPrice > p.preco ? originalPrice : null}
+                      lang={lang}
+                      size="md"
+                    />
+                  </div>
+                  <UrgencyTag text={p.urgencia} className="mt-2" />
                   <div className="mt-4 flex flex-col gap-2">
                     <button
                       type="button"
@@ -134,6 +161,8 @@ const Pacotes = () => {
             );
           })}
         </div>
+
+        <DepoimentosSection lang={lang} />
 
         <footer className="text-center mt-14 text-xs text-muted-foreground/70">
           © Nathan {t.brandSubtitle} · {t.footerRegion}

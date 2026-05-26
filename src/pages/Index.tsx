@@ -8,6 +8,8 @@ import { TourDetails } from "@/components/TourDetails";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { TourKey } from "@/lib/tours";
 import { Star, Tag } from "lucide-react";
+import { TourBadge, UrgencyTag } from "@/components/TourBadge";
+import { DepoimentosSection } from "@/components/DepoimentosSection";
 import { PageTransition } from "@/components/PageTransition";
 import { PromoBanner } from "@/components/PromoBanner";
 import { COUPON_ELIGIBLE, tourPriceLabel, TOUR_PRICES, formatBRL } from "@/lib/prices";
@@ -250,6 +252,14 @@ const Index = () => {
                     <Star className="w-3 h-3 fill-amber-300 text-amber-300" />
                     4.8
                   </span>
+                  {(() => {
+                    const c = cmsByKey.get(opt.key);
+                    return c?.badge ? (
+                      <div className="absolute top-3 right-12">
+                        <TourBadge type={c.badge} lang={lang} />
+                      </div>
+                    ) : null;
+                  })()}
                   {COUPON_ELIGIBLE.has(opt.key) && (
                     <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-md bg-amber-400/95 px-2 py-0.5 text-[10px] font-extrabold text-night uppercase tracking-wider shadow-lg coupon-blink">
                       <Tag className="w-3 h-3" /> Cupom de desconto aplicável!!
@@ -285,6 +295,11 @@ const Index = () => {
                     </p>
                   )}
 
+                  {(() => {
+                    const c = cmsByKey.get(opt.key);
+                    return c?.urgencia ? <UrgencyTag text={c.urgencia} className="mt-2" /> : null;
+                  })()}
+
                   <div className="mt-4 flex flex-col gap-2">
                     <button
                       type="button"
@@ -309,6 +324,8 @@ const Index = () => {
             ))}
           </div>
         </section>
+
+        <DepoimentosSection lang={lang} />
 
         <footer className="text-center mt-14 text-xs text-muted-foreground/70">
           © Nathan {t.brandSubtitle} · {t.footerRegion}
