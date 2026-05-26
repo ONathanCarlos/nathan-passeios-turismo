@@ -297,14 +297,13 @@
   }
 }
 
-/* Fundo estático ondulatório — gradiente azul escuro profundo → azul-turquesa */
+/* Fundo estático moderno — preto profundo → roxo → turquesa */
 .ocean-static-bg {
-  background-color: hsl(210 80% 8%);
+  background-color: hsl(0 0% 0%);
   background-image:
-    radial-gradient(ellipse 120% 60% at 50% 100%, hsl(180 75% 45% / 0.55) 0%, transparent 60%),
-    radial-gradient(ellipse 100% 55% at 20% 65%, hsl(190 80% 50% / 0.35) 0%, transparent 65%),
-    radial-gradient(ellipse 110% 55% at 80% 35%, hsl(200 85% 40% / 0.40) 0%, transparent 65%),
-    repeating-radial-gradient(circle at 50% 120%, hsl(185 70% 50% / 0.10) 0 22px, transparent 22px 60px),
-    linear-gradient(180deg, hsl(215 85% 10%) 0%, hsl(205 80% 18%) 55%, hsl(190 75% 35%) 100%);
+    radial-gradient(ellipse 90% 60% at 20% 15%, hsl(174 80% 45% / 0.28) 0%, transparent 60%),
+    radial-gradient(ellipse 100% 70% at 85% 80%, hsl(270 70% 35% / 0.35) 0%, transparent 65%),
+    radial-gradient(ellipse 120% 60% at 50% 110%, hsl(190 85% 45% / 0.30) 0%, transparent 60%),
+    linear-gradient(180deg, hsl(0 0% 0%) 0%, hsl(260 30% 6%) 50%, hsl(0 0% 0%) 100%);
   background-attachment: scroll;
 }
