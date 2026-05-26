@@ -285,7 +285,7 @@ export const StandardForm = ({
     rows.push({ label: lang === "pt" ? "Local Check-in" : "Check-in" , value: "Praça Santos Dummont, Cabine 03 - Búzios/RJ" });
     rows.push({ label: lang === "pt" ? "Horário Check-in" : "Check-in time", value: "Até 11:30 — falar com Nathan ou Mary" });
 
-    const lines = [t.sumTitle, title, "", `👤 ${t.sumName}: ${name}`];
+    const lines = ["Olá Nathan! Aqui está minha reserva completa!", "", t.sumTitle, title, "", `👤 ${t.sumName}: ${name}`];
     if (requireCpf) lines.push(`🪪 CPF: ${cpf}`);
     lines.push(
       `📞 ${t.sumPhone}: ${fullPhone(phone)}`,
@@ -448,7 +448,7 @@ export const StandardForm = ({
         )}
 
         {/* Preço + Aplicar Cupom */}
-        {tourKey && (
+        {(tourKey || isPackage) && (
           <div className="mb-5 glass-card rounded-2xl p-4 space-y-3">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -467,7 +467,16 @@ export const StandardForm = ({
                   </>
                 ) : (
                   <div className="text-2xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent">
-                    {tourPriceLabel(tourKey, lang)}
+                    {isPackage && priceInfo
+                      ? formatBRL(priceInfo.final)
+                      : tourKey
+                        ? tourPriceLabel(tourKey, lang)
+                        : ""}
+                  </div>
+                )}
+                {isPackage && (
+                  <div className="text-[10px] text-amber-200/80 italic mt-1">
+                    ✦ {lang === "pt" ? "Combo promocional · cupons não se aplicam" : "Promo combo · coupons not applicable"}
                   </div>
                 )}
               </div>

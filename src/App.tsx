@@ -4,9 +4,13 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import Home from "./pages/Home.tsx";
 import Index from "./pages/Index.tsx";
 const Admin = lazy(() => import("./pages/Admin.tsx"));
+const Pacotes = lazy(() => import("./pages/Pacotes.tsx"));
+const PacoteDetalhes = lazy(() => import("./pages/PacoteDetalhes.tsx"));
 import NotFound from "./pages/NotFound.tsx";
+import { ScrollToTopFab } from "@/components/ScrollToTopFab";
 import { bootCmsCache, subscribeCmsCache } from "@/lib/cmsCache";
 
 const queryClient = new QueryClient();
@@ -30,12 +34,16 @@ const App = () => (
         <BrowserRouter>
           <Suspense fallback={null}>
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<Home />} />
+              <Route path="/passeios" element={<Index />} />
+              <Route path="/pacotes" element={<Pacotes />} />
+              <Route path="/pacotes/:key" element={<PacoteDetalhes />} />
               <Route path="/admin" element={<Admin />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
+          <ScrollToTopFab />
         </BrowserRouter>
       </CmsCacheBoot>
     </TooltipProvider>
