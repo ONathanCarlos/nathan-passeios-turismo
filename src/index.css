@@ -4,52 +4,52 @@
 
 @layer base {
   :root {
-    /* Nathan Passeios - Tema Oceano */
-    --background: 215 60% 8%;
+    /* Nathan Passeios - Tema Black & Turquoise */
+    --background: 0 0% 0%;
     --foreground: 0 0% 100%;
 
-    --card: 215 50% 12%;
+    --card: 0 0% 6%;
     --card-foreground: 0 0% 100%;
 
-    --popover: 215 55% 10%;
+    --popover: 0 0% 4%;
     --popover-foreground: 0 0% 100%;
 
     --primary: 174 72% 48%;
-    --primary-foreground: 215 60% 8%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 215 45% 18%;
+    --secondary: 0 0% 10%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 215 40% 16%;
-    --muted-foreground: 180 15% 75%;
+    --muted: 0 0% 8%;
+    --muted-foreground: 180 10% 75%;
 
     --accent: 174 80% 55%;
-    --accent-foreground: 215 60% 8%;
+    --accent-foreground: 0 0% 0%;
 
     --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 40% 22%;
-    --input: 215 45% 16%;
+    --border: 0 0% 14%;
+    --input: 0 0% 10%;
     --ring: 174 72% 48%;
 
     --radius: 0.85rem;
 
     --turquoise: 174 72% 48%;
     --turquoise-glow: 174 90% 60%;
-    --deep-blue: 215 70% 14%;
-    --night: 220 50% 5%;
+    --deep-blue: 0 0% 0%;
+    --night: 0 0% 4%;
 
-    --gradient-ocean: linear-gradient(170deg, hsl(215 75% 14%) 0%, hsl(200 70% 22%) 35%, hsl(185 65% 28%) 65%, hsl(174 70% 38%) 100%);
+    --gradient-ocean: linear-gradient(170deg, hsl(0 0% 0%) 0%, hsl(270 40% 10%) 40%, hsl(190 70% 18%) 75%, hsl(174 72% 32%) 100%);
     --gradient-turquoise: linear-gradient(135deg, hsl(174 72% 48%) 0%, hsl(190 80% 55%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(215 50% 14% / 0.9), hsl(215 55% 10% / 0.9));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 8% / 0.92), hsl(0 0% 4% / 0.92));
 
-    --shadow-glow: 0 10px 40px -10px hsl(174 80% 50% / 0.4);
-    --shadow-deep: 0 20px 60px -15px hsl(220 80% 3% / 0.6);
+    --shadow-glow: 0 10px 40px -10px hsl(174 80% 50% / 0.45);
+    --shadow-deep: 0 20px 60px -15px hsl(0 0% 0% / 0.75);
   }
 
   .dark {
-    --background: 215 60% 8%;
+    --background: 0 0% 0%;
     --foreground: 0 0% 100%;
   }
 }
@@ -297,14 +297,13 @@
   }
 }
 
-/* Fundo estático ondulatório — gradiente azul escuro profundo → azul-turquesa */
+/* Fundo estático moderno — preto profundo → roxo → turquesa */
 .ocean-static-bg {
-  background-color: hsl(210 80% 8%);
+  background-color: hsl(0 0% 0%);
   background-image:
-    radial-gradient(ellipse 120% 60% at 50% 100%, hsl(180 75% 45% / 0.55) 0%, transparent 60%),
-    radial-gradient(ellipse 100% 55% at 20% 65%, hsl(190 80% 50% / 0.35) 0%, transparent 65%),
-    radial-gradient(ellipse 110% 55% at 80% 35%, hsl(200 85% 40% / 0.40) 0%, transparent 65%),
-    repeating-radial-gradient(circle at 50% 120%, hsl(185 70% 50% / 0.10) 0 22px, transparent 22px 60px),
-    linear-gradient(180deg, hsl(215 85% 10%) 0%, hsl(205 80% 18%) 55%, hsl(190 75% 35%) 100%);
+    radial-gradient(ellipse 90% 60% at 20% 15%, hsl(174 80% 45% / 0.28) 0%, transparent 60%),
+    radial-gradient(ellipse 100% 70% at 85% 80%, hsl(270 70% 35% / 0.35) 0%, transparent 65%),
+    radial-gradient(ellipse 120% 60% at 50% 110%, hsl(190 85% 45% / 0.30) 0%, transparent 60%),
+    linear-gradient(180deg, hsl(0 0% 0%) 0%, hsl(260 30% 6%) 50%, hsl(0 0% 0%) 100%);
   background-attachment: scroll;
 }
