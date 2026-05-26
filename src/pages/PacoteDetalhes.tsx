@@ -253,7 +253,7 @@ const PacoteDetalhes = () => {
         </footer>
       </div>
       <WhatsAppFab lang={lang} />
-      {isAdminMode() && <AdminFab />}
+      {isAdminMode() && <AdminFab defaultTab="pacotes" />}
     </main>
   );
 };
