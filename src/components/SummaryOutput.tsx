@@ -18,12 +18,12 @@ interface Props {
 
 const WA_NUMBER = "5522998216796";
 
-const HEADER: Record<Lang, { ready: string; instr: string; send: string; back: string; tour: string }> = {
-  pt: { ready: "Reserva Pronta!", instr: "Clique no botão abaixo para enviar sua reserva diretamente pelo WhatsApp. Responderemos em breve!", send: "Enviar sua Reserva", back: "Voltar ao Passeio", tour: "Passeio" },
-  es: { ready: "¡Reserva Lista!", instr: "Haz clic en el botón de abajo para enviar tu reserva directamente por WhatsApp. ¡Te responderemos pronto!", send: "Enviar tu Reserva", back: "Volver al Paseo", tour: "Paseo" },
-  en: { ready: "Booking Ready!", instr: "Click the button below to send your booking directly via WhatsApp. We'll reply shortly!", send: "Send your Booking", back: "Back to Tour", tour: "Tour" },
-  fr: { ready: "Réservation Prête !", instr: "Cliquez sur le bouton ci-dessous pour envoyer votre réservation directement via WhatsApp. Nous répondrons bientôt !", send: "Envoyer votre Réservation", back: "Retour à l'Excursion", tour: "Excursion" },
-  it: { ready: "Prenotazione Pronta!", instr: "Clicca sul pulsante qui sotto per inviare la tua prenotazione direttamente via WhatsApp. Risponderemo a breve!", send: "Invia la tua Prenotazione", back: "Torna al Tour", tour: "Tour" },
+const HEADER: Record<Lang, { ready: string; instr: string; review: string; send: string; back: string; tour: string }> = {
+  pt: { ready: "Reserva Pronta!", instr: "Revise abaixo os dados da sua reserva antes de enviar pelo WhatsApp.", review: "Revise antes de enviar", send: "Confirmar e enviar para WhatsApp", back: "Voltar ao Passeio", tour: "Passeio" },
+  es: { ready: "¡Reserva Lista!", instr: "Revisa los datos de tu reserva antes de enviarla por WhatsApp.", review: "Revisa antes de enviar", send: "Confirmar y enviar por WhatsApp", back: "Volver al Paseo", tour: "Paseo" },
+  en: { ready: "Booking Ready!", instr: "Review your booking details below before sending via WhatsApp.", review: "Review before sending", send: "Confirm and send to WhatsApp", back: "Back to Tour", tour: "Tour" },
+  fr: { ready: "Réservation Prête !", instr: "Vérifiez les détails de votre réservation avant de l'envoyer via WhatsApp.", review: "Vérifiez avant d'envoyer", send: "Confirmer et envoyer sur WhatsApp", back: "Retour à l'Excursion", tour: "Excursion" },
+  it: { ready: "Prenotazione Pronta!", instr: "Controlla i dati della tua prenotazione prima di inviarla via WhatsApp.", review: "Controlla prima di inviare", send: "Conferma e invia su WhatsApp", back: "Torna al Tour", tour: "Tour" },
 };
 
 export const SummaryOutput = ({ text, lang, onReset, rows, tourTitle, onSend }: Props) => {
@@ -36,6 +36,9 @@ export const SummaryOutput = ({ text, lang, onReset, rows, tourTitle, onSend }: 
       <div className="glass-card rounded-2xl p-7 text-center bg-night/70 backdrop-blur-md">
         <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-emerald-500/15 border border-emerald-400/40 flex items-center justify-center shadow-[0_0_28px_rgba(16,185,129,0.45)]">
           <CheckCircle2 className="h-9 w-9 text-emerald-400" />
+        </div>
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 border border-amber-400/40 px-3 py-1 mb-3 text-[10px] font-bold uppercase tracking-wider text-amber-200">
+          ✦ {h.review}
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-2">{h.ready}</h2>
         <p className="text-sm text-foreground/75 leading-relaxed max-w-sm mx-auto">{h.instr}</p>

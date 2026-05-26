@@ -235,15 +235,17 @@ const Home = () => {
   );
 };
 
+import { forwardRef } from "react";
+
 interface BigChoiceProps {
   quadrants: string[]; title: string; desc: string; onClick: () => void;
   badge?: string; highlight?: boolean; highlightLabel?: string;
 }
 
-const BigChoice = (
-  { quadrants, title, desc, onClick, badge, highlight, highlightLabel,
-    ref }: BigChoiceProps & { ref?: React.Ref<HTMLButtonElement> },
-) => (
+const BigChoice = forwardRef<HTMLButtonElement, BigChoiceProps>(function BigChoice(
+  { quadrants, title, desc, onClick, badge, highlight, highlightLabel }, ref,
+) {
+  return (
   <button
     ref={ref}
     type="button"
@@ -295,6 +297,7 @@ const BigChoice = (
       )}
     </div>
   </button>
-);
+  );
+});
 
 export default Home;
