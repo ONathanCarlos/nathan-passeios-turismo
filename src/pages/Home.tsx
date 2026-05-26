@@ -189,14 +189,19 @@ const Home = () => {
 };
 
 const BigChoice = ({
-  quadrants, title, desc, onClick, badge,
+  quadrants, title, desc, onClick, badge, highlight, highlightLabel,
 }: {
-  quadrants: string[]; title: string; desc: string; onClick: () => void; badge?: string;
+  quadrants: string[]; title: string; desc: string; onClick: () => void;
+  badge?: string; highlight?: boolean; highlightLabel?: string;
 }) => (
   <button
     type="button"
     onClick={onClick}
-    className="group glass-card rounded-3xl overflow-hidden text-left transition-all duration-300 hover:border-turquoise/60 hover:-translate-y-1 hover:turquoise-glow"
+    className={`group glass-card rounded-3xl overflow-hidden text-left transition-all duration-300 hover:-translate-y-1 ${
+      highlight
+        ? "border-amber-400/70 shadow-[0_0_28px_hsl(45_95%_60%/0.45)] ring-2 ring-amber-300/60 animate-pulse"
+        : "hover:border-turquoise/60 hover:turquoise-glow"
+    }`}
   >
     <div className="relative aspect-square w-full overflow-hidden bg-night">
       <div className="grid grid-cols-2 grid-rows-2 gap-0.5 w-full h-full">
@@ -214,6 +219,11 @@ const BigChoice = ({
         ))}
       </div>
       <div className="absolute inset-0 bg-gradient-to-t from-night/90 via-night/20 to-transparent pointer-events-none" />
+      {highlight && (
+        <div className="absolute top-2 right-2 px-2 py-1 rounded-full bg-amber-400 text-night text-[10px] font-extrabold uppercase tracking-wider shadow-lg">
+          ✦ Desconto aqui
+        </div>
+      )}
     </div>
     <div className="p-5">
       <div className="flex items-center justify-between gap-3">
@@ -221,7 +231,12 @@ const BigChoice = ({
         <ChevronRight className="w-5 h-5 text-turquoise-glow shrink-0 transition-transform group-hover:translate-x-0.5" />
       </div>
       <p className="mt-2 text-sm text-muted-foreground leading-snug">{desc}</p>
-      {badge && (
+      {highlight && highlightLabel && (
+        <p className="mt-3 text-[11px] sm:text-xs font-semibold text-amber-200 italic">
+          ✦ {highlightLabel}
+        </p>
+      )}
+      {!highlight && badge && (
         <p className="mt-3 text-[11px] sm:text-xs font-semibold text-amber-200/90 italic">
           ✦ {badge}
         </p>
