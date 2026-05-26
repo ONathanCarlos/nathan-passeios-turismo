@@ -890,6 +890,9 @@ export const PacotesSection = () => {
   const upsert = useUpsertPacote();
   const [nv, setNv] = useState({ key: "", nome_pt: "", preco: 0, descricao_pt: "" });
   const allTours = (tours.data || []).map((t) => ({ key: t.key, nome_pt: t.nome_pt }));
+  const tourImages: Record<string, string> = {};
+  (tours.data || []).forEach((t) => { if (t.imagem_url) tourImages[t.key] = t.imagem_url; });
+
   return (
     <TooltipProvider>
       <div className="space-y-3">
