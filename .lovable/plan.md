@@ -1,85 +1,109 @@
-## Refatoração para CMS persistente — Nathan Turismo
 
-Transformar o painel admin em CMS real com persistência total no backend (Lovable Cloud). Todo conteúdo administrável deixa de ser hardcoded/localStorage e passa a vir do banco, refletindo globalmente para qualquer visitante após refresh.
+# Reforma do site de turismo
 
-### 1. Schema do banco (migração SQL)
+Vou dividir em 7 blocos de trabalho. Páginas de reserva e fluxo de envio não serão tocados (apenas a frase inicial da mensagem WhatsApp).
 
-Novas tabelas públicas (RLS: leitura pública; escrita liberada — admin é protegido por senha simples no frontend, conforme decisão anterior):
+## 1. Nova Home principal (`/`)
 
-- **tours** — `id`, `key` (unique, ex: "buggy", "lanchas"), `nome_pt/en/es`, `descricao_pt/en/es`, `preco`, `imagem_url`, `video_url`, `destaque` (bool), `ativo` (bool), `ordem` (int)
-- **home_content** — `id`, `secao` (unique: "hero", "banner_promo", "cta_principal"...), `titulo_pt/en/es`, `subtitulo_pt/en/es`, `cta_texto_pt/en/es`, `cta_link`, `imagem_url`, `ativo`
-- **modais** — `id`, `key` (unique: "qr5", "qr10", "natal", "maes"...), `titulo_pt/en/es`, `mensagem_pt/en/es`, `percentual`, `codigo`, `cor_borda`, `ativo`, `regra` (jsonb — datas, condições)
-- **depoimentos** — `id`, `nome`, `texto_pt/en/es`, `avatar_url`, `nota` (1-5), `ativo`, `ordem`
-- **config_global** — `chave` (PK: "whatsapp", "desconto_padrao", "texto_promo_topo", "instagram_url"...), `valor` (text), `valor_jsonb` (jsonb opcional)
+Criar nova página `src/pages/Home.tsx` como rota raiz (`/`). Conteúdo:
+- Hero curto com headline turística.
+- Dois grandes botões/cards de navegação:
+  - **Passeios Avulsos** → leva para `/passeios` (atual Index).
+  - **Pacotes de Passeios** → leva para `/pacotes`.
+- Cada botão tem **ícone composto de 4 quadradinhos** com imagens:
+  - Avulsos: Escuna, Buggy, Arraial do Cabo, Mergulho (puxadas de `tours` por `key`).
+  - Pacotes: Catamarã, Cabo Frio, Lancha Privada, Jardineira.
+- Frase comercial nos pacotes: *"Mais experiências por menos: aproveite os melhores combos de Búzios com preços especiais."*
 
-Mantém: `leads`, `cupons`, `reservas`.
+A home atual (`Index.tsx`) move para rota `/passeios`. **Nenhuma alteração estrutural** nela. Roteamento atualizado em `App.tsx`.
 
-### 2. Storage
+## 2. Sistema de Pacotes
 
-Bucket público **`media`** com pastas: `tours/`, `home/`, `modais/`, `depoimentos/`. Políticas: leitura pública; insert/update/delete liberados (consistente com o modelo admin atual).
+### Banco de dados (nova tabela `pacotes`)
+Colunas: `id`, `key` (slug), `nome_pt/en/es/fr/it`, `descricao_pt/...`, `preco`, `tour_keys` (text[]) — lista de keys de tours que compõem o pacote, `imagem_url` (opcional override), `video_url` (opcional), `ativo`, `destaque`, `ordem`, `info_adicional`, timestamps. RLS pública aberta (mesma postura das outras tabelas).
 
-### 3. Camada de dados (`src/lib/cms.ts`)
+Seed inicial com os 6 pacotes listados:
+- Búzios Paradise (Escuna+Buggy+Almoço) — 205
+- Mar & Terra (Escuna+Buggy) — 160
+- Buggy & Food (Buggy+Almoço) — 150
+- Perfeição de Búzios (Escuna+Almoço) — 110
+- Dive & Drive (Mergulho+Buggy) — 280
+- Brigitte Bardot (Catamarã+Jardineira) — 200
 
-Funções tipadas + React Query hooks:
-- `useTours()`, `useHomeContent()`, `useModais()`, `useDepoimentos()`, `useConfig()`
-- `upsertTour()`, `uploadMedia(file, folder)`, `deleteMedia(path)`, etc.
-- Realtime opcional via Supabase channels para refletir mudanças sem reload.
+### Página `/pacotes` (`src/pages/Pacotes.tsx`)
+- Frase comercial em destaque.
+- Lista de cards. Cada card:
+  - **Imagem composta** gerada dinamicamente a partir de `tour_keys`: 1→full, 2→split lado a lado, 3→split com 1 grande + 2 pequenas.
+  - Imagens reaproveitam `tours.imagem_url` pelo `key`. Almoço usa um tour `key='almoco'` (criado no seed se não existir).
+  - Nome, preço, descrição.
+  - Botões "Ver Detalhes" e "Reservar Agora".
+- "Ver Detalhes" → `/pacotes/:key` que renderiza os detalhes de cada tour componente em sequência (reusa `TourDetails`).
+- "Reservar Agora" → leva ao formulário padrão com o pacote pré-selecionado (mesmo `StandardForm`, destino = nome do pacote, preço = `pacote.preco`).
 
-### 4. Seed inicial
+### Admin (`/admin`)
+Nova aba **"Pacotes"** em `CmsAdminTab` (ou seção dedicada) com CRUD completo: criar, editar nome/descrição/preço/mídia/vídeo, selecionar `tour_keys` (multiselect dos tours existentes), ativar/desativar, ordem, destaque. Mesma UX dos passeios.
 
-Migração popula tabelas com TODO conteúdo atualmente hardcoded em:
-- `src/lib/tours.ts` → `tours`
-- textos do hero/banners de `Index.tsx`/`PromoBanner.tsx` → `home_content`
-- modais comemorativos do `AdminPanel` → `modais`
-- WhatsApp/links de `WhatsAppFab.tsx` e afins → `config_global`
+## 3. Regra de cupons/modais — só para avulsos
 
-Garante zero perda visual no primeiro deploy.
+- `CampaignPromoModal`, `SpanishLangModal`, `PromoBanner`, `QrPromoBoot` continuam ativos **apenas** nas rotas `/`, `/passeios` (não em `/pacotes`).
+- Aviso "*Desconto válido apenas para passeios avulsos." adicionado:
+  - rodapé dos modais promocionais (`CampaignPromoModal`, `SpanishLangModal`);
+  - rodapé do `PromoBanner`.
+- No `StandardForm`, quando `destino` for de um pacote, ignorar/desabilitar campo de cupom e qualquer desconto automático aplicado por promo URL.
 
-### 5. Refatoração dos componentes públicos
+## 4. Tema visual: preto + turquesa, degradê
 
-Substituir leituras de `tours.ts`, `adminConfig` (localStorage) e strings hardcoded por hooks do CMS em:
-- `Index.tsx`, `TourDetails.tsx`, `TourDatePicker.tsx`, `SummaryOutput.tsx`
-- `PromoBanner.tsx`, `QrPromo.tsx`, `WhatsAppFab.tsx`, `BackgroundVideo.tsx`
-- `StandardForm.tsx` (preço/desconto vêm de `tours` + `config_global`)
+`src/index.css`:
+- Substituir tokens `--deep-blue` / `--night` por preto (`0 0% 0%` / `0 0% 6%`). `--turquoise` mantido.
+- Trocar background listrado (`.ocean-static-bg`) por **gradiente moderno** preto→preto-azulado→turquesa sutil, com radial highlight. Sem stripes.
+- Tipografia/espaçamentos inalterados.
 
-`adminConfig` (localStorage) é descontinuado — mantém só preferências de UI puramente locais, se houver.
+## 5. WhatsApp flutuante + Botão voltar ao topo
 
-### 6. Painel admin → CMS real
+- `WhatsAppFab`: garantir `position: fixed` em todo scroll (já é fixed; verificar e mover montagem para layout raiz se necessário, exibir desde o topo).
+- Novo `ScrollToTopFab.tsx`: seta discreta, `fixed bottom-24 right-6`, aparece após `scrollY > 400`, smooth scroll para topo.
+- Ambos montados no layout raiz (renderizados em `App.tsx` fora das rotas), aparecem em todas as páginas exceto `/admin`.
 
-Reescreve abas de `AdminPanel.tsx`:
-- **Passeios**: CRUD completo (lista, edita preço/textos/ativo/ordem, upload de imagem/vídeo, drag handles para `ordem`)
-- **Home**: editor por seção (hero, banners, CTAs) com preview
-- **Modais**: CRUD com toggle ativo, edição de texto/percentual/cor
-- **Depoimentos**: CRUD
-- **Config**: WhatsApp, desconto padrão, links, textos
-- **Mídia**: navegador do bucket `media` (listar/excluir/reaproveitar URLs)
-- **Banco** (atual), **Cupons**, **Reservas**, **Leads**: mantidos
+## 6. Fluidez
 
-Todas as mutações via `cms.ts` → invalidam React Query → UI atualiza globalmente.
+- Adicionar `scroll-behavior: smooth` no `html` e `content-visibility: auto` em seções longas da home.
+- `will-change: transform` apenas em elementos animados específicos.
+- Manter otimizações anteriores (lazy admin, sem background-attachment fixed mobile).
 
-### 7. Compatibilidade preservada
+## 7. Mensagem do WhatsApp
 
-- Design, layout, responsividade, animações, SEO, i18n e fluxo de reserva via WhatsApp **inalterados**
-- Apenas a fonte dos dados muda (hardcoded → backend)
-- Senha simples do admin (sem auth real) **mantida** conforme decisão anterior
+Em `StandardForm.tsx`, no builder da mensagem, prefixar:
+> "Olá Nathan! Aqui está minha reserva completa!\n\n"
+Restante intocado.
 
-### Detalhes técnicos
+## Detalhes técnicos
 
-- React Query já está no projeto — usar para cache/invalidação
-- Uploads: `supabase.storage.from('media').upload()` + retorno de `publicUrl`
-- i18n: colunas `_pt/_en/_es` e fallback para `pt` quando ausente (mesmo padrão atual de `adminConfig`)
-- Tipos auto-gerados em `src/integrations/supabase/types.ts` cobrem o novo schema após a migração
+- Composição de imagem do pacote: componente `PackageCover` que recebe array de URLs e renderiza grid CSS (1, 2 ou 4 células — para 3 usa layout 1 grande + 2 pequenas).
+- Slug do pacote = `key`. URLs: `/pacotes`, `/pacotes/:key`.
+- `useTours()` reutilizado para resolver imagens via map `key → tour`.
+- Hook novo `usePacotes()` espelhando padrão de `useTours`.
+- Tipos: regenerados automaticamente após migração.
+- i18n: nomes/descrições traduzidos como nos tours; fallback PT.
+- A frase de aviso vai para `i18n.ts` para suportar idiomas.
 
-### Entregáveis
+## Arquivos novos
+- `supabase/migrations/<ts>_pacotes.sql`
+- `src/pages/Home.tsx`
+- `src/pages/Pacotes.tsx`
+- `src/pages/PacoteDetalhes.tsx`
+- `src/components/PackageCover.tsx`
+- `src/components/ScrollToTopFab.tsx`
+- `src/components/admin/sections/PacotesSection.tsx` (ou aba no `CmsAdminTab`)
+- `src/lib/pacotes.ts`
 
-1. Migração SQL completa (tabelas + RLS + bucket + seed)
-2. `src/lib/cms.ts` (client + hooks)
-3. Componentes públicos refatorados para consumir o CMS
-4. `AdminPanel.tsx` reescrito como CMS real com upload de mídia
-5. Remoção do `adminConfig` localStorage para conteúdo administrável
+## Arquivos editados
+- `src/App.tsx` (rotas + FABs globais)
+- `src/index.css` (tema preto + gradiente)
+- `src/components/StandardForm.tsx` (prefixo msg + bloquear cupom em pacote)
+- `src/components/CampaignPromoModal.tsx`, `SpanishLangModal.tsx`, `PromoBanner.tsx` (aviso)
+- `src/components/admin/CmsAdminTab.tsx` (CRUD pacotes)
+- `src/pages/Index.tsx` (sem mudanças estruturais; só remover montagem dupla de FABs se aplicável)
 
-### Escopo / observações
-
-- Trabalho extenso (toca ~15 arquivos + nova migração grande). Vou executar em uma única sequência: migração → seed → `cms.ts` → admin → refactor público.
-- Cupons/leads/reservas já estão no backend — não serão tocados além de eventual link com `tours`.
-- Confirma para eu prosseguir? Posso também fatiar em entregas (ex: começar só por **Passeios + Storage + Mídia** e seguir nas próximas mensagens) se preferir entregas menores e revisáveis.
+## Não será alterado
+- Lógica e UI de reserva e conclusão da reserva.
+- Estrutura visual da página de passeios avulsos atual.
