@@ -604,39 +604,83 @@ const PacoteRow = ({ p, allTourKeys }: { p: Pacote; allTourKeys: { key: string; 
   const del = useDeletePacote();
   const [d, setD] = useState<Pacote>(p);
   const [saved, setSaved] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [showI18n, setShowI18n] = useState(false);
+
   const toggleTour = (k: string) => {
     const has = d.tour_keys.includes(k);
     setD({ ...d, tour_keys: has ? d.tour_keys.filter((x) => x !== k) : [...d.tour_keys, k] });
   };
+
+  const save = async () => {
+    await upsert.mutateAsync(d);
+    setSaved(true);
+    toast.success("Pacote salvo e publicado");
+    setTimeout(() => setSaved(false), 2500);
+  };
+
+  const onUpload = async (file: File, kind: "imagem_url" | "video_url") => {
+    try {
+      setUploading(true);
+      const url = await uploadMedia(file, kind === "video_url" ? "videos" : "tours");
+      const next = { ...d, [kind]: url } as Pacote;
+      setD(next);
+      await upsert.mutateAsync(next);
+      toast.success("Mídia enviada e publicada");
+    } catch (e: any) { toast.error(e?.message || "Erro no upload"); }
+    finally { setUploading(false); }
+  };
+
   return (
     <div className="glass-card rounded-xl p-4 space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-        <div className="sm:col-span-6 space-y-1">
+        <div className="sm:col-span-5 space-y-1">
           <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Nome do pacote</Label>
           <Input className="bg-night/70 border-turquoise/40 text-foreground"
             value={d.nome_pt} onChange={(e) => setD({ ...d, nome_pt: e.target.value })} />
         </div>
-        <div className="sm:col-span-3 space-y-1">
+        <div className="sm:col-span-2 space-y-1">
           <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Preço (R$)</Label>
           <Input type="number" className="bg-night/70 border-turquoise/40 text-foreground"
             value={d.preco} onChange={(e) => setD({ ...d, preco: parseFloat(e.target.value) || 0 })} />
         </div>
+        <div className="sm:col-span-2 space-y-1">
+          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center">
+            Ordem<HelpTooltip>Posição na listagem. 1 = primeiro.</HelpTooltip>
+          </Label>
+          <Input type="number" className="bg-night/70 border-turquoise/40 text-foreground"
+            value={d.ordem ?? 0} onChange={(e) => setD({ ...d, ordem: parseInt(e.target.value) || 0 })} />
+        </div>
         <div className="sm:col-span-3 space-y-1">
-          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Ativo</Label>
-          <div className="flex items-center gap-2 h-10">
-            <Switch checked={d.ativo} onCheckedChange={(v) => setD({ ...d, ativo: v })} />
-            <span className={`text-xs font-medium ${d.ativo ? "text-emerald-400" : "text-rose-300"}`}>
-              {d.ativo ? "Visível" : "Oculto"}
-            </span>
+          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Ativo / Destaque</Label>
+          <div className="flex items-center gap-3 h-10">
+            <div className="flex items-center gap-1.5">
+              <Switch checked={d.ativo} onCheckedChange={(v) => setD({ ...d, ativo: v })} />
+              <span className={`text-[10px] font-semibold ${d.ativo ? "text-emerald-400" : "text-rose-300"}`}>
+                {d.ativo ? "Visível" : "Oculto"}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Switch checked={d.destaque} onCheckedChange={(v) => setD({ ...d, destaque: v })} />
+              <span className={`text-[10px] font-semibold ${d.destaque ? "text-amber-300" : "text-muted-foreground"}`}>
+                Destaque
+              </span>
+            </div>
           </div>
         </div>
       </div>
-      <Textarea rows={2} placeholder="Descrição"
-        className="bg-night/70 border-turquoise/30 text-foreground"
-        value={d.descricao_pt ?? ""} onChange={(e) => setD({ ...d, descricao_pt: e.target.value })} />
+
+      <div className="space-y-1">
+        <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Descrição (PT)</Label>
+        <Textarea rows={2} placeholder="Ex.: Passeio de Escuna + Passeio de Buggy + Almoço"
+          className="bg-night/70 border-turquoise/30 text-foreground"
+          value={d.descricao_pt ?? ""} onChange={(e) => setD({ ...d, descricao_pt: e.target.value })} />
+      </div>
+
       <div className="space-y-1.5">
         <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
-          Passeios incluídos (imagens são reaproveitadas)
+          Composição do pacote (passeios incluídos)
         </Label>
         <div className="flex flex-wrap gap-2">
           {allTourKeys.map((tk) => {
@@ -650,11 +694,105 @@ const PacoteRow = ({ p, allTourKeys }: { p: Pacote; allTourKeys: { key: string; 
               </button>
             );
           })}
+          {(() => {
+            const on = d.tour_keys.includes("almoco");
+            return (
+              <button type="button" onClick={() => toggleTour("almoco")}
+                className={`text-xs px-2 py-1 rounded border transition-colors ${on
+                  ? "bg-amber-400/30 border-amber-400/70 text-foreground"
+                  : "bg-night/40 border-amber-400/20 text-muted-foreground hover:border-amber-400/40"}`}>
+                Almoço {on && "✓"}
+              </button>
+            );
+          })()}
         </div>
       </div>
-      <div className="flex gap-2">
-        <Button size="sm" className={saved ? "bg-emerald-500 text-white" : "bg-turquoise text-night hover:bg-turquoise/80"}
-          onClick={async () => { await upsert.mutateAsync(d); setSaved(true); toast.success("Pacote publicado"); setTimeout(() => setSaved(false), 2500); }}>
+
+      <button type="button" onClick={() => setExpanded((v) => !v)}
+        className="text-[11px] text-turquoise-glow hover:underline">
+        {expanded ? "− Ocultar detalhes avançados" : "+ Editar detalhes (textos promocionais, observações)"}
+      </button>
+      {expanded && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-turquoise/20 pt-3">
+          <div className="space-y-1">
+            <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Texto promocional / Info adicional</Label>
+            <Textarea rows={3} className="bg-night/70 border-turquoise/30 text-foreground"
+              value={d.info_adicional ?? ""} onChange={(e) => setD({ ...d, info_adicional: e.target.value })}
+              placeholder="Ex.: Inclui translado, almoço buffet livre..." />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Observações</Label>
+            <Textarea rows={3} className="bg-night/70 border-turquoise/30 text-foreground"
+              value={d.observacoes ?? ""} onChange={(e) => setD({ ...d, observacoes: e.target.value })}
+              placeholder="Ex.: Sujeito às condições climáticas." />
+          </div>
+        </div>
+      )}
+
+      <button type="button" onClick={() => setShowI18n((v) => !v)}
+        className="text-[11px] text-turquoise-glow hover:underline">
+        {showI18n ? "− Ocultar idiomas" : "+ Editar idiomas (ES/EN/FR/IT)"}
+      </button>
+      {showI18n && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {(["es", "en", "fr", "it"] as const).map((lng) => (
+            <div key={lng} className="space-y-1.5 border border-turquoise/20 rounded-lg p-2 bg-night/40">
+              <div className="text-[10px] uppercase font-bold text-turquoise-glow">{lng}</div>
+              <Input className="bg-night/70 border-turquoise/30 h-8 text-xs" placeholder={`Nome ${lng.toUpperCase()}`}
+                value={(d as any)[`nome_${lng}`] ?? ""}
+                onChange={(e) => setD({ ...d, [`nome_${lng}`]: e.target.value } as any)} />
+              <Textarea rows={2} className="bg-night/70 border-turquoise/30 text-xs" placeholder={`Descrição ${lng.toUpperCase()}`}
+                value={(d as any)[`descricao_${lng}`] ?? ""}
+                onChange={(e) => setD({ ...d, [`descricao_${lng}`]: e.target.value } as any)} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="w-16 h-12 rounded-md overflow-hidden border border-turquoise/30 bg-night/50 shrink-0">
+          {d.imagem_url ? (
+            <img src={d.imagem_url} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-[9px] text-muted-foreground">auto</div>
+          )}
+        </div>
+        <div className="w-16 h-12 rounded-md overflow-hidden border border-turquoise/30 bg-night/50 shrink-0 relative">
+          {d.video_url ? (
+            <>
+              <video src={d.video_url} muted playsInline preload="metadata" className="w-full h-full object-cover" />
+              <span className="absolute inset-0 flex items-center justify-center text-white/90 text-xs">▶</span>
+            </>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-[9px] text-muted-foreground">sem vídeo</div>
+          )}
+        </div>
+
+        <label className="cursor-pointer inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-md bg-turquoise/15 border border-turquoise/40 hover:bg-turquoise/25 transition-colors">
+          {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+          Imagem (capa)
+          <input type="file" accept="image/*" className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f, "imagem_url"); }} />
+        </label>
+        <label className="cursor-pointer inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-md bg-turquoise/15 border border-turquoise/40 hover:bg-turquoise/25 transition-colors">
+          <Upload className="h-3 w-3" /> Vídeo
+          <input type="file" accept="video/*" className="hidden"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f, "video_url"); }} />
+        </label>
+        {d.imagem_url && (
+          <Button size="sm" variant="ghost" className="text-rose-300 hover:text-rose-200 text-xs"
+            onClick={async () => {
+              const next = { ...d, imagem_url: null } as Pacote;
+              setD(next);
+              await upsert.mutateAsync(next);
+              toast.success("Imagem removida");
+            }}>
+            <Trash2 className="h-3 w-3 mr-1" /> Remover imagem
+          </Button>
+        )}
+
+        <Button size="sm" onClick={save} disabled={upsert.isPending}
+          className={`transition-colors ${saved ? "bg-emerald-500 text-white hover:bg-emerald-600" : "bg-turquoise text-night hover:bg-turquoise/80"}`}>
           {saved ? <CheckCircle2 className="h-3 w-3 mr-1" /> : <Save className="h-3 w-3 mr-1" />}
           {saved ? "Publicado" : "Salvar"}
         </Button>
@@ -674,46 +812,65 @@ export const PacotesSection = () => {
   const pacotes = usePacotes(false);
   const tours = useTours(false);
   const upsert = useUpsertPacote();
-  const [nv, setNv] = useState({ key: "", nome_pt: "", preco: 0 });
+  const [nv, setNv] = useState({ key: "", nome_pt: "", preco: 0, descricao_pt: "" });
   const allTours = (tours.data || []).map((t) => ({ key: t.key, nome_pt: t.nome_pt }));
   return (
-    <div className="space-y-3">
-      <div className="glass-card rounded-xl p-4 border-amber-400/30 bg-amber-500/5 space-y-1">
-        <h4 className="text-sm font-bold text-amber-300">PACOTES PROMOCIONAIS</h4>
-        <p className="text-xs text-foreground/80">
-          Combos de passeios com preço reduzido. As imagens são reaproveitadas dos passeios componentes.
-          Cupons promocionais <b>não</b> se aplicam a pacotes.
-        </p>
-      </div>
-      <div className="glass-card rounded-xl p-4 space-y-2 border-turquoise/40">
-        <div className="text-xs font-bold text-turquoise-glow">+ Criar novo pacote</div>
-        <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
-          <Input className="sm:col-span-3 bg-night/70 border-turquoise/40 h-9 text-xs"
-            placeholder="ID (ex: combo_lua)"
-            value={nv.key} onChange={(e) => setNv({ ...nv, key: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "") })} />
-          <Input className="sm:col-span-6 bg-night/70 border-turquoise/40 h-9 text-xs"
-            placeholder="Nome do pacote"
-            value={nv.nome_pt} onChange={(e) => setNv({ ...nv, nome_pt: e.target.value })} />
-          <Input type="number" className="sm:col-span-3 bg-night/70 border-turquoise/40 h-9 text-xs"
-            placeholder="Preço (R$)"
-            value={nv.preco} onChange={(e) => setNv({ ...nv, preco: parseFloat(e.target.value) || 0 })} />
+    <TooltipProvider>
+      <div className="space-y-3">
+        <div className="glass-card rounded-xl p-4 border-amber-400/30 bg-amber-500/5 space-y-2">
+          <h4 className="text-sm font-bold text-amber-300 flex items-center gap-2">
+            <HelpCircle className="h-4 w-4" />
+            COMO GERENCIAR PACOTES DE PASSEIOS
+          </h4>
+          <ol className="text-xs text-foreground/80 space-y-1 list-decimal list-inside">
+            <li>Crie um novo pacote no formulário abaixo, ou edite um existente</li>
+            <li>Marque os passeios incluídos na composição (e "Almoço" quando aplicável)</li>
+            <li>Use "+ Editar detalhes" e "+ Editar idiomas" para textos promocionais e traduções</li>
+            <li>Envie imagem/vídeo próprios (opcional — se vazio, a capa é montada automaticamente)</li>
+            <li>Cupons promocionais <b>não</b> se aplicam a pacotes (já têm desconto embutido)</li>
+          </ol>
         </div>
-        <Button size="sm" className="bg-turquoise text-night hover:bg-turquoise/80"
-          disabled={!nv.key || !nv.nome_pt}
-          onClick={async () => {
-            await upsert.mutateAsync({ key: nv.key, nome_pt: nv.nome_pt, preco: nv.preco, ativo: true, tour_keys: [] } as any);
-            setNv({ key: "", nome_pt: "", preco: 0 });
-            toast.success("Pacote criado");
-          }}>
-          <Plus className="h-3 w-3 mr-1" /> Criar pacote
-        </Button>
+
+        <div className="glass-card rounded-xl p-4 space-y-2 border-turquoise/40">
+          <div className="text-xs font-bold text-turquoise-glow">+ Criar novo pacote</div>
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+            <Input className="sm:col-span-3 bg-night/70 border-turquoise/40 h-9 text-xs text-foreground"
+              placeholder="ID (ex: combo_lua)"
+              value={nv.key} onChange={(e) => setNv({ ...nv, key: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "") })} />
+            <Input className="sm:col-span-6 bg-night/70 border-turquoise/40 h-9 text-xs text-foreground"
+              placeholder="Nome do pacote"
+              value={nv.nome_pt} onChange={(e) => setNv({ ...nv, nome_pt: e.target.value })} />
+            <Input type="number" className="sm:col-span-3 bg-night/70 border-turquoise/40 h-9 text-xs text-foreground"
+              placeholder="Preço (R$)"
+              value={nv.preco} onChange={(e) => setNv({ ...nv, preco: parseFloat(e.target.value) || 0 })} />
+          </div>
+          <Textarea rows={2} className="bg-night/70 border-turquoise/30 text-xs text-foreground"
+            placeholder="Descrição curta (ex.: Passeio de Escuna + Passeio de Buggy + Almoço)"
+            value={nv.descricao_pt} onChange={(e) => setNv({ ...nv, descricao_pt: e.target.value })} />
+          <Button size="sm" className="bg-turquoise text-night hover:bg-turquoise/80"
+            disabled={!nv.key || !nv.nome_pt || upsert.isPending}
+            onClick={async () => {
+              try {
+                await upsert.mutateAsync({
+                  key: nv.key, nome_pt: nv.nome_pt, preco: nv.preco,
+                  descricao_pt: nv.descricao_pt, ativo: true, tour_keys: [],
+                  ordem: (pacotes.data?.length ?? 0) + 1,
+                } as any);
+                setNv({ key: "", nome_pt: "", preco: 0, descricao_pt: "" });
+                toast.success("Pacote criado e publicado");
+              } catch (e: any) { toast.error(e?.message || "Erro ao criar pacote"); }
+            }}>
+            <Plus className="h-3 w-3 mr-1" /> Criar pacote
+          </Button>
+        </div>
+
+        {pacotes.isLoading && <Loader2 className="h-4 w-4 animate-spin text-turquoise mx-auto" />}
+        {pacotes.data?.map((p) => <PacoteRow key={p.id} p={p} allTourKeys={allTours} />)}
+        {pacotes.data?.length === 0 && !pacotes.isLoading && (
+          <p className="text-xs text-muted-foreground text-center py-4">Nenhum pacote cadastrado.</p>
+        )}
       </div>
-      {pacotes.isLoading && <Loader2 className="h-4 w-4 animate-spin text-turquoise mx-auto" />}
-      {pacotes.data?.map((p) => <PacoteRow key={p.id} p={p} allTourKeys={allTours} />)}
-      {pacotes.data?.length === 0 && !pacotes.isLoading && (
-        <p className="text-xs text-muted-foreground text-center py-4">Nenhum pacote cadastrado.</p>
-      )}
-    </div>
+    </TooltipProvider>
   );
 };
 
