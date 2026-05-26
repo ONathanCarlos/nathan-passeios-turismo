@@ -148,10 +148,11 @@ export const AdminPanel = ({ open, onOpenChange, defaultTab = "dashboard" }: { o
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList className="grid grid-cols-9 w-full bg-night/60 h-auto">
+        <Tabs defaultValue={defaultTab} className="w-full">
+          <TabsList className="grid grid-cols-10 w-full bg-night/60 h-auto">
             <TabsTrigger value="dashboard" className={tabBtn}><LayoutDashboard className="h-3.5 w-3.5" />Dashboard</TabsTrigger>
             <TabsTrigger value="tours" className={tabBtn}><Compass className="h-3.5 w-3.5" />Passeios</TabsTrigger>
+            <TabsTrigger value="pacotes" className={tabBtn}><Package className="h-3.5 w-3.5" />Pacotes</TabsTrigger>
             <TabsTrigger value="content" className={tabBtn}><FileText className="h-3.5 w-3.5" />Conteúdo</TabsTrigger>
             <TabsTrigger value="modais" className={tabBtn}><MessageSquare className="h-3.5 w-3.5" />Modais</TabsTrigger>
             <TabsTrigger value="coupons" className={tabBtn}><Ticket className="h-3.5 w-3.5" />Cupons</TabsTrigger>
@@ -166,9 +167,14 @@ export const AdminPanel = ({ open, onOpenChange, defaultTab = "dashboard" }: { o
             <DashboardSection />
           </TabsContent>
 
-          {/* ---------------- PASSEIOS (CMS persistente) ---------------- */}
+          {/* ---------------- PASSEIOS AVULSOS ---------------- */}
           <TabsContent value="tours" className="mt-4">
             <ToursSection />
+          </TabsContent>
+
+          {/* ---------------- PACOTES (independente dos passeios avulsos) ---------------- */}
+          <TabsContent value="pacotes" className="mt-4">
+            <PacotesSection />
           </TabsContent>
 
           {/* ---------------- CONTEÚDO (depoimentos + textos institucionais) ---------------- */}
