@@ -944,7 +944,7 @@ export const PacotesSection = () => {
         </div>
 
         {pacotes.isLoading && <Loader2 className="h-4 w-4 animate-spin text-turquoise mx-auto" />}
-        {pacotes.data?.map((p) => <PacoteRow key={p.id} p={p} allTourKeys={allTours} />)}
+        {pacotes.data?.map((p) => <PacoteRow key={p.id} p={p} allTourKeys={allTours} tourImages={tourImages} />)}
         {pacotes.data?.length === 0 && !pacotes.isLoading && (
           <p className="text-xs text-muted-foreground text-center py-4">Nenhum pacote cadastrado.</p>
         )}
