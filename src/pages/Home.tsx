@@ -1,13 +1,15 @@
 // ============================================================
 // Nova Home: duas grandes opções — Passeios Avulsos x Pacotes
 // ============================================================
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lang, dict, loadLang, saveLang } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { useTours } from "@/lib/cms";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Sparkles } from "lucide-react";
+import { isQrActive, urlHasPromoParam, subscribeQrPromo } from "@/lib/qrPromo";
+import { loadPromo } from "@/lib/promo";
 
 import nathanProfile from "@/assets/nathan-profile.jpg";
 import escunaImg from "@/assets/escuna.jpg";
