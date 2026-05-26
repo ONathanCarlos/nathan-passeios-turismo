@@ -110,7 +110,7 @@ const TourDescriptionRow = ({ t, onSave, pending }: { t: CmsTour; onSave: (t: Cm
   );
 };
 
-export const AdminPanel = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) => {
+export const AdminPanel = ({ open, onOpenChange, defaultTab = "dashboard" }: { open: boolean; onOpenChange: (v: boolean) => void; defaultTab?: string }) => {
   const cfg = useAdminConfig();
   const modais = useModais();
   const update = (patch: Partial<AdminConfig>) => saveAdminConfig({ ...loadAdminConfig(), ...patch });
