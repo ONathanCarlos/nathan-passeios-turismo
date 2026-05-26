@@ -879,8 +879,8 @@ export const CmsAdminTab = () => (
   <TooltipProvider>
     <Tabs defaultValue="tours" className="w-full">
       <TabsList className="grid grid-cols-5 w-full bg-night/60">
-        <TabsTrigger value="tours">Passeios</TabsTrigger>
-        <TabsTrigger value="pacotes">Pacotes</TabsTrigger>
+        <TabsTrigger value="tours">Passeios Avulsos</TabsTrigger>
+        <TabsTrigger value="pacotes">Pacotes de Passeios</TabsTrigger>
         <TabsTrigger value="modais">Modais</TabsTrigger>
         <TabsTrigger value="config">Config</TabsTrigger>
         <TabsTrigger value="deps">Depoimentos</TabsTrigger>
