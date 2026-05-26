@@ -128,6 +128,32 @@ const TourRow = ({ t }: { t: CmsTour }) => {
         </div>
       </div>
 
+      {/* Badge + Urgência */}
+      <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+        <div className="sm:col-span-4 space-y-1">
+          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center">
+            Selo (Badge)
+            <HelpTooltip>Selo destacado no card. Ex.: mais_vendido, premium, novo, experiencia_completa.</HelpTooltip>
+          </Label>
+          <Input className="bg-night/70 border-turquoise/40 text-foreground h-9 text-xs"
+            value={draft.badge ?? ""}
+            onChange={(e) => update("badge", e.target.value || null)}
+            placeholder="mais_vendido | premium | novo | experiencia_completa" />
+        </div>
+        <div className="sm:col-span-8 space-y-1">
+          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center">
+            Urgência (texto pulsante)
+            <HelpTooltip>Texto curto destacado abaixo do preço para criar urgência. Ex.: "Alta procura hoje".</HelpTooltip>
+          </Label>
+          <Input className="bg-night/70 border-turquoise/40 text-foreground h-9 text-xs"
+            value={draft.urgencia ?? ""}
+            onChange={(e) => update("urgencia", e.target.value || null)}
+            placeholder='Ex.: "Últimas vagas hoje" — deixe vazio para ocultar' />
+        </div>
+      </div>
+
+
+
       {/* Descrição */}
       <div className="space-y-1">
         <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
@@ -598,8 +624,10 @@ export const DepoimentosSection = () => {
 
 // ---------------- Sub: Pacotes Editor ----------------
 import { usePacotes, useUpsertPacote, useDeletePacote, type Pacote } from "@/lib/pacotes";
+import { PacoteCardPreview } from "@/components/PacoteCardPreview";
 
-const PacoteRow = ({ p, allTourKeys }: { p: Pacote; allTourKeys: { key: string; nome_pt: string }[] }) => {
+
+const PacoteRow = ({ p, allTourKeys, tourImages }: { p: Pacote; allTourKeys: { key: string; nome_pt: string }[]; tourImages: Record<string, string> }) => {
   const upsert = useUpsertPacote();
   const del = useDeletePacote();
   const [d, setD] = useState<Pacote>(p);
@@ -607,6 +635,8 @@ const PacoteRow = ({ p, allTourKeys }: { p: Pacote; allTourKeys: { key: string; 
   const [uploading, setUploading] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [showI18n, setShowI18n] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+
 
   const toggleTour = (k: string) => {
     const has = d.tour_keys.includes(k);
@@ -677,6 +707,52 @@ const PacoteRow = ({ p, allTourKeys }: { p: Pacote; allTourKeys: { key: string; 
           className="bg-night/70 border-turquoise/30 text-foreground"
           value={d.descricao_pt ?? ""} onChange={(e) => setD({ ...d, descricao_pt: e.target.value })} />
       </div>
+
+      {/* Preço original + Badge + Urgência */}
+      <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+        <div className="sm:col-span-3 space-y-1">
+          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center">
+            Preço "De" (R$)
+            <HelpTooltip>Preço cheio (sem desconto). Mostra "De R$ X / por R$ Y" para destacar economia.</HelpTooltip>
+          </Label>
+          <Input type="number" min={0} className="bg-night/70 border-turquoise/40 text-foreground h-9 text-xs"
+            value={d.preco_original ?? ""}
+            onChange={(e) => setD({ ...d, preco_original: e.target.value === "" ? null : parseFloat(e.target.value) || null })}
+            placeholder="Ex.: 480 (opcional)" />
+        </div>
+        <div className="sm:col-span-4 space-y-1">
+          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center">
+            Selo (Badge)
+            <HelpTooltip>Selo destacado no card. Ex.: mais_vendido, premium, experiencia_completa.</HelpTooltip>
+          </Label>
+          <Input className="bg-night/70 border-turquoise/40 text-foreground h-9 text-xs"
+            value={d.badge ?? ""}
+            onChange={(e) => setD({ ...d, badge: e.target.value || null })}
+            placeholder="mais_vendido | premium | experiencia_completa" />
+        </div>
+        <div className="sm:col-span-5 space-y-1">
+          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center">
+            Urgência
+            <HelpTooltip>Texto pulsante abaixo do preço. Ex.: "Alta procura hoje".</HelpTooltip>
+          </Label>
+          <Input className="bg-night/70 border-turquoise/40 text-foreground h-9 text-xs"
+            value={d.urgencia ?? ""}
+            onChange={(e) => setD({ ...d, urgencia: e.target.value || null })}
+            placeholder='Ex.: "Últimas vagas hoje"' />
+        </div>
+      </div>
+
+      {/* Preview ao vivo */}
+      <button type="button" onClick={() => setShowPreview((v) => !v)}
+        className="text-[11px] text-amber-300 hover:underline font-semibold">
+        {showPreview ? "− Ocultar preview" : "✦ Mostrar preview ao vivo do card"}
+      </button>
+      {showPreview && (
+        <div className="border-t border-turquoise/20 pt-3 flex justify-center bg-night/30 rounded-lg">
+          <PacoteCardPreview draft={d} tourImages={tourImages} />
+        </div>
+      )}
+
 
       <div className="space-y-1.5">
         <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
@@ -814,6 +890,9 @@ export const PacotesSection = () => {
   const upsert = useUpsertPacote();
   const [nv, setNv] = useState({ key: "", nome_pt: "", preco: 0, descricao_pt: "" });
   const allTours = (tours.data || []).map((t) => ({ key: t.key, nome_pt: t.nome_pt }));
+  const tourImages: Record<string, string> = {};
+  (tours.data || []).forEach((t) => { if (t.imagem_url) tourImages[t.key] = t.imagem_url; });
+
   return (
     <TooltipProvider>
       <div className="space-y-3">
@@ -865,7 +944,7 @@ export const PacotesSection = () => {
         </div>
 
         {pacotes.isLoading && <Loader2 className="h-4 w-4 animate-spin text-turquoise mx-auto" />}
-        {pacotes.data?.map((p) => <PacoteRow key={p.id} p={p} allTourKeys={allTours} />)}
+        {pacotes.data?.map((p) => <PacoteRow key={p.id} p={p} allTourKeys={allTours} tourImages={tourImages} />)}
         {pacotes.data?.length === 0 && !pacotes.isLoading && (
           <p className="text-xs text-muted-foreground text-center py-4">Nenhum pacote cadastrado.</p>
         )}
