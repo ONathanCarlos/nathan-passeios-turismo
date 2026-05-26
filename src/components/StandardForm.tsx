@@ -44,6 +44,8 @@ interface Props {
   requirePousada?: boolean;
   /** tour key for price + coupon application */
   tourKey?: TourKey;
+  /** valor fixo de pacote promocional (R$). Cupons NÃO se aplicam. */
+  packagePrice?: number;
 }
 
 const fieldClass =
@@ -52,7 +54,9 @@ const fieldClass =
 export const StandardForm = ({
   lang, onLangChange, onBack, title, backgroundImage,
   adultsOnly = false, requireCpf = false, notice, requirePousada = false, tourKey,
+  packagePrice,
 }: Props) => {
+  const isPackage = typeof packagePrice === "number";
   const t = dict[lang];
   const [name, setName] = useState("");
   const [cpf, setCpf] = useState("");
@@ -75,7 +79,8 @@ export const StandardForm = ({
   const [manualCode, setManualCode] = useState("");
   const [couponPromptOpen, setCouponPromptOpen] = useState(false);
   const couponsAllowed = urlIsExactRoot() && !loadQrPromo();
-  const eligible = (tourKey ? COUPON_ELIGIBLE.has(tourKey) : false) && couponsAllowed;
+  // Cupons NUNCA se aplicam a pacotes promocionais.
+  const eligible = !isPackage && (tourKey ? COUPON_ELIGIBLE.has(tourKey) : false) && couponsAllowed;
   const requiredMsg = lang === "pt" ? "Preenchimento obrigatório" : lang === "es" ? "Campo obligatorio" : "Required field";
   const ineligibleMsg = lang === "pt" ? "Cupom indisponível para este passeio."
     : lang === "es" ? "Cupón no disponible para este paseo."
@@ -159,6 +164,12 @@ export const StandardForm = ({
 
   // Cálculo de preço (quando aplicável)
   const priceInfo = useMemo(() => {
+    if (isPackage) {
+      // Pacote promocional: valor fixo por passageiro, sem cupons/QR.
+      const paxN = Math.max(1, parseInt(pax) || 1);
+      const original = (packagePrice as number) * paxN;
+      return { original, discount: 0, final: original, meta: { value: packagePrice as number }, qrPercent: 0, qrApplied: false, baseOriginal: original };
+    }
     if (!tourKey) return null;
     const meta = TOUR_PRICES[tourKey];
     const paxN = Math.max(1, parseInt(pax) || 1);
@@ -177,7 +188,7 @@ export const StandardForm = ({
     const discount = effectiveCoupon ? (original * effectiveCoupon.percent) / 100 : 0;
     const final = original - discount;
     return { original, discount, final, meta, qrPercent: qr?.percent ?? 0, qrApplied: !!qr, baseOriginal };
-  }, [tourKey, pax, hasKids, ages, adultsOnly, effectiveCoupon]);
+  }, [tourKey, pax, hasKids, ages, adultsOnly, effectiveCoupon, isPackage, packagePrice]);
 
   const kidsN = Math.min(8, Math.max(0, parseInt(kidsCount) || 0));
 
@@ -274,7 +285,7 @@ export const StandardForm = ({
     rows.push({ label: lang === "pt" ? "Local Check-in" : "Check-in" , value: "Praça Santos Dummont, Cabine 03 - Búzios/RJ" });
     rows.push({ label: lang === "pt" ? "Horário Check-in" : "Check-in time", value: "Até 11:30 — falar com Nathan ou Mary" });
 
-    const lines = [t.sumTitle, title, "", `👤 ${t.sumName}: ${name}`];
+    const lines = ["Olá Nathan! Aqui está minha reserva completa!", "", t.sumTitle, title, "", `👤 ${t.sumName}: ${name}`];
     if (requireCpf) lines.push(`🪪 CPF: ${cpf}`);
     lines.push(
       `📞 ${t.sumPhone}: ${fullPhone(phone)}`,
@@ -437,7 +448,7 @@ export const StandardForm = ({
         )}
 
         {/* Preço + Aplicar Cupom */}
-        {tourKey && (
+        {(tourKey || isPackage) && (
           <div className="mb-5 glass-card rounded-2xl p-4 space-y-3">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -456,7 +467,16 @@ export const StandardForm = ({
                   </>
                 ) : (
                   <div className="text-2xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent">
-                    {tourPriceLabel(tourKey, lang)}
+                    {isPackage && priceInfo
+                      ? formatBRL(priceInfo.final)
+                      : tourKey
+                        ? tourPriceLabel(tourKey, lang)
+                        : ""}
+                  </div>
+                )}
+                {isPackage && (
+                  <div className="text-[10px] text-amber-200/80 italic mt-1">
+                    ✦ {lang === "pt" ? "Combo promocional · cupons não se aplicam" : "Promo combo · coupons not applicable"}
                   </div>
                 )}
               </div>

@@ -98,6 +98,9 @@ export const SpanishLangModal = ({ lang }: Props) => {
               Código: <code className="text-turquoise-glow font-bold tracking-wider">{code}</code>
             </div>
           )}
+          <p className="text-center text-[10px] text-amber-200/80 italic">
+            *Descuento válido solo para paseos individuales.
+          </p>
 
           <button
             type="button"

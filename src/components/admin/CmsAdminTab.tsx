@@ -596,17 +596,140 @@ export const DepoimentosSection = () => {
   );
 };
 
+// ---------------- Sub: Pacotes Editor ----------------
+import { usePacotes, useUpsertPacote, useDeletePacote, type Pacote } from "@/lib/pacotes";
+
+const PacoteRow = ({ p, allTourKeys }: { p: Pacote; allTourKeys: { key: string; nome_pt: string }[] }) => {
+  const upsert = useUpsertPacote();
+  const del = useDeletePacote();
+  const [d, setD] = useState<Pacote>(p);
+  const [saved, setSaved] = useState(false);
+  const toggleTour = (k: string) => {
+    const has = d.tour_keys.includes(k);
+    setD({ ...d, tour_keys: has ? d.tour_keys.filter((x) => x !== k) : [...d.tour_keys, k] });
+  };
+  return (
+    <div className="glass-card rounded-xl p-4 space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+        <div className="sm:col-span-6 space-y-1">
+          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Nome do pacote</Label>
+          <Input className="bg-night/70 border-turquoise/40 text-foreground"
+            value={d.nome_pt} onChange={(e) => setD({ ...d, nome_pt: e.target.value })} />
+        </div>
+        <div className="sm:col-span-3 space-y-1">
+          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Preço (R$)</Label>
+          <Input type="number" className="bg-night/70 border-turquoise/40 text-foreground"
+            value={d.preco} onChange={(e) => setD({ ...d, preco: parseFloat(e.target.value) || 0 })} />
+        </div>
+        <div className="sm:col-span-3 space-y-1">
+          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Ativo</Label>
+          <div className="flex items-center gap-2 h-10">
+            <Switch checked={d.ativo} onCheckedChange={(v) => setD({ ...d, ativo: v })} />
+            <span className={`text-xs font-medium ${d.ativo ? "text-emerald-400" : "text-rose-300"}`}>
+              {d.ativo ? "Visível" : "Oculto"}
+            </span>
+          </div>
+        </div>
+      </div>
+      <Textarea rows={2} placeholder="Descrição"
+        className="bg-night/70 border-turquoise/30 text-foreground"
+        value={d.descricao_pt ?? ""} onChange={(e) => setD({ ...d, descricao_pt: e.target.value })} />
+      <div className="space-y-1.5">
+        <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
+          Passeios incluídos (imagens são reaproveitadas)
+        </Label>
+        <div className="flex flex-wrap gap-2">
+          {allTourKeys.map((tk) => {
+            const on = d.tour_keys.includes(tk.key);
+            return (
+              <button key={tk.key} type="button" onClick={() => toggleTour(tk.key)}
+                className={`text-xs px-2 py-1 rounded border transition-colors ${on
+                  ? "bg-turquoise/30 border-turquoise/70 text-foreground"
+                  : "bg-night/40 border-turquoise/20 text-muted-foreground hover:border-turquoise/40"}`}>
+                {tk.nome_pt} {on && "✓"}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <Button size="sm" className={saved ? "bg-emerald-500 text-white" : "bg-turquoise text-night hover:bg-turquoise/80"}
+          onClick={async () => { await upsert.mutateAsync(d); setSaved(true); toast.success("Pacote publicado"); setTimeout(() => setSaved(false), 2500); }}>
+          {saved ? <CheckCircle2 className="h-3 w-3 mr-1" /> : <Save className="h-3 w-3 mr-1" />}
+          {saved ? "Publicado" : "Salvar"}
+        </Button>
+        <Button size="sm" variant="ghost" className="text-rose-300 hover:text-rose-200"
+          onClick={() => { if (confirm(`Excluir pacote "${d.nome_pt}"?`)) del.mutate(d.id); }}>
+          <Trash2 className="h-3 w-3 mr-1" /> Excluir
+        </Button>
+        <div className="ml-auto text-[10px] text-muted-foreground bg-night/40 px-2 py-1 rounded">
+          ID: <code className="text-turquoise-glow/80">{d.key}</code>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const PacotesSection = () => {
+  const pacotes = usePacotes(false);
+  const tours = useTours(false);
+  const upsert = useUpsertPacote();
+  const [nv, setNv] = useState({ key: "", nome_pt: "", preco: 0 });
+  const allTours = (tours.data || []).map((t) => ({ key: t.key, nome_pt: t.nome_pt }));
+  return (
+    <div className="space-y-3">
+      <div className="glass-card rounded-xl p-4 border-amber-400/30 bg-amber-500/5 space-y-1">
+        <h4 className="text-sm font-bold text-amber-300">PACOTES PROMOCIONAIS</h4>
+        <p className="text-xs text-foreground/80">
+          Combos de passeios com preço reduzido. As imagens são reaproveitadas dos passeios componentes.
+          Cupons promocionais <b>não</b> se aplicam a pacotes.
+        </p>
+      </div>
+      <div className="glass-card rounded-xl p-4 space-y-2 border-turquoise/40">
+        <div className="text-xs font-bold text-turquoise-glow">+ Criar novo pacote</div>
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+          <Input className="sm:col-span-3 bg-night/70 border-turquoise/40 h-9 text-xs"
+            placeholder="ID (ex: combo_lua)"
+            value={nv.key} onChange={(e) => setNv({ ...nv, key: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "") })} />
+          <Input className="sm:col-span-6 bg-night/70 border-turquoise/40 h-9 text-xs"
+            placeholder="Nome do pacote"
+            value={nv.nome_pt} onChange={(e) => setNv({ ...nv, nome_pt: e.target.value })} />
+          <Input type="number" className="sm:col-span-3 bg-night/70 border-turquoise/40 h-9 text-xs"
+            placeholder="Preço (R$)"
+            value={nv.preco} onChange={(e) => setNv({ ...nv, preco: parseFloat(e.target.value) || 0 })} />
+        </div>
+        <Button size="sm" className="bg-turquoise text-night hover:bg-turquoise/80"
+          disabled={!nv.key || !nv.nome_pt}
+          onClick={async () => {
+            await upsert.mutateAsync({ key: nv.key, nome_pt: nv.nome_pt, preco: nv.preco, ativo: true, tour_keys: [] } as any);
+            setNv({ key: "", nome_pt: "", preco: 0 });
+            toast.success("Pacote criado");
+          }}>
+          <Plus className="h-3 w-3 mr-1" /> Criar pacote
+        </Button>
+      </div>
+      {pacotes.isLoading && <Loader2 className="h-4 w-4 animate-spin text-turquoise mx-auto" />}
+      {pacotes.data?.map((p) => <PacoteRow key={p.id} p={p} allTourKeys={allTours} />)}
+      {pacotes.data?.length === 0 && !pacotes.isLoading && (
+        <p className="text-xs text-muted-foreground text-center py-4">Nenhum pacote cadastrado.</p>
+      )}
+    </div>
+  );
+};
+
 // ---------------- Backward-compat wrapper ----------------
 export const CmsAdminTab = () => (
   <TooltipProvider>
     <Tabs defaultValue="tours" className="w-full">
-      <TabsList className="grid grid-cols-4 w-full bg-night/60">
+      <TabsList className="grid grid-cols-5 w-full bg-night/60">
         <TabsTrigger value="tours">Passeios</TabsTrigger>
+        <TabsTrigger value="pacotes">Pacotes</TabsTrigger>
         <TabsTrigger value="modais">Modais</TabsTrigger>
         <TabsTrigger value="config">Config</TabsTrigger>
         <TabsTrigger value="deps">Depoimentos</TabsTrigger>
       </TabsList>
       <TabsContent value="tours" className="mt-3"><ToursSection /></TabsContent>
+      <TabsContent value="pacotes" className="mt-3"><PacotesSection /></TabsContent>
       <TabsContent value="modais" className="mt-3"><ModaisSection /></TabsContent>
       <TabsContent value="config" className="mt-3"><ConfigSection /></TabsContent>
       <TabsContent value="deps" className="mt-3"><DepoimentosSection /></TabsContent>
