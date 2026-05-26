@@ -106,6 +106,9 @@ export const CampaignPromoModal = ({ lang }: Props) => {
               {L.codeLabel}: <code className="text-turquoise-glow font-bold tracking-wider">{code}</code>
             </div>
           )}
+          <p className="text-center text-[10px] text-amber-200/80 italic">
+            *Desconto válido apenas para passeios avulsos.
+          </p>
 
           <button type="button" onClick={handleCta} className="rgb-border w-full block">
             <span className="flex items-center justify-center w-full h-12 rounded-[0.6rem] bg-gradient-to-r from-amber-400 to-turquoise-glow text-night font-bold text-sm">
