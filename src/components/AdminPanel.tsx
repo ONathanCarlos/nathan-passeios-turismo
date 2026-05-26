@@ -32,7 +32,7 @@ import { isQrActive } from "@/lib/qrPromo";
 import { fetchPendingReservationPhones, subscribeAdminRealtime, type PendingReservationPhone } from "@/lib/db";
 import { useModais, useTours, useUpsertTour, type CmsModal, type CmsTour } from "@/lib/cms";
 import {
-  ToursSection, ModaisSection, ConfigSection, DepoimentosSection,
+  ToursSection, ModaisSection, ConfigSection, DepoimentosSection, PacotesSection,
 } from "./admin/CmsAdminTab";
 import { DashboardSection } from "./admin/sections/DashboardSection";
 import { ReservasSection } from "./admin/sections/ReservasSection";
