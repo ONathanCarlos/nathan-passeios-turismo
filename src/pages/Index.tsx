@@ -7,7 +7,8 @@ import { StandardForm } from "@/components/StandardForm";
 import { TourDetails } from "@/components/TourDetails";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { TourKey } from "@/lib/tours";
-import { Star, Tag } from "lucide-react";
+import { Star, Tag, ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
 import { TourBadge, UrgencyTag } from "@/components/TourBadge";
 import { DepoimentosSection } from "@/components/DepoimentosSection";
 import { PageTransition } from "@/components/PageTransition";
@@ -184,7 +185,15 @@ const Index = () => {
 
       <div className="relative z-10 mx-auto max-w-6xl">
         {/* Top bar */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-8 gap-2">
+          <Link
+            to="/"
+            aria-label="Voltar"
+            className="inline-flex items-center gap-1.5 rounded-full border border-turquoise/40 bg-night/60 backdrop-blur px-3 py-1.5 text-xs font-semibold text-foreground hover:border-turquoise/70 hover:bg-night/80 transition-colors"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            {({ pt: "Voltar", es: "Volver", en: "Back", fr: "Retour", it: "Indietro" } as Record<Lang,string>)[lang]}
+          </Link>
           <div className="flex items-center gap-3">
             <div className="relative w-11 h-11 rounded-full overflow-hidden border border-turquoise/40 shadow-[0_0_12px_hsl(var(--turquoise)/0.4)]">
               <img src={nathanProfile} alt="Nathan" className="w-full h-full object-cover" />
