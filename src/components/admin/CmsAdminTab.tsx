@@ -704,6 +704,52 @@ const PacoteRow = ({ p, allTourKeys }: { p: Pacote; allTourKeys: { key: string; 
           value={d.descricao_pt ?? ""} onChange={(e) => setD({ ...d, descricao_pt: e.target.value })} />
       </div>
 
+      {/* Preço original + Badge + Urgência */}
+      <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+        <div className="sm:col-span-3 space-y-1">
+          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center">
+            Preço "De" (R$)
+            <HelpTooltip>Preço cheio (sem desconto). Mostra "De R$ X / por R$ Y" para destacar economia.</HelpTooltip>
+          </Label>
+          <Input type="number" min={0} className="bg-night/70 border-turquoise/40 text-foreground h-9 text-xs"
+            value={d.preco_original ?? ""}
+            onChange={(e) => setD({ ...d, preco_original: e.target.value === "" ? null : parseFloat(e.target.value) || null })}
+            placeholder="Ex.: 480 (opcional)" />
+        </div>
+        <div className="sm:col-span-4 space-y-1">
+          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center">
+            Selo (Badge)
+            <HelpTooltip>Selo destacado no card. Ex.: mais_vendido, premium, experiencia_completa.</HelpTooltip>
+          </Label>
+          <Input className="bg-night/70 border-turquoise/40 text-foreground h-9 text-xs"
+            value={d.badge ?? ""}
+            onChange={(e) => setD({ ...d, badge: e.target.value || null })}
+            placeholder="mais_vendido | premium | experiencia_completa" />
+        </div>
+        <div className="sm:col-span-5 space-y-1">
+          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center">
+            Urgência
+            <HelpTooltip>Texto pulsante abaixo do preço. Ex.: "Alta procura hoje".</HelpTooltip>
+          </Label>
+          <Input className="bg-night/70 border-turquoise/40 text-foreground h-9 text-xs"
+            value={d.urgencia ?? ""}
+            onChange={(e) => setD({ ...d, urgencia: e.target.value || null })}
+            placeholder='Ex.: "Últimas vagas hoje"' />
+        </div>
+      </div>
+
+      {/* Preview ao vivo */}
+      <button type="button" onClick={() => setShowPreview((v) => !v)}
+        className="text-[11px] text-amber-300 hover:underline font-semibold">
+        {showPreview ? "− Ocultar preview" : "✦ Mostrar preview ao vivo do card"}
+      </button>
+      {showPreview && (
+        <div className="border-t border-turquoise/20 pt-3 flex justify-center bg-night/30 rounded-lg">
+          <PacoteCardPreview draft={d} tourImages={tourImages} />
+        </div>
+      )}
+
+
       <div className="space-y-1.5">
         <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
           Composição do pacote (passeios incluídos)
