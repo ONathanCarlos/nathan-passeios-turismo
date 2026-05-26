@@ -9,6 +9,8 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Lang, dict, loadLang, saveLang } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
+import { AdminFab } from "@/components/AdminPanel";
+import { isAdminMode } from "@/lib/promo";
 import { TourDetails } from "@/components/TourDetails";
 import { StandardForm } from "@/components/StandardForm";
 import { PackageCover } from "@/components/PackageCover";
