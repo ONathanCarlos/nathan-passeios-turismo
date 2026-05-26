@@ -128,6 +128,32 @@ const TourRow = ({ t }: { t: CmsTour }) => {
         </div>
       </div>
 
+      {/* Badge + Urgência */}
+      <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+        <div className="sm:col-span-4 space-y-1">
+          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center">
+            Selo (Badge)
+            <HelpTooltip>Selo destacado no card. Ex.: mais_vendido, premium, novo, experiencia_completa.</HelpTooltip>
+          </Label>
+          <Input className="bg-night/70 border-turquoise/40 text-foreground h-9 text-xs"
+            value={draft.badge ?? ""}
+            onChange={(e) => update("badge", e.target.value || null)}
+            placeholder="mais_vendido | premium | novo | experiencia_completa" />
+        </div>
+        <div className="sm:col-span-8 space-y-1">
+          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center">
+            Urgência (texto pulsante)
+            <HelpTooltip>Texto curto destacado abaixo do preço para criar urgência. Ex.: "Alta procura hoje".</HelpTooltip>
+          </Label>
+          <Input className="bg-night/70 border-turquoise/40 text-foreground h-9 text-xs"
+            value={draft.urgencia ?? ""}
+            onChange={(e) => update("urgencia", e.target.value || null)}
+            placeholder='Ex.: "Últimas vagas hoje" — deixe vazio para ocultar' />
+        </div>
+      </div>
+
+
+
       {/* Descrição */}
       <div className="space-y-1">
         <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
