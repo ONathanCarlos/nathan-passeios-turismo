@@ -1,13 +1,15 @@
 // ============================================================
 // Nova Home: duas grandes opções — Passeios Avulsos x Pacotes
 // ============================================================
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lang, dict, loadLang, saveLang } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { useTours } from "@/lib/cms";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Sparkles } from "lucide-react";
+import { isQrActive, urlHasPromoParam, subscribeQrPromo } from "@/lib/qrPromo";
+import { loadPromo } from "@/lib/promo";
 
 import nathanProfile from "@/assets/nathan-profile.jpg";
 import escunaImg from "@/assets/escuna.jpg";
@@ -38,6 +40,7 @@ const COPY: Record<Lang, {
   pacotesTitle: string;
   pacotesDesc: string;
   pacotesSlogan: string;
+  promoHint: string;
 }> = {
   pt: {
     hello: "Nathan Turismo",
@@ -47,6 +50,7 @@ const COPY: Record<Lang, {
     pacotesTitle: "Pacotes de Passeios",
     pacotesDesc: "Combos com mais de uma experiência por um valor especial.",
     pacotesSlogan: "Mais experiências por menos: aproveite os melhores combos de Búzios com preços especiais.",
+    promoHint: "Aplique seu desconto aqui! Válido apenas nos Passeios Avulsos.",
   },
   es: {
     hello: "Nathan Turismo",
@@ -56,6 +60,7 @@ const COPY: Record<Lang, {
     pacotesTitle: "Paquetes de paseos",
     pacotesDesc: "Combos con más de una experiencia a un precio especial.",
     pacotesSlogan: "Más experiencias por menos: aprovecha los mejores combos de Búzios con precios especiales.",
+    promoHint: "¡Aplica tu descuento aquí! Válido solo en los Paseos individuales.",
   },
   en: {
     hello: "Nathan Turismo",
@@ -65,6 +70,7 @@ const COPY: Record<Lang, {
     pacotesTitle: "Tour Packages",
     pacotesDesc: "Combos with more than one experience at a special price.",
     pacotesSlogan: "More experiences for less: enjoy the best Búzios combos at special prices.",
+    promoHint: "Apply your discount here! Valid only on Individual Tours.",
   },
   fr: {
     hello: "Nathan Turismo",
@@ -74,6 +80,7 @@ const COPY: Record<Lang, {
     pacotesTitle: "Forfaits d'excursions",
     pacotesDesc: "Combos avec plusieurs expériences à un prix spécial.",
     pacotesSlogan: "Plus d'expériences pour moins : profitez des meilleurs combos de Búzios à des prix spéciaux.",
+    promoHint: "Appliquez votre réduction ici ! Valable uniquement sur les Excursions individuelles.",
   },
   it: {
     hello: "Nathan Turismo",
@@ -83,6 +90,7 @@ const COPY: Record<Lang, {
     pacotesTitle: "Pacchetti tour",
     pacotesDesc: "Combo con più esperienze a un prezzo speciale.",
     pacotesSlogan: "Più esperienze a meno: approfitta dei migliori combo di Búzios a prezzi speciali.",
+    promoHint: "Applica il tuo sconto qui! Valido solo sui Tour singoli.",
   },
 };
 
@@ -93,6 +101,18 @@ const Home = () => {
   const t = dict[lang];
   const C = COPY[lang];
   const { data: cmsTours } = useTours(true);
+
+  // Promo state: highlight Passeios Avulsos when a campaign/coupon is active
+  const [promoTick, setPromoTick] = useState(0);
+  useEffect(() => subscribeQrPromo(() => setPromoTick((n) => n + 1)), []);
+  const promoActive = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    const sp = new URLSearchParams(window.location.search);
+    const hasPromoParam = sp.has("promo");
+    const hasLangEs = (sp.get("lang") || "").toLowerCase().startsWith("es");
+    return hasPromoParam || hasLangEs || isQrActive() || urlHasPromoParam() || !!loadPromo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [promoTick, lang]);
 
   useEffect(() => { document.title = "Nathan Turismo · Búzios"; }, []);
 
@@ -130,6 +150,16 @@ const Home = () => {
           <p className="text-foreground/85 text-sm sm:text-base">{C.welcome}</p>
         </header>
 
+        {/* Promo hint banner — only when a coupon/campaign is active */}
+        {promoActive && (
+          <div className="mb-5 mx-auto max-w-xl rounded-2xl border border-amber-400/50 bg-gradient-to-r from-amber-500/15 via-amber-400/10 to-turquoise/15 px-4 py-3 flex items-center gap-3 shadow-[0_0_24px_hsl(var(--turquoise)/0.25)] animate-in fade-in slide-in-from-top-2 duration-500">
+            <Sparkles className="h-5 w-5 text-amber-300 shrink-0" />
+            <p className="text-xs sm:text-sm font-semibold text-amber-100 leading-snug">
+              {C.promoHint}
+            </p>
+          </div>
+        )}
+
         {/* Two big choices */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <BigChoice
@@ -137,6 +167,8 @@ const Home = () => {
             title={C.avulsosTitle}
             desc={C.avulsosDesc}
             onClick={() => nav("/passeios")}
+            highlight={promoActive}
+            highlightLabel={promoActive ? C.promoHint : undefined}
           />
           <BigChoice
             quadrants={pacotesImgs}
@@ -157,14 +189,19 @@ const Home = () => {
 };
 
 const BigChoice = ({
-  quadrants, title, desc, onClick, badge,
+  quadrants, title, desc, onClick, badge, highlight, highlightLabel,
 }: {
-  quadrants: string[]; title: string; desc: string; onClick: () => void; badge?: string;
+  quadrants: string[]; title: string; desc: string; onClick: () => void;
+  badge?: string; highlight?: boolean; highlightLabel?: string;
 }) => (
   <button
     type="button"
     onClick={onClick}
-    className="group glass-card rounded-3xl overflow-hidden text-left transition-all duration-300 hover:border-turquoise/60 hover:-translate-y-1 hover:turquoise-glow"
+    className={`group glass-card rounded-3xl overflow-hidden text-left transition-all duration-300 hover:-translate-y-1 ${
+      highlight
+        ? "border-amber-400/70 shadow-[0_0_28px_hsl(45_95%_60%/0.45)] ring-2 ring-amber-300/60 animate-pulse"
+        : "hover:border-turquoise/60 hover:turquoise-glow"
+    }`}
   >
     <div className="relative aspect-square w-full overflow-hidden bg-night">
       <div className="grid grid-cols-2 grid-rows-2 gap-0.5 w-full h-full">
@@ -182,6 +219,11 @@ const BigChoice = ({
         ))}
       </div>
       <div className="absolute inset-0 bg-gradient-to-t from-night/90 via-night/20 to-transparent pointer-events-none" />
+      {highlight && (
+        <div className="absolute top-2 right-2 px-2 py-1 rounded-full bg-amber-400 text-night text-[10px] font-extrabold uppercase tracking-wider shadow-lg">
+          ✦ Desconto aqui
+        </div>
+      )}
     </div>
     <div className="p-5">
       <div className="flex items-center justify-between gap-3">
@@ -189,7 +231,12 @@ const BigChoice = ({
         <ChevronRight className="w-5 h-5 text-turquoise-glow shrink-0 transition-transform group-hover:translate-x-0.5" />
       </div>
       <p className="mt-2 text-sm text-muted-foreground leading-snug">{desc}</p>
-      {badge && (
+      {highlight && highlightLabel && (
+        <p className="mt-3 text-[11px] sm:text-xs font-semibold text-amber-200 italic">
+          ✦ {highlightLabel}
+        </p>
+      )}
+      {!highlight && badge && (
         <p className="mt-3 text-[11px] sm:text-xs font-semibold text-amber-200/90 italic">
           ✦ {badge}
         </p>
