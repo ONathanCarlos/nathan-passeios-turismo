@@ -625,7 +625,7 @@ export const DepoimentosSection = () => {
 // ---------------- Sub: Pacotes Editor ----------------
 import { usePacotes, useUpsertPacote, useDeletePacote, type Pacote } from "@/lib/pacotes";
 
-const PacoteRow = ({ p, allTourKeys }: { p: Pacote; allTourKeys: { key: string; nome_pt: string }[] }) => {
+const PacoteRow = ({ p, allTourKeys, tourImages }: { p: Pacote; allTourKeys: { key: string; nome_pt: string }[]; tourImages: Record<string, string> }) => {
   const upsert = useUpsertPacote();
   const del = useDeletePacote();
   const [d, setD] = useState<Pacote>(p);
@@ -633,6 +633,8 @@ const PacoteRow = ({ p, allTourKeys }: { p: Pacote; allTourKeys: { key: string; 
   const [uploading, setUploading] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [showI18n, setShowI18n] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+
 
   const toggleTour = (k: string) => {
     const has = d.tour_keys.includes(k);
