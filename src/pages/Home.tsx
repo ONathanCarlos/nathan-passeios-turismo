@@ -40,6 +40,7 @@ const COPY: Record<Lang, {
   pacotesTitle: string;
   pacotesDesc: string;
   pacotesSlogan: string;
+  promoHint: string;
 }> = {
   pt: {
     hello: "Nathan Turismo",
@@ -49,6 +50,7 @@ const COPY: Record<Lang, {
     pacotesTitle: "Pacotes de Passeios",
     pacotesDesc: "Combos com mais de uma experiência por um valor especial.",
     pacotesSlogan: "Mais experiências por menos: aproveite os melhores combos de Búzios com preços especiais.",
+    promoHint: "Aplique seu desconto aqui! Válido apenas nos Passeios Avulsos.",
   },
   es: {
     hello: "Nathan Turismo",
@@ -58,6 +60,7 @@ const COPY: Record<Lang, {
     pacotesTitle: "Paquetes de paseos",
     pacotesDesc: "Combos con más de una experiencia a un precio especial.",
     pacotesSlogan: "Más experiencias por menos: aprovecha los mejores combos de Búzios con precios especiales.",
+    promoHint: "¡Aplica tu descuento aquí! Válido solo en los Paseos individuales.",
   },
   en: {
     hello: "Nathan Turismo",
@@ -67,6 +70,7 @@ const COPY: Record<Lang, {
     pacotesTitle: "Tour Packages",
     pacotesDesc: "Combos with more than one experience at a special price.",
     pacotesSlogan: "More experiences for less: enjoy the best Búzios combos at special prices.",
+    promoHint: "Apply your discount here! Valid only on Individual Tours.",
   },
   fr: {
     hello: "Nathan Turismo",
@@ -76,6 +80,7 @@ const COPY: Record<Lang, {
     pacotesTitle: "Forfaits d'excursions",
     pacotesDesc: "Combos avec plusieurs expériences à un prix spécial.",
     pacotesSlogan: "Plus d'expériences pour moins : profitez des meilleurs combos de Búzios à des prix spéciaux.",
+    promoHint: "Appliquez votre réduction ici ! Valable uniquement sur les Excursions individuelles.",
   },
   it: {
     hello: "Nathan Turismo",
@@ -85,6 +90,7 @@ const COPY: Record<Lang, {
     pacotesTitle: "Pacchetti tour",
     pacotesDesc: "Combo con più esperienze a un prezzo speciale.",
     pacotesSlogan: "Più esperienze a meno: approfitta dei migliori combo di Búzios a prezzi speciali.",
+    promoHint: "Applica il tuo sconto qui! Valido solo sui Tour singoli.",
   },
 };
 
