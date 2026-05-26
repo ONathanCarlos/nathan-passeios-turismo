@@ -1,13 +1,14 @@
 // ============================================================
 // Nova Home: duas grandes opções — Passeios Avulsos x Pacotes
 // ============================================================
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lang, dict, loadLang, saveLang } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
+import { DepoimentosSection } from "@/components/DepoimentosSection";
 import { useTours } from "@/lib/cms";
-import { ChevronRight, Sparkles } from "lucide-react";
+import { ChevronRight, Sparkles, Star, ShieldCheck, Globe2 } from "lucide-react";
 import { isQrActive, urlHasPromoParam, subscribeQrPromo } from "@/lib/qrPromo";
 import { loadPromo } from "@/lib/promo";
 
@@ -33,8 +34,11 @@ const FALLBACK: Record<string, string> = {
 };
 
 const COPY: Record<Lang, {
-  hello: string;
-  welcome: string;
+  headline: string;
+  subhead: string;
+  trustRating: string;
+  trustSecure: string;
+  trustLangs: string;
   avulsosTitle: string;
   avulsosDesc: string;
   pacotesTitle: string;
@@ -43,8 +47,11 @@ const COPY: Record<Lang, {
   promoHint: string;
 }> = {
   pt: {
-    hello: "Nathan Turismo",
-    welcome: "Escolha como quer viver Búzios.",
+    headline: "Explore Búzios do seu jeito.",
+    subhead: "Experiências incríveis, passeios inesquecíveis e os melhores combos da região.",
+    trustRating: "4.9 · centenas de viagens",
+    trustSecure: "Reserva segura",
+    trustLangs: "Atendimento em 5 idiomas",
     avulsosTitle: "Passeios Avulsos",
     avulsosDesc: "Escolha um passeio individual: Escuna, Buggy, Arraial do Cabo, Mergulho e mais.",
     pacotesTitle: "Pacotes de Passeios",
@@ -53,8 +60,11 @@ const COPY: Record<Lang, {
     promoHint: "Aplique seu desconto aqui! Válido apenas nos Passeios Avulsos.",
   },
   es: {
-    hello: "Nathan Turismo",
-    welcome: "Elige cómo quieres vivir Búzios.",
+    headline: "Explora Búzios a tu manera.",
+    subhead: "Experiencias increíbles, paseos inolvidables y los mejores combos de la región.",
+    trustRating: "4.9 · cientos de viajes",
+    trustSecure: "Reserva segura",
+    trustLangs: "Atención en 5 idiomas",
     avulsosTitle: "Paseos individuales",
     avulsosDesc: "Elige un paseo individual: Goleta, Buggy, Arraial do Cabo, Buceo y más.",
     pacotesTitle: "Paquetes de paseos",
@@ -63,8 +73,11 @@ const COPY: Record<Lang, {
     promoHint: "¡Aplica tu descuento aquí! Válido solo en los Paseos individuales.",
   },
   en: {
-    hello: "Nathan Turismo",
-    welcome: "Choose how you want to live Búzios.",
+    headline: "Explore Búzios your way.",
+    subhead: "Amazing experiences, unforgettable tours and the best combos in the region.",
+    trustRating: "4.9 · hundreds of trips",
+    trustSecure: "Secure booking",
+    trustLangs: "Service in 5 languages",
     avulsosTitle: "Individual Tours",
     avulsosDesc: "Pick a single tour: Schooner, Buggy, Arraial do Cabo, Diving and more.",
     pacotesTitle: "Tour Packages",
@@ -73,8 +86,11 @@ const COPY: Record<Lang, {
     promoHint: "Apply your discount here! Valid only on Individual Tours.",
   },
   fr: {
-    hello: "Nathan Turismo",
-    welcome: "Choisissez comment vivre Búzios.",
+    headline: "Explorez Búzios à votre façon.",
+    subhead: "Expériences incroyables, excursions inoubliables et les meilleurs combos de la région.",
+    trustRating: "4.9 · des centaines de voyages",
+    trustSecure: "Réservation sécurisée",
+    trustLangs: "Service en 5 langues",
     avulsosTitle: "Excursions individuelles",
     avulsosDesc: "Choisissez une excursion : Goélette, Buggy, Arraial do Cabo, Plongée et plus.",
     pacotesTitle: "Forfaits d'excursions",
@@ -83,8 +99,11 @@ const COPY: Record<Lang, {
     promoHint: "Appliquez votre réduction ici ! Valable uniquement sur les Excursions individuelles.",
   },
   it: {
-    hello: "Nathan Turismo",
-    welcome: "Scegli come vivere Búzios.",
+    headline: "Esplora Búzios a modo tuo.",
+    subhead: "Esperienze incredibili, tour indimenticabili e i migliori combo della regione.",
+    trustRating: "4.9 · centinaia di viaggi",
+    trustSecure: "Prenotazione sicura",
+    trustLangs: "Servizio in 5 lingue",
     avulsosTitle: "Tour singoli",
     avulsosDesc: "Scegli un tour singolo: Goletta, Buggy, Arraial do Cabo, Immersione e altro.",
     pacotesTitle: "Pacchetti tour",
@@ -101,8 +120,9 @@ const Home = () => {
   const t = dict[lang];
   const C = COPY[lang];
   const { data: cmsTours } = useTours(true);
+  const avulsosRef = useRef<HTMLButtonElement | null>(null);
 
-  // Promo state: highlight Passeios Avulsos when a campaign/coupon is active
+  // Promo state
   const [promoTick, setPromoTick] = useState(0);
   useEffect(() => subscribeQrPromo(() => setPromoTick((n) => n + 1)), []);
   const promoActive = useMemo(() => {
@@ -115,6 +135,15 @@ const Home = () => {
   }, [promoTick, lang]);
 
   useEffect(() => { document.title = "Nathan Turismo · Búzios"; }, []);
+
+  // Scroll suave até "Passeios Avulsos" quando promo está ativa
+  useEffect(() => {
+    if (!promoActive) return;
+    const tm = setTimeout(() => {
+      avulsosRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 700);
+    return () => clearTimeout(tm);
+  }, [promoActive]);
 
   const imgOf = (key: string) =>
     cmsTours?.find((x) => x.key === key)?.imagem_url || FALLBACK[key] || "";
@@ -130,7 +159,7 @@ const Home = () => {
         <div className="flex items-center justify-between mb-10">
           <div className="flex items-center gap-3">
             <div className="relative w-11 h-11 rounded-full overflow-hidden border border-turquoise/40 shadow-[0_0_12px_hsl(var(--turquoise)/0.4)]">
-              <img src={nathanProfile} alt="Nathan" className="w-full h-full object-cover" />
+              <img src={nathanProfile} alt="Nathan" loading="eager" decoding="async" className="w-full h-full object-cover" />
             </div>
             <div className="leading-tight">
               <div className="text-sm font-bold text-foreground">Nathan</div>
@@ -140,17 +169,32 @@ const Home = () => {
           <LanguageSwitcher lang={lang} onChange={setLang} />
         </div>
 
-        {/* Hero */}
-        <header className="text-center mb-10 animate-in fade-in slide-in-from-top-3 duration-700">
-          <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight mb-2">
-            <span className="bg-gradient-to-r from-turquoise via-turquoise-glow to-turquoise bg-clip-text text-transparent drop-shadow-[0_3px_12px_rgba(0,0,0,0.85)]">
-              {C.hello}
+        {/* Hero emocional */}
+        <header className="text-center mb-8 animate-in fade-in slide-in-from-top-3 duration-700">
+          <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight mb-3">
+            <span className="bg-gradient-to-r from-turquoise via-turquoise-glow to-amber-300 bg-clip-text text-transparent drop-shadow-[0_3px_12px_rgba(0,0,0,0.85)]">
+              {C.headline}
             </span>
           </h1>
-          <p className="text-foreground/85 text-sm sm:text-base">{C.welcome}</p>
+          <p className="text-foreground/85 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
+            {C.subhead}
+          </p>
+
+          {/* Trust strip */}
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] sm:text-xs text-foreground/80">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-500/10 px-2.5 py-1">
+              <Star className="w-3 h-3 fill-amber-300 text-amber-300" /> {C.trustRating}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-1">
+              <ShieldCheck className="w-3 h-3 text-emerald-300" /> {C.trustSecure}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-turquoise/30 bg-turquoise/10 px-2.5 py-1">
+              <Globe2 className="w-3 h-3 text-turquoise-glow" /> {C.trustLangs}
+            </span>
+          </div>
         </header>
 
-        {/* Promo hint banner — only when a coupon/campaign is active */}
+        {/* Promo hint banner */}
         {promoActive && (
           <div className="mb-5 mx-auto max-w-xl rounded-2xl border border-amber-400/50 bg-gradient-to-r from-amber-500/15 via-amber-400/10 to-turquoise/15 px-4 py-3 flex items-center gap-3 shadow-[0_0_24px_hsl(var(--turquoise)/0.25)] animate-in fade-in slide-in-from-top-2 duration-500">
             <Sparkles className="h-5 w-5 text-amber-300 shrink-0" />
@@ -163,6 +207,7 @@ const Home = () => {
         {/* Two big choices */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <BigChoice
+            ref={avulsosRef}
             quadrants={avulsosImgs}
             title={C.avulsosTitle}
             desc={C.avulsosDesc}
@@ -179,6 +224,8 @@ const Home = () => {
           />
         </div>
 
+        <DepoimentosSection lang={lang} />
+
         <footer className="text-center mt-12 text-xs text-muted-foreground/70">
           © Nathan {t.brandSubtitle} · {t.footerRegion}
         </footer>
@@ -188,13 +235,17 @@ const Home = () => {
   );
 };
 
-const BigChoice = ({
-  quadrants, title, desc, onClick, badge, highlight, highlightLabel,
-}: {
+interface BigChoiceProps {
   quadrants: string[]; title: string; desc: string; onClick: () => void;
   badge?: string; highlight?: boolean; highlightLabel?: string;
-}) => (
+}
+
+const BigChoice = (
+  { quadrants, title, desc, onClick, badge, highlight, highlightLabel,
+    ref }: BigChoiceProps & { ref?: React.Ref<HTMLButtonElement> },
+) => (
   <button
+    ref={ref}
     type="button"
     onClick={onClick}
     className={`group glass-card rounded-3xl overflow-hidden text-left transition-all duration-300 hover:-translate-y-1 ${
@@ -212,6 +263,7 @@ const BigChoice = ({
                 src={src}
                 alt=""
                 loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
             ) : null}
