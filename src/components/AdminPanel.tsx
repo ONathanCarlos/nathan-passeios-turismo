@@ -501,7 +501,7 @@ export const AdminPanel = ({ open, onOpenChange, defaultTab = "dashboard" }: { o
 // ============================================================
 // AdminFab — floating action button to open the unified CMS
 // ============================================================
-export const AdminFab = () => {
+export const AdminFab = ({ defaultTab = "dashboard" }: { defaultTab?: string } = {}) => {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -513,7 +513,7 @@ export const AdminFab = () => {
       >
         <Settings2 className="h-5 w-5" />
       </button>
-      <AdminPanel open={open} onOpenChange={setOpen} />
+      <AdminPanel open={open} onOpenChange={setOpen} defaultTab={defaultTab} />
     </>
   );
 };
