@@ -11,6 +11,7 @@ import {
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { getCachedModal, subscribeCmsCache, ModalCache } from "@/lib/cmsCache";
+import { saveQrPromo } from "@/lib/qrPromo";
 import type { Lang } from "@/lib/i18n";
 
 interface Props { lang: Lang }
