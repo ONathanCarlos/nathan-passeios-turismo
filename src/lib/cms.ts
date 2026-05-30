@@ -97,6 +97,18 @@ export type CmsConfig = {
   descricao: string | null;
 };
 
+const DEFAULT_TOURS: CmsTour[] = [
+  { id: "escuna", key: "escuna", nome_pt: "Passeio de Escuna em Búzios", nome_en: "Schooner Tour in Búzios", nome_es: "Paseo en Goleta en Búzios", nome_fr: "Excursion en Goélette à Búzios", nome_it: "Tour in Goletta a Búzios", descricao_pt: null, descricao_en: null, descricao_es: null, descricao_fr: null, descricao_it: null, preco: 0, imagem_url: null, video_url: null, destaque: false, ativo: true, ordem: 1, capacidade_max: null, duracao: null, horario: null, local_saida: null, info_adicional: null, observacoes: null, badge: null, urgencia: null },
+  { id: "arraial", key: "arraial", nome_pt: "Passeio em Arraial do Cabo", nome_en: "Arraial do Cabo Tour", nome_es: "Paseo en Arraial do Cabo", nome_fr: "Excursion à Arraial do Cabo", nome_it: "Tour ad Arraial do Cabo", descricao_pt: null, descricao_en: null, descricao_es: null, descricao_fr: null, descricao_it: null, preco: 0, imagem_url: null, video_url: null, destaque: false, ativo: true, ordem: 2, capacidade_max: null, duracao: null, horario: null, local_saida: null, info_adicional: null, observacoes: null, badge: null, urgencia: null },
+  { id: "buggy", key: "buggy", nome_pt: "Passeio de Buggy", nome_en: "Buggy Tour", nome_es: "Paseo en Buggy", nome_fr: "Excursion en Buggy", nome_it: "Tour in Buggy", descricao_pt: null, descricao_en: null, descricao_es: null, descricao_fr: null, descricao_it: null, preco: 0, imagem_url: null, video_url: null, destaque: false, ativo: true, ordem: 3, capacidade_max: null, duracao: null, horario: null, local_saida: null, info_adicional: null, observacoes: null, badge: null, urgencia: null },
+  { id: "cabofrio", key: "cabofrio", nome_pt: "Passeio em Cabo Frio", nome_en: "Cabo Frio Tour", nome_es: "Paseo en Cabo Frio", nome_fr: "Excursion à Cabo Frio", nome_it: "Tour a Cabo Frio", descricao_pt: null, descricao_en: null, descricao_es: null, descricao_fr: null, descricao_it: null, preco: 0, imagem_url: null, video_url: null, destaque: false, ativo: true, ordem: 4, capacidade_max: null, duracao: null, horario: null, local_saida: null, info_adicional: null, observacoes: null, badge: null, urgencia: null },
+  { id: "jardineira", key: "jardineira", nome_pt: "Passeio de Jardineira", nome_en: "Open-Bus Tour", nome_es: "Paseo en Jardinera", nome_fr: "Excursion en Bus Découvert", nome_it: "Tour in Bus Aperto", descricao_pt: null, descricao_en: null, descricao_es: null, descricao_fr: null, descricao_it: null, preco: 0, imagem_url: null, video_url: null, destaque: false, ativo: true, ordem: 5, capacidade_max: null, duracao: null, horario: null, local_saida: null, info_adicional: null, observacoes: null, badge: null, urgencia: null },
+  { id: "catamara", key: "catamara", nome_pt: "Passeio de Catamarã", nome_en: "Catamaran Tour", nome_es: "Paseo en Catamarán", nome_fr: "Excursion en Catamaran", nome_it: "Tour in Catamarano", descricao_pt: null, descricao_en: null, descricao_es: null, descricao_fr: null, descricao_it: null, preco: 0, imagem_url: null, video_url: null, destaque: false, ativo: true, ordem: 6, capacidade_max: null, duracao: null, horario: null, local_saida: null, info_adicional: null, observacoes: null, badge: null, urgencia: null },
+  { id: "mergulho", key: "mergulho", nome_pt: "Mergulho em João Fernandes", nome_en: "Diving at João Fernandes", nome_es: "Buceo en João Fernandes", nome_fr: "Plongée à João Fernandes", nome_it: "Immersione a João Fernandes", descricao_pt: null, descricao_en: null, descricao_es: null, descricao_fr: null, descricao_it: null, preco: 0, imagem_url: null, video_url: null, destaque: false, ativo: true, ordem: 7, capacidade_max: null, duracao: null, horario: null, local_saida: null, info_adicional: null, observacoes: null, badge: null, urgencia: null },
+  { id: "lancha", key: "lancha", nome_pt: "Lancha Privada", nome_en: "Private Speedboat", nome_es: "Lancha Privada", nome_fr: "Bateau Privé", nome_it: "Motoscafo Privato", descricao_pt: null, descricao_en: null, descricao_es: null, descricao_fr: null, descricao_it: null, preco: 0, imagem_url: null, video_url: null, destaque: false, ativo: true, ordem: 8, capacidade_max: null, duracao: null, horario: null, local_saida: null, info_adicional: null, observacoes: null, badge: null, urgencia: null },
+  { id: "almoco", key: "almoco", nome_pt: "Almoço", nome_en: "Lunch", nome_es: "Almuerzo", nome_fr: "Déjeuner", nome_it: "Pranzo", descricao_pt: "Almoço incluso no pacote", descricao_en: "Lunch included in the package", descricao_es: "Almuerzo incluido en el paquete", descricao_fr: "Déjeuner inclus dans le forfait", descricao_it: "Pranzo incluso nel pacchetto", preco: 0, imagem_url: null, video_url: null, destaque: false, ativo: false, ordem: 999, capacidade_max: null, duracao: null, horario: null, local_saida: null, info_adicional: null, observacoes: null, badge: null, urgencia: null },
+];
+
 // ----- i18n helper: pega o campo no idioma com fallback para PT -----
 export function pickLang<T extends Record<string, any>>(
   row: T,
@@ -116,7 +128,9 @@ export const useTours = (onlyActive = true) =>
       let q = supabase.from("tours").select("*").order("ordem", { ascending: true });
       if (onlyActive) q = q.eq("ativo", true);
       const { data, error } = await q;
-      if (error) throw error;
+      if (error) {
+        return DEFAULT_TOURS.filter((t) => (onlyActive ? t.ativo : true));
+      }
       return (data || []) as CmsTour[];
     },
   });
