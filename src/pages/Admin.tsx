@@ -18,24 +18,31 @@ const Admin = () => {
   const nav = useNavigate();
   const [pwd, setPwd] = useState("");
   const [open, setOpen] = useState(true);
+  const [loading, setLoading] = useState(false);
   const blocked = adminBlockedByQr();
 
   useEffect(() => {
     document.title = "Admin · Nathan Turismo";
   }, []);
 
-  const submit = () => {
+  const submit = async () => {
     if (blocked) {
       toast.error("Acesso administrativo bloqueado durante campanha promocional.");
       return;
     }
-    if (pwd === ADMIN_PASSWORD) {
-      enableAdminMode();
-      toast.success("Modo administrador ativado");
-      nav("/", { replace: true });
-    } else {
-      toast.error("Senha incorreta");
-      setPwd("");
+    if (loading) return;
+    setLoading(true);
+    try {
+      const ok = await loginAdmin(pwd);
+      if (ok) {
+        toast.success("Modo administrador ativado");
+        nav("/", { replace: true });
+      } else {
+        toast.error("Senha incorreta");
+        setPwd("");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
