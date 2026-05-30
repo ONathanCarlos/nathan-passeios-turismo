@@ -15,9 +15,10 @@ interface Props {
   onLangChange: (l: Lang) => void;
   onBack: () => void;
   onBook: () => void;
+  embedded?: boolean;
 }
 
-export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook }: Props) => {
+export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embedded = false }: Props) => {
   const [qr, setQr] = useState(() => loadQrPromo());
   useEffect(() => subscribeQrPromo(() => setQr(loadQrPromo())), []);
   const tour = getTour(tourKey, lang);
@@ -25,32 +26,38 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook }: Pro
   const t = dict[lang];
 
   return (
-    <div className="relative min-h-screen bg-night">
+    <div className={embedded ? "relative bg-night" : "relative min-h-screen bg-night"}>
       {/* Background image (faded) */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center opacity-25"
-        style={{ backgroundImage: `url(${tour.image})` }}
-      />
-      <div aria-hidden className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-night/85 via-deep-blue/80 to-night" />
+      {!embedded && (
+        <>
+          <div
+            aria-hidden
+            className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center opacity-25"
+            style={{ backgroundImage: `url(${tour.image})` }}
+          />
+          <div aria-hidden className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-night/85 via-deep-blue/80 to-night" />
+        </>
+      )}
 
       <div className="relative z-10">
         {/* Top bar */}
-        <header className="px-4 pt-5 pb-3 flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onBack}
-            className="text-foreground hover:text-turquoise hover:bg-turquoise/10 -ml-2 backdrop-blur-sm bg-night/40 rounded-lg"
-          >
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            {t.back}
-          </Button>
-          <LanguageSwitcher lang={lang} onChange={onLangChange} />
-        </header>
+        {!embedded && (
+          <header className="px-4 pt-5 pb-3 flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onBack}
+              className="text-foreground hover:text-turquoise hover:bg-turquoise/10 -ml-2 backdrop-blur-sm bg-night/40 rounded-lg"
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              {t.back}
+            </Button>
+            <LanguageSwitcher lang={lang} onChange={onLangChange} />
+          </header>
+        )}
 
         {/* Hero media (vídeo se existir, senão imagem) */}
-        <section className="px-4">
+        <section className={embedded ? "p-4" : "px-4"}>
           <div className="relative w-full overflow-hidden rounded-3xl border border-turquoise/25 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]">
             <div className="aspect-[16/11] w-full bg-night">
               {tour.video ? (

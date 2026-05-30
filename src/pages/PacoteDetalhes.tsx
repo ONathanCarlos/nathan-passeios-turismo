@@ -211,6 +211,7 @@ const PacoteDetalhes = () => {
                     onLangChange={setLang}
                     onBack={() => {}}
                     onBook={() => setBookingOpen(true)}
+                    embedded
                   />
                 </div>
               );
