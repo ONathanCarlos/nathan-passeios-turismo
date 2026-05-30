@@ -25,9 +25,7 @@ import { Lang, dict } from "@/lib/i18n";
 import {
   AdminConfig, loadAdminConfig, saveAdminConfig, useAdminConfig,
 } from "@/lib/adminConfig";
-import {
-  disableAdminMode,
-} from "@/lib/promo";
+import { logoutAdmin } from "@/lib/adminAuth";
 import { isQrActive } from "@/lib/qrPromo";
 import { fetchPendingReservationPhones, subscribeAdminRealtime, type PendingReservationPhone } from "@/lib/db";
 import { useModais, useTours, useUpsertTour, type CmsModal, type CmsTour } from "@/lib/cms";
@@ -450,7 +448,7 @@ export const AdminPanel = ({ open, onOpenChange, defaultTab = "dashboard" }: { o
                     <Save className="h-3 w-3 mr-1" /> Exportar JSON
                   </Button>
                   <Button variant="outline" className="border-rose-400/40 text-rose-300"
-                    onClick={() => { disableAdminMode(); toast.success("Modo administrador desativado"); onOpenChange(false); setTimeout(() => location.reload(), 400); }}>
+                    onClick={() => { logoutAdmin(); toast.success("Modo administrador desativado"); onOpenChange(false); setTimeout(() => location.reload(), 400); }}>
                     Sair do modo admin
                   </Button>
                 </div>

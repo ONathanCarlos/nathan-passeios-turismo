@@ -10,34 +10,39 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { enableAdminMode } from "@/lib/promo";
+import { loginAdmin } from "@/lib/adminAuth";
 import { adminBlockedByQr } from "@/lib/qrPromo";
 import { Lock, ShieldAlert } from "lucide-react";
-
-const ADMIN_PASSWORD = "turismoadmin";
 
 const Admin = () => {
   const nav = useNavigate();
   const [pwd, setPwd] = useState("");
   const [open, setOpen] = useState(true);
+  const [loading, setLoading] = useState(false);
   const blocked = adminBlockedByQr();
 
   useEffect(() => {
     document.title = "Admin · Nathan Turismo";
   }, []);
 
-  const submit = () => {
+  const submit = async () => {
     if (blocked) {
       toast.error("Acesso administrativo bloqueado durante campanha promocional.");
       return;
     }
-    if (pwd === ADMIN_PASSWORD) {
-      enableAdminMode();
-      toast.success("Modo administrador ativado");
-      nav("/", { replace: true });
-    } else {
-      toast.error("Senha incorreta");
-      setPwd("");
+    if (loading) return;
+    setLoading(true);
+    try {
+      const ok = await loginAdmin(pwd);
+      if (ok) {
+        toast.success("Modo administrador ativado");
+        nav("/", { replace: true });
+      } else {
+        toast.error("Senha incorreta");
+        setPwd("");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -66,16 +71,18 @@ const Admin = () => {
                   type="password"
                   value={pwd}
                   onChange={(e) => setPwd(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") void submit(); }}
+                  disabled={loading}
                   className="bg-night/70 border-turquoise/40 text-foreground h-11"
                   autoFocus
                 />
               </div>
               <Button
-                onClick={submit}
+                onClick={() => void submit()}
+                disabled={loading}
                 className="w-full h-11 bg-gradient-to-r from-turquoise to-turquoise-glow text-night font-bold hover:opacity-90"
               >
-                Entrar
+                {loading ? "Verificando…" : "Entrar"}
               </Button>
             </div>
           )}

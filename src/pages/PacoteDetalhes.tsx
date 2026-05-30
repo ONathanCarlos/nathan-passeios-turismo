@@ -10,7 +10,7 @@ import { Lang, dict, loadLang, saveLang } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { AdminFab } from "@/components/AdminPanel";
-import { isAdminMode } from "@/lib/promo";
+import { useIsAdmin } from "@/lib/adminAuth";
 import { TourDetails } from "@/components/TourDetails";
 import { StandardForm } from "@/components/StandardForm";
 import { PackageCover } from "@/components/PackageCover";
@@ -55,6 +55,7 @@ const PSEUDO_LABELS: Record<string, Record<Lang, string>> = {
 const PacoteDetalhes = () => {
   const { key } = useParams<{ key: string }>();
   const nav = useNavigate();
+  const admin = useIsAdmin();
   const [params] = useSearchParams();
   const wantsBook = params.get("reservar") === "1";
   const [lang, setLangState] = useState<Lang>(() => loadLang());
@@ -254,7 +255,7 @@ const PacoteDetalhes = () => {
         </footer>
       </div>
       <WhatsAppFab lang={lang} />
-      {isAdminMode() && <AdminFab defaultTab="pacotes" />}
+      {admin && <AdminFab defaultTab="pacotes" />}
     </main>
   );
 };

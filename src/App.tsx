@@ -12,6 +12,7 @@ const PacoteDetalhes = lazy(() => import("./pages/PacoteDetalhes.tsx"));
 import NotFound from "./pages/NotFound.tsx";
 import { ScrollToTopFab } from "@/components/ScrollToTopFab";
 import { bootCmsCache, subscribeCmsCache } from "@/lib/cmsCache";
+import { initAdminAuth } from "@/lib/adminAuth";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const CmsCacheBoot = ({ children }: { children: React.ReactNode }) => {
   const [, force] = useState(0);
   useEffect(() => {
     bootCmsCache();
+    initAdminAuth();
     const unsub = subscribeCmsCache(() => force((x) => x + 1));
     return () => { unsub(); };
   }, []);

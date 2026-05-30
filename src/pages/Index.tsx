@@ -14,7 +14,7 @@ import { DepoimentosSection } from "@/components/DepoimentosSection";
 import { PageTransition } from "@/components/PageTransition";
 import { PromoBanner } from "@/components/PromoBanner";
 import { COUPON_ELIGIBLE, tourPriceLabel, TOUR_PRICES, formatBRL } from "@/lib/prices";
-import { isAdminMode } from "@/lib/promo";
+import { useIsAdmin } from "@/lib/adminAuth";
 import { AdminFab } from "@/components/AdminPanel";
 
 import { QrPromoBoot } from "@/components/QrPromo";
@@ -51,7 +51,7 @@ const Index = () => {
   const [screen, setScreen] = useState<Screen>("menu");
   const t = dict[lang];
   // Modo admin tem prioridade absoluta: oculta banners promocionais e modal QR.
-  const admin = isAdminMode();
+  const admin = useIsAdmin();
   const [qr, setQr] = useState(() => loadQrPromo());
   useEffect(() => subscribeQrPromo(() => setQr(loadQrPromo())), []);
   const { data: cmsTours } = useTours(true);
