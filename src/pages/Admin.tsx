@@ -10,11 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { enableAdminMode } from "@/lib/promo";
+import { loginAdmin } from "@/lib/adminAuth";
 import { adminBlockedByQr } from "@/lib/qrPromo";
 import { Lock, ShieldAlert } from "lucide-react";
-
-const ADMIN_PASSWORD = "turismoadmin";
 
 const Admin = () => {
   const nav = useNavigate();
