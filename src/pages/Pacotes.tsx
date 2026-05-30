@@ -56,6 +56,7 @@ const PSEUDO_PRICES: Record<string, number> = { almoco: 50 };
 
 const Pacotes = () => {
   const nav = useNavigate();
+  const admin = useIsAdmin();
   const [lang, setLangState] = useState<Lang>(() => loadLang());
   const setLang = (l: Lang) => { saveLang(l); setLangState(l); };
   const t = dict[lang];
