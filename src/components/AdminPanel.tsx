@@ -448,7 +448,7 @@ export const AdminPanel = ({ open, onOpenChange, defaultTab = "dashboard" }: { o
                     <Save className="h-3 w-3 mr-1" /> Exportar JSON
                   </Button>
                   <Button variant="outline" className="border-rose-400/40 text-rose-300"
-                    onClick={() => { disableAdminMode(); toast.success("Modo administrador desativado"); onOpenChange(false); setTimeout(() => location.reload(), 400); }}>
+                    onClick={() => { logoutAdmin(); toast.success("Modo administrador desativado"); onOpenChange(false); setTimeout(() => location.reload(), 400); }}>
                     Sair do modo admin
                   </Button>
                 </div>
