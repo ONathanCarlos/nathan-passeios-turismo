@@ -25,9 +25,7 @@ import { Lang, dict } from "@/lib/i18n";
 import {
   AdminConfig, loadAdminConfig, saveAdminConfig, useAdminConfig,
 } from "@/lib/adminConfig";
-import {
-  disableAdminMode,
-} from "@/lib/promo";
+import { logoutAdmin } from "@/lib/adminAuth";
 import { isQrActive } from "@/lib/qrPromo";
 import { fetchPendingReservationPhones, subscribeAdminRealtime, type PendingReservationPhone } from "@/lib/db";
 import { useModais, useTours, useUpsertTour, type CmsModal, type CmsTour } from "@/lib/cms";
