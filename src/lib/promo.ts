@@ -224,16 +224,9 @@ export const isTester = (p: PromoData | null): boolean =>
   !!p && isTesterPhone(p.whatsapp);
 
 // ---------- Modo administrador ----------
-export const isAdminMode = (): boolean => {
-  try {
-    if (typeof window === "undefined") return false;
-    // Acesso administrativo só via /admin com senha — nunca via URL pública.
-    return localStorage.getItem(ADMIN_KEY) === "1";
-  } catch { return false; }
-};
-
-export const enableAdminMode = () => localStorage.setItem(ADMIN_KEY, "1");
-export const disableAdminMode = () => localStorage.removeItem(ADMIN_KEY);
+// Estado verificado pelo servidor (edge function admin-auth).
+// Não há mais flag forjável em localStorage nem senha no bundle.
+export const isAdminMode = (): boolean => isVerifiedAdmin();
 
 // ---------- Bloqueio definitivo do cupom de boas-vindas por telefone ----------
 const loadWelcomeBlocked = (): string[] => {
