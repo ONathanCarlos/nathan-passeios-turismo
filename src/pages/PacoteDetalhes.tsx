@@ -55,6 +55,7 @@ const PSEUDO_LABELS: Record<string, Record<Lang, string>> = {
 const PacoteDetalhes = () => {
   const { key } = useParams<{ key: string }>();
   const nav = useNavigate();
+  const admin = useIsAdmin();
   const [params] = useSearchParams();
   const wantsBook = params.get("reservar") === "1";
   const [lang, setLangState] = useState<Lang>(() => loadLang());
