@@ -20,6 +20,7 @@ const CmsCacheBoot = ({ children }: { children: React.ReactNode }) => {
   const [, force] = useState(0);
   useEffect(() => {
     bootCmsCache();
+    initAdminAuth();
     const unsub = subscribeCmsCache(() => force((x) => x + 1));
     return () => { unsub(); };
   }, []);
