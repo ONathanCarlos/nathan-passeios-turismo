@@ -9,7 +9,7 @@ import { Lang, dict, loadLang, saveLang } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { AdminFab } from "@/components/AdminPanel";
-import { isAdminMode } from "@/lib/promo";
+import { useIsAdmin } from "@/lib/adminAuth";
 import { usePacotes, pickPacoteLang } from "@/lib/pacotes";
 import { useTours } from "@/lib/cms";
 import { TOUR_PRICES } from "@/lib/prices";
@@ -171,7 +171,7 @@ const Pacotes = () => {
         </footer>
       </div>
       <WhatsAppFab lang={lang} />
-      {isAdminMode() && <AdminFab defaultTab="pacotes" />}
+      {admin && <AdminFab defaultTab="pacotes" />}
     </main>
   );
 };
