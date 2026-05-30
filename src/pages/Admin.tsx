@@ -71,16 +71,18 @@ const Admin = () => {
                   type="password"
                   value={pwd}
                   onChange={(e) => setPwd(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") void submit(); }}
+                  disabled={loading}
                   className="bg-night/70 border-turquoise/40 text-foreground h-11"
                   autoFocus
                 />
               </div>
               <Button
-                onClick={submit}
+                onClick={() => void submit()}
+                disabled={loading}
                 className="w-full h-11 bg-gradient-to-r from-turquoise to-turquoise-glow text-night font-bold hover:opacity-90"
               >
-                Entrar
+                {loading ? "Verificando…" : "Entrar"}
               </Button>
             </div>
           )}
