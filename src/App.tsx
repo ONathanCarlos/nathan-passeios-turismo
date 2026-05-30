@@ -12,6 +12,7 @@ const PacoteDetalhes = lazy(() => import("./pages/PacoteDetalhes.tsx"));
 import NotFound from "./pages/NotFound.tsx";
 import { ScrollToTopFab } from "@/components/ScrollToTopFab";
 import { bootCmsCache, subscribeCmsCache } from "@/lib/cmsCache";
+import { initAdminAuth } from "@/lib/adminAuth";
 
 const queryClient = new QueryClient();
 
