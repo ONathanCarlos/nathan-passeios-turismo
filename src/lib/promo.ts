@@ -6,6 +6,7 @@
 // ============================================================
 import { getAllCachedModais, type ModalCache } from "./cmsCache";
 import { isQrActive } from "./qrPromo";
+import { isVerifiedAdmin } from "./adminAuth";
 
 export const PROMO_KEY = "nathan_promo_v1";
 export const SPECIAL_USED_KEY = "nathan_special_used_v1";
