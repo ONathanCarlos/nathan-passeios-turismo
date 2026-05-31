@@ -14,7 +14,7 @@ import {
   hasHolidayActiveToday,
   isWelcomeBlockedForPhone,
 } from "@/lib/promo";
-import { isQrActive, loadQrPromo, subscribeQrPromo, urlIsExactRoot } from "@/lib/qrPromo";
+import { isQrActive, loadQrPromo, subscribeQrPromo, urlIsExactRoot, applyModalDiscount } from "@/lib/qrPromo";
 import { subscribeCmsCache } from "@/lib/cmsCache";
 import {
   Dialog,
