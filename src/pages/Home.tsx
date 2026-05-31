@@ -11,6 +11,9 @@ import { useTours } from "@/lib/cms";
 import { ChevronRight, Sparkles, Star, ShieldCheck, Globe2 } from "lucide-react";
 import { isQrActive, urlHasPromoParam, subscribeQrPromo } from "@/lib/qrPromo";
 import { loadPromo } from "@/lib/promo";
+import { QrPromoBoot } from "@/components/QrPromo";
+import { CampaignPromoModal } from "@/components/CampaignPromoModal";
+import { useIsAdmin } from "@/lib/adminAuth";
 
 import nathanProfile from "@/assets/nathan-profile.jpg";
 import escunaImg from "@/assets/escuna.jpg";
