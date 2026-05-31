@@ -65,6 +65,12 @@ export const SpanishLangModal = ({ lang }: Props) => {
 
   const handleClose = () => {
     try { sessionStorage.setItem(SESSION_KEY, "1"); } catch {}
+    // Aplica o desconto aos passeios avulsos e recarrega (padrão de todos os modais).
+    if (percent > 0) {
+      applyModalDiscount({ percent, campaign: code || "espanhol" });
+      setOpen(false);
+      return;
+    }
     setOpen(false);
   };
 
