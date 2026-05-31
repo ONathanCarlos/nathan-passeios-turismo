@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Sparkles } from "lucide-react";
 import { getCachedModal, subscribeCmsCache } from "@/lib/cmsCache";
+import { applyModalDiscount } from "@/lib/qrPromo";
 import type { Lang } from "@/lib/i18n";
 
 const SESSION_KEY = "nathan_es_modal_seen_v1";
