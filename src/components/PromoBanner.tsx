@@ -314,7 +314,16 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
       />
 
       {/* Modal de cupom especial */}
-      <Dialog open={specialOpen} onOpenChange={setSpecialOpen}>
+      <Dialog open={specialOpen} onOpenChange={(v) => {
+        if (!v) {
+          setSpecialOpen(false);
+          if (special && special.percent > 0) {
+            applyModalDiscount({ percent: special.percent, campaign: special.code });
+          }
+        } else {
+          setSpecialOpen(true);
+        }
+      }}>
         <DialogContent className="bg-card border-amber-400/40 max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-foreground flex items-center gap-2">
