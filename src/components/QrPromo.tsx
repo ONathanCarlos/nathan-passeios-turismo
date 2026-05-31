@@ -83,10 +83,10 @@ export const QrPromoBoot = ({ lang }: Props) => {
         setOpen(true);
         markSeenCampaign(parsed.campaign);
       }
-    } else if (!urlHasPromoParam() && loadQrPromo()) {
-      clearQrPromo();
-      setPromo(null);
     }
+    // Importante: NÃO limpar o desconto ao navegar para URLs sem ?promo=.
+    // Uma vez ativado (QR ou evento), o desconto deve persistir e ser
+    // aplicado sempre nos passeios avulsos durante a sessão do cliente.
     return subscribeQrPromo(() => setPromo(loadQrPromo()));
   }, []);
 
