@@ -157,6 +157,8 @@ const Home = () => {
 
   return (
     <main className="relative min-h-screen px-4 pt-10 pb-16 overflow-hidden">
+      {!admin && <QrPromoBoot lang={lang} />}
+      {!admin && <CampaignPromoModal lang={lang} />}
       <div aria-hidden className="ocean-static-bg pointer-events-none fixed inset-0 z-0" />
       <div className="relative z-10 mx-auto max-w-3xl">
         {/* Topbar */}
