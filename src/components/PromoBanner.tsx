@@ -335,6 +335,11 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
                 if (special) navigator.clipboard?.writeText(special.code).catch(() => {});
                 toast.success(lang === "pt" ? "Cupom copiado!" : "Coupon copied!");
                 setSpecialOpen(false);
+                // Aplica o desconto comemorativo aos passeios avulsos e recarrega
+                // a página (padrão único de todos os modais de desconto).
+                if (special && special.percent > 0) {
+                  applyModalDiscount({ percent: special.percent, campaign: special.code });
+                }
               }}
               className="rgb-border w-full block"
             >
