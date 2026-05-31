@@ -14,7 +14,7 @@ import {
   hasHolidayActiveToday,
   isWelcomeBlockedForPhone,
 } from "@/lib/promo";
-import { isQrActive, loadQrPromo, subscribeQrPromo, urlIsExactRoot } from "@/lib/qrPromo";
+import { isQrActive, loadQrPromo, subscribeQrPromo, urlIsExactRoot, applyModalDiscount } from "@/lib/qrPromo";
 import { subscribeCmsCache } from "@/lib/cmsCache";
 import {
   Dialog,
@@ -314,7 +314,16 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
       />
 
       {/* Modal de cupom especial */}
-      <Dialog open={specialOpen} onOpenChange={setSpecialOpen}>
+      <Dialog open={specialOpen} onOpenChange={(v) => {
+        if (!v) {
+          setSpecialOpen(false);
+          if (special && special.percent > 0) {
+            applyModalDiscount({ percent: special.percent, campaign: special.code });
+          }
+        } else {
+          setSpecialOpen(true);
+        }
+      }}>
         <DialogContent className="bg-card border-amber-400/40 max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-foreground flex items-center gap-2">
@@ -335,6 +344,11 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
                 if (special) navigator.clipboard?.writeText(special.code).catch(() => {});
                 toast.success(lang === "pt" ? "Cupom copiado!" : "Coupon copied!");
                 setSpecialOpen(false);
+                // Aplica o desconto comemorativo aos passeios avulsos e recarrega
+                // a página (padrão único de todos os modais de desconto).
+                if (special && special.percent > 0) {
+                  applyModalDiscount({ percent: special.percent, campaign: special.code });
+                }
               }}
               className="rgb-border w-full block"
             >

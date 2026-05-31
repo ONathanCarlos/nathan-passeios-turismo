@@ -11,7 +11,7 @@ import {
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { getCachedModal, subscribeCmsCache, ModalCache } from "@/lib/cmsCache";
-import { saveQrPromo } from "@/lib/qrPromo";
+import { applyModalDiscount } from "@/lib/qrPromo";
 import type { Lang } from "@/lib/i18n";
 
 interface Props { lang: Lang }
@@ -72,16 +72,9 @@ export const CampaignPromoModal = ({ lang }: Props) => {
     // Aplica o desconto do cupom/modal aos passeios avulsos e recarrega a página
     // para que os preços já apareçam com o desconto ativo.
     if (percent > 0) {
-      try {
-        saveQrPromo({
-          percent,
-          campaign: code || promoKey || `promo${percent}`,
-          activatedAt: new Date().toISOString(),
-        });
-        setOpen(false);
-        window.location.reload();
-        return;
-      } catch {}
+      applyModalDiscount({ percent, campaign: code || promoKey || `promo${percent}` });
+      setOpen(false);
+      return;
     }
     setOpen(false);
   };

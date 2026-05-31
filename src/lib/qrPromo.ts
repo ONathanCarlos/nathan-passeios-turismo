@@ -55,6 +55,27 @@ export const clearQrPromo = () => {
 
 export const isQrActive = (): boolean => !!loadQrPromo();
 
+/**
+ * Padrão único para QUALQUER modal de desconto (atuais e futuros).
+ * Ao fechar o modal: salva o desconto como promo ativa (aplicada nos
+ * passeios avulsos durante toda a sessão) e recarrega a página para que
+ * os preços já apareçam com o desconto. Use sempre que criar um modal novo.
+ */
+export const applyModalDiscount = (opts: { percent: number; campaign?: string }) => {
+  const pct = Math.round(opts.percent || 0);
+  if (pct > 0 && pct <= 90) {
+    saveQrPromo({
+      percent: pct,
+      campaign: opts.campaign || `promo${pct}`,
+      activatedAt: new Date().toISOString(),
+    });
+  }
+  setTimeout(() => {
+    try { window.location.reload(); }
+    catch { window.location.href = window.location.href; }
+  }, 50);
+};
+
 export const hasSeenCampaign = (campaign: string): boolean => {
   try {
     const raw = localStorage.getItem(QR_SEEN_KEY);
