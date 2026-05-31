@@ -11,6 +11,9 @@ import { useTours } from "@/lib/cms";
 import { ChevronRight, Sparkles, Star, ShieldCheck, Globe2 } from "lucide-react";
 import { isQrActive, urlHasPromoParam, subscribeQrPromo } from "@/lib/qrPromo";
 import { loadPromo } from "@/lib/promo";
+import { QrPromoBoot } from "@/components/QrPromo";
+import { CampaignPromoModal } from "@/components/CampaignPromoModal";
+import { useIsAdmin } from "@/lib/adminAuth";
 
 import nathanProfile from "@/assets/nathan-profile.jpg";
 import escunaImg from "@/assets/escuna.jpg";
@@ -121,6 +124,7 @@ const Home = () => {
   const C = COPY[lang];
   const { data: cmsTours } = useTours(true);
   const avulsosRef = useRef<HTMLButtonElement | null>(null);
+  const admin = useIsAdmin();
 
   // Promo state
   const [promoTick, setPromoTick] = useState(0);
@@ -153,6 +157,8 @@ const Home = () => {
 
   return (
     <main className="relative min-h-screen px-4 pt-10 pb-16 overflow-hidden">
+      {!admin && <QrPromoBoot lang={lang} />}
+      {!admin && <CampaignPromoModal lang={lang} />}
       <div aria-hidden className="ocean-static-bg pointer-events-none fixed inset-0 z-0" />
       <div className="relative z-10 mx-auto max-w-3xl">
         {/* Topbar */}
