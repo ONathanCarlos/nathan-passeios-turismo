@@ -124,6 +124,7 @@ const Home = () => {
   const C = COPY[lang];
   const { data: cmsTours } = useTours(true);
   const avulsosRef = useRef<HTMLButtonElement | null>(null);
+  const admin = useIsAdmin();
 
   // Promo state
   const [promoTick, setPromoTick] = useState(0);
