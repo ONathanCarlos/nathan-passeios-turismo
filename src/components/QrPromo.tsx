@@ -7,8 +7,8 @@ import {
 } from "@/components/ui/dialog";
 import { Sparkles } from "lucide-react";
 import {
-  parseQrFromUrl, loadQrPromo, saveQrPromo, clearQrPromo,
-  hasSeenCampaign, markSeenCampaign, urlHasPromoParam,
+  parseQrFromUrl, loadQrPromo, saveQrPromo,
+  hasSeenCampaign, markSeenCampaign,
   subscribeQrPromo, QrPromo,
 } from "@/lib/qrPromo";
 import { clearPromo } from "@/lib/promo";
