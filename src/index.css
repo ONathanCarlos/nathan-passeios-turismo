@@ -307,3 +307,8 @@
     linear-gradient(180deg, hsl(0 0% 0%) 0%, hsl(260 30% 6%) 50%, hsl(0 0% 0%) 100%);
   background-attachment: scroll;
 }
+
+#lovable-badge {
+  display: none !important;
+}
+
