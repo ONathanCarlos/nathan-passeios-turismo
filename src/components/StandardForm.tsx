@@ -354,7 +354,7 @@ export const StandardForm = ({
     // Atualiza reserva criada no momento do resumo para CONCLUÍDA.
     // Se não houver id (ex.: insert anterior falhou), cria nova já como concluída.
     if (reservaId) {
-      const ok = await updateReservaStatus(reservaId, "concluida");
+      const ok = await completeReserva(reservaId);
       if (!ok) {
         await createReservaInDb(
           {
