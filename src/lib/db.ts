@@ -1,20 +1,44 @@
 // ============================================================
-// Camada de serviço — sincroniza leads, cupons e reservas no
-// Lovable Cloud (Supabase). Sempre best-effort: nunca quebra
-// o fluxo do usuário se a rede falhar.
+// Camada de serviço — leads, cupons e reservas no Lovable Cloud.
+// Operações públicas vão pela edge function `public-data` e as
+// administrativas (com PII) pela `admin-data`, ambas usando a
+// service role no servidor. O cliente anônimo não acessa essas
+// tabelas diretamente (RLS bloqueia tudo).
+// Sempre best-effort: nunca quebra o fluxo do usuário.
 // ============================================================
 import { supabase } from "@/integrations/supabase/client";
+import { getAdminToken } from "@/lib/adminAuth";
 
 const onlyDigits = (s: string) => (s || "").replace(/\D/g, "");
 
+async function callPublic<T = any>(action: string, payload: Record<string, unknown> = {}): Promise<T | null> {
+  const { data, error } = await supabase.functions.invoke("public-data", {
+    body: { action, ...payload },
+  });
+  if (error) throw error;
+  return data as T;
+}
+
+async function callAdmin<T = any>(action: string, payload: Record<string, unknown> = {}): Promise<T> {
+  const token = getAdminToken();
+  const { data, error } = await supabase.functions.invoke("admin-data", {
+    body: { action, token, ...payload },
+  });
+  if (error) throw error;
+  if (data?.ok === false) throw new Error(data?.error || "admin_error");
+  return data as T;
+}
+
 type RealtimeCallback = () => void;
 
+// Mantido por compatibilidade. As tabelas com PII não são mais
+// publicadas no Realtime; a atualização ao vivo de conteúdo do CMS
+// continua funcionando. As telas de admin têm botão de atualizar.
 export const subscribeAdminRealtime = (cb: RealtimeCallback) => {
   const channel = supabase
     .channel(`admin-live-data-${Math.random().toString(36).slice(2)}-${Date.now()}`)
-    .on("postgres_changes", { event: "*", schema: "public", table: "leads" }, cb)
-    .on("postgres_changes", { event: "*", schema: "public", table: "cupons" }, cb)
-    .on("postgres_changes", { event: "*", schema: "public", table: "reservas" }, cb)
+    .on("postgres_changes", { event: "*", schema: "public", table: "tours" }, cb)
+    .on("postgres_changes", { event: "*", schema: "public", table: "config_global" }, cb)
     .subscribe();
 
   return () => {
@@ -30,7 +54,7 @@ export async function syncLead(input: {
   origem?: string;
 }) {
   try {
-    await supabase.from("leads").insert({
+    await callPublic("create_lead", {
       nome: input.nome,
       telefone: onlyDigits(input.telefone),
       email: input.email || null,
@@ -38,6 +62,26 @@ export async function syncLead(input: {
     });
   } catch (e) {
     console.warn("[db] syncLead falhou", e);
+  }
+}
+
+export interface Lead {
+  id: string;
+  nome: string;
+  telefone: string;
+  email: string | null;
+  origem: string | null;
+  created_at: string;
+}
+
+/** Admin: lista leads (via edge function autenticada). */
+export async function fetchLeads(limit = 300): Promise<Lead[]> {
+  try {
+    const res = await callAdmin<{ rows: Lead[] }>("list_leads", { limit });
+    return res.rows || [];
+  } catch (e) {
+    console.warn("[db] fetchLeads falhou", e);
+    return [];
   }
 }
 
@@ -67,31 +111,14 @@ export async function syncWelcomeCoupon(input: {
   const phone = onlyDigits(input.telefone);
   if (!phone) return null;
   try {
-    // Existe ativo?
-    const { data: existing } = await supabase
-      .from("cupons")
-      .select("*")
-      .eq("telefone", phone)
-      .eq("usado", false)
-      .gte("expira_em", new Date().toISOString())
-      .order("criado_em", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (existing) return existing as DbCupom;
-
-    const { data: created } = await supabase
-      .from("cupons")
-      .insert({
-        telefone: phone,
-        email: input.email || null,
-        codigo: input.codigo,
-        desconto_percentual: input.desconto_percentual,
-        expira_em: input.expira_em,
-      })
-      .select()
-      .maybeSingle();
-    return (created as DbCupom) ?? null;
+    const res = await callPublic<{ ok: boolean; cupom?: DbCupom }>("sync_welcome_coupon", {
+      telefone: phone,
+      email: input.email || null,
+      codigo: input.codigo,
+      desconto_percentual: input.desconto_percentual,
+      expira_em: input.expira_em,
+    });
+    return (res?.cupom as DbCupom) ?? null;
   } catch (e) {
     console.warn("[db] syncWelcomeCoupon falhou", e);
     return null;
@@ -101,7 +128,7 @@ export async function syncWelcomeCoupon(input: {
 export interface CouponValidation {
   ok: boolean;
   reason?: "not_found" | "expired" | "used" | "wrong_phone";
-  cupom?: DbCupom;
+  cupom?: Partial<DbCupom>;
 }
 
 export async function validateCouponInDb(
@@ -109,25 +136,11 @@ export async function validateCouponInDb(
   telefone?: string,
 ): Promise<CouponValidation> {
   try {
-    const { data, error } = await supabase
-      .from("cupons")
-      .select("*")
-      .eq("codigo", codigo.trim().toUpperCase())
-      .order("criado_em", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (error) throw error;
-    if (!data) return { ok: false, reason: "not_found" };
-    const c = data as DbCupom;
-    if (c.usado) return { ok: false, reason: "used", cupom: c };
-    if (new Date(c.expira_em).getTime() < Date.now())
-      return { ok: false, reason: "expired", cupom: c };
-    if (telefone) {
-      const p = onlyDigits(telefone);
-      if (p && c.telefone && c.telefone !== p)
-        return { ok: false, reason: "wrong_phone", cupom: c };
-    }
-    return { ok: true, cupom: c };
+    const res = await callPublic<CouponValidation>("validate_coupon", {
+      codigo: codigo.trim().toUpperCase(),
+      telefone: telefone ? onlyDigits(telefone) : "",
+    });
+    return res ?? { ok: false, reason: "not_found" };
   } catch (e) {
     console.warn("[db] validateCouponInDb falhou", e);
     return { ok: false, reason: "not_found" };
@@ -136,10 +149,7 @@ export async function validateCouponInDb(
 
 export async function markCouponUsedInDb(codigo: string) {
   try {
-    await supabase
-      .from("cupons")
-      .update({ usado: true, usado_em: new Date().toISOString() })
-      .eq("codigo", codigo.trim().toUpperCase());
+    await callPublic("mark_coupon_used", { codigo: codigo.trim().toUpperCase() });
   } catch (e) {
     console.warn("[db] markCouponUsedInDb falhou", e);
   }
@@ -158,41 +168,63 @@ export interface NewReserva {
   valor_com_desconto?: number | null;
 }
 
+export interface Reserva {
+  id: string;
+  nome: string;
+  telefone: string;
+  email: string | null;
+  destino: string;
+  data_viagem: string | null;
+  passageiros: number | null;
+  cupom_aplicado: string | null;
+  valor_original: number | null;
+  valor_com_desconto: number | null;
+  status: string;
+  created_at: string;
+}
+
 export async function createReservaInDb(
   r: NewReserva,
   status: "pendente" | "concluida" = "pendente",
 ): Promise<string | null> {
   try {
-    const { data } = await supabase
-      .from("reservas")
-      .insert({
-        nome: r.nome,
-        telefone: onlyDigits(r.telefone),
-        email: r.email || null,
-        destino: r.destino,
-        data_viagem: r.data_viagem || null,
-        passageiros: r.passageiros ?? null,
-        cupom_aplicado: r.cupom_aplicado || null,
-        valor_original: r.valor_original ?? null,
-        valor_com_desconto: r.valor_com_desconto ?? null,
-        status,
-      })
-      .select("id")
-      .maybeSingle();
-    return (data?.id as string) ?? null;
+    const res = await callPublic<{ id: string | null }>("create_reserva", {
+      nome: r.nome,
+      telefone: onlyDigits(r.telefone),
+      email: r.email || null,
+      destino: r.destino,
+      data_viagem: r.data_viagem || null,
+      passageiros: r.passageiros ?? null,
+      cupom_aplicado: r.cupom_aplicado || null,
+      valor_original: r.valor_original ?? null,
+      valor_com_desconto: r.valor_com_desconto ?? null,
+      status,
+    });
+    return res?.id ?? null;
   } catch (e) {
     console.warn("[db] createReservaInDb falhou", e);
     return null;
   }
 }
 
+/** Fluxo público: marca uma reserva PENDENTE como concluída. */
+export async function completeReserva(id: string): Promise<boolean> {
+  try {
+    const res = await callPublic<{ ok: boolean }>("complete_reserva", { id });
+    return res?.ok === true;
+  } catch (e) {
+    console.warn("[db] completeReserva falhou", e);
+    return false;
+  }
+}
+
+/** Admin: alterna o status de uma reserva (via edge function autenticada). */
 export async function updateReservaStatus(
   id: string,
   status: "pendente" | "concluida",
 ): Promise<boolean> {
   try {
-    const { error } = await supabase.from("reservas").update({ status }).eq("id", id);
-    if (error) throw error;
+    await callAdmin("update_reserva_status", { id, status });
     return true;
   } catch (e) {
     console.warn("[db] updateReservaStatus falhou", e);
@@ -200,30 +232,26 @@ export async function updateReservaStatus(
   }
 }
 
+/** Admin: lista reservas (via edge function autenticada). */
+export async function fetchReservas(limit = 200): Promise<Reserva[]> {
+  try {
+    const res = await callAdmin<{ rows: Reserva[] }>("list_reservas", { limit });
+    return res.rows || [];
+  } catch (e) {
+    console.warn("[db] fetchReservas falhou", e);
+    return [];
+  }
+}
+
 // ---------------- ADMIN STATS ----------------
 export async function fetchAdminStats() {
-  const [leads, cupons, reservas] = await Promise.all([
-    supabase.from("leads").select("id", { count: "exact", head: true }),
-    supabase
-      .from("cupons")
-      .select("id", { count: "exact", head: true })
-      .eq("usado", false)
-      .gte("expira_em", new Date().toISOString()),
-    supabase
-      .from("reservas")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "pendente"),
-  ]);
-  const totalLeads = leads.count ?? 0;
-  const cuponsAtivos = cupons.count ?? 0;
-  const reservasPendentes = reservas.count ?? 0;
-  // taxa de conversão = reservas / leads
-  const { count: totalReservas = 0 } = await supabase
-    .from("reservas")
-    .select("id", { count: "exact", head: true });
-  const conversao =
-    totalLeads > 0 ? Math.round(((totalReservas || 0) / totalLeads) * 100) : 0;
-  return { totalLeads, cuponsAtivos, reservasPendentes, totalReservas: totalReservas || 0, conversao };
+  try {
+    const res = await callAdmin<{ stats: any }>("admin_stats");
+    return res.stats;
+  } catch (e) {
+    console.warn("[db] fetchAdminStats falhou", e);
+    return { totalLeads: 0, cuponsAtivos: 0, reservasPendentes: 0, totalReservas: 0, conversao: 0 };
+  }
 }
 
 export interface AdminRow {
@@ -237,44 +265,13 @@ export interface AdminRow {
 }
 
 export async function fetchAdminTable(limit = 100): Promise<AdminRow[]> {
-  // Une leads + reservas + cupons por telefone
-  const { data: leads = [] } = await supabase
-    .from("leads")
-    .select("nome, telefone, email, created_at")
-    .order("created_at", { ascending: false })
-    .limit(limit);
-
-  const phones = (leads || []).map((l) => l.telefone);
-  const [cuponsRes, reservasRes] = await Promise.all([
-    phones.length
-      ? supabase.from("cupons").select("telefone, codigo, usado, expira_em").in("telefone", phones)
-      : Promise.resolve({ data: [] as any[] }),
-    phones.length
-      ? supabase.from("reservas").select("telefone, destino, status, created_at").in("telefone", phones)
-      : Promise.resolve({ data: [] as any[] }),
-  ]);
-  const cuponsByPhone = new Map<string, any>();
-  (cuponsRes.data || []).forEach((c: any) => {
-    if (!cuponsByPhone.has(c.telefone)) cuponsByPhone.set(c.telefone, c);
-  });
-  const reservasByPhone = new Map<string, any>();
-  (reservasRes.data || []).forEach((r: any) => {
-    if (!reservasByPhone.has(r.telefone)) reservasByPhone.set(r.telefone, r);
-  });
-
-  return (leads || []).map((l) => {
-    const c = cuponsByPhone.get(l.telefone);
-    const r = reservasByPhone.get(l.telefone);
-    return {
-      nome: l.nome,
-      telefone: l.telefone,
-      email: l.email,
-      cupom: c ? c.codigo : null,
-      reserva: r ? r.destino : null,
-      status: r ? r.status : null,
-      created_at: l.created_at,
-    };
-  });
+  try {
+    const res = await callAdmin<{ rows: AdminRow[] }>("admin_table", { limit });
+    return res.rows || [];
+  } catch (e) {
+    console.warn("[db] fetchAdminTable falhou", e);
+    return [];
+  }
 }
 
 export interface PendingReservationPhone {
@@ -285,12 +282,11 @@ export interface PendingReservationPhone {
 }
 
 export async function fetchPendingReservationPhones(limit = 200): Promise<PendingReservationPhone[]> {
-  const { data } = await supabase
-    .from("reservas")
-    .select("telefone, nome, destino, created_at")
-    .eq("status", "pendente")
-    .order("created_at", { ascending: false })
-    .limit(limit);
-
-  return (data || []) as PendingReservationPhone[];
+  try {
+    const res = await callAdmin<{ rows: PendingReservationPhone[] }>("pending_reservation_phones", { limit });
+    return res.rows || [];
+  } catch (e) {
+    console.warn("[db] fetchPendingReservationPhones falhou", e);
+    return [];
+  }
 }
