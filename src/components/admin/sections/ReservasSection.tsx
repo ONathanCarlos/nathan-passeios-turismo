@@ -2,11 +2,10 @@
 // Reservas — listagem + alternância de status (Pendente/Concluída)
 // ============================================================
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, CalendarCheck2, CheckCircle2, Clock } from "lucide-react";
-import { subscribeAdminRealtime, updateReservaStatus } from "@/lib/db";
+import { fetchReservas, updateReservaStatus } from "@/lib/db";
 import { toast } from "sonner";
 
 type StatusRow = "pendente" | "concluida";
@@ -30,13 +29,11 @@ export const ReservasSection = () => {
 
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase.from("reservas").select("*").order("created_at", { ascending: false }).limit(200);
-    setRows((data || []) as Reserva[]);
+    setRows(await fetchReservas(200));
     setLoading(false);
   };
   useEffect(() => {
     load();
-    return subscribeAdminRealtime(load);
   }, []);
 
   const toggleStatus = async (r: Reserva) => {
