@@ -5,6 +5,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { forceRefreshCms } from "./cmsCache";
+import { getAdminToken } from "./adminAuth";
 import type { Lang } from "./i18n";
 
 // ----- Types -----
