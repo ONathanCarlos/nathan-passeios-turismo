@@ -23,7 +23,7 @@ import {
   isExpired, isTester, isAdminMode, loadPromo, markCouponUsed, PromoData,
   validateSpecialCoupon, markSpecialUsed, SpecificCoupon, hasHolidayActiveToday,
 } from "@/lib/promo";
-import { createReservaInDb, markCouponUsedInDb, syncLead, updateReservaStatus } from "@/lib/db";
+import { createReservaInDb, markCouponUsedInDb, syncLead, completeReserva } from "@/lib/db";
 import { Tag, Lock } from "lucide-react";
 
 type Payment = "cash" | "debit" | "credit" | "pix";
@@ -354,7 +354,7 @@ export const StandardForm = ({
     // Atualiza reserva criada no momento do resumo para CONCLUÍDA.
     // Se não houver id (ex.: insert anterior falhou), cria nova já como concluída.
     if (reservaId) {
-      const ok = await updateReservaStatus(reservaId, "concluida");
+      const ok = await completeReserva(reservaId);
       if (!ok) {
         await createReservaInDb(
           {

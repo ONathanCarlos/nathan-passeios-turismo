@@ -34,6 +34,9 @@ const getStoredToken = (): string | null => {
   try { return localStorage.getItem(TOKEN_KEY); } catch { return null; }
 };
 
+/** Token de admin atual (para chamadas autenticadas a edge functions). */
+export const getAdminToken = (): string | null => getStoredToken();
+
 const storeToken = (token: string) => {
   try { localStorage.setItem(TOKEN_KEY, token); } catch { /* ignore */ }
 };
