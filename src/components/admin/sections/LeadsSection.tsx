@@ -2,11 +2,10 @@
 // Leads — listagem dos leads capturados pelo site
 // ============================================================
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Users } from "lucide-react";
-import { subscribeAdminRealtime } from "@/lib/db";
+import { fetchLeads } from "@/lib/db";
 
 type Lead = { id: string; nome: string; telefone: string; email: string | null; origem: string | null; created_at: string };
 
@@ -15,13 +14,11 @@ export const LeadsSection = () => {
   const [loading, setLoading] = useState(false);
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase.from("leads").select("*").order("created_at", { ascending: false }).limit(300);
-    setRows((data || []) as Lead[]);
+    setRows(await fetchLeads(300));
     setLoading(false);
   };
   useEffect(() => {
     load();
-    return subscribeAdminRealtime(load);
   }, []);
 
   return (
