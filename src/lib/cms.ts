@@ -181,14 +181,31 @@ export const useConfig = () =>
   });
 
 // ============================================================
-// MUTATIONS
+// MUTATIONS — gravações de CMS passam pela edge function
+// `admin-data`, autenticada por token de admin (service role no
+// servidor). O cliente anônimo não pode mais escrever nas tabelas.
 // ============================================================
+async function adminCall<T = any>(action: string, payload: Record<string, unknown> = {}): Promise<T> {
+  const token = getAdminToken();
+  const { data, error } = await supabase.functions.invoke("admin-data", {
+    body: { action, token, ...payload },
+  });
+  if (error) throw error;
+  if (data?.ok === false) throw new Error(data?.error || "admin_error");
+  return data as T;
+}
+
+const cmsUpsert = (table: string, row: Record<string, unknown>) =>
+  adminCall("cms_upsert", { table, row });
+
+const cmsDelete = (table: string, id: string) =>
+  adminCall("cms_delete", { table, id });
+
 export const useUpsertTour = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (t: Partial<CmsTour> & { key: string; nome_pt: string }) => {
-      const { error } = await supabase.from("tours").upsert(t as any, { onConflict: "key" });
-      if (error) throw error;
+      await cmsUpsert("tours", t as any);
     },
     onSuccess: async () => {
       qc.invalidateQueries({ queryKey: ["cms", "tours"] });
@@ -201,8 +218,7 @@ export const useDeleteTour = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("tours").delete().eq("id", id);
-      if (error) throw error;
+      await cmsDelete("tours", id);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["cms", "tours"] }),
   });
@@ -212,8 +228,7 @@ export const useUpsertHome = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (h: Partial<CmsHome> & { secao: string }) => {
-      const { error } = await supabase.from("home_content").upsert(h as any, { onConflict: "secao" });
-      if (error) throw error;
+      await cmsUpsert("home_content", h as any);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["cms", "home"] }),
   });
@@ -223,8 +238,7 @@ export const useUpsertModal = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (m: Partial<CmsModal> & { key: string }) => {
-      const { error } = await supabase.from("modais").upsert(m as any, { onConflict: "key" });
-      if (error) throw error;
+      await cmsUpsert("modais", m as any);
     },
     onSuccess: async () => {
       qc.invalidateQueries({ queryKey: ["cms", "modais"] });
@@ -237,8 +251,7 @@ export const useDeleteModal = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("modais").delete().eq("id", id);
-      if (error) throw error;
+      await cmsDelete("modais", id);
     },
     onSuccess: async () => {
       qc.invalidateQueries({ queryKey: ["cms", "modais"] });
@@ -251,13 +264,7 @@ export const useUpsertDepoimento = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (d: Partial<CmsDepoimento> & { nome: string }) => {
-      if (d.id) {
-        const { error } = await supabase.from("depoimentos").update(d as any).eq("id", d.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from("depoimentos").insert(d as any);
-        if (error) throw error;
-      }
+      await cmsUpsert("depoimentos", d as any);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["cms", "depoimentos"] }),
   });
@@ -267,8 +274,7 @@ export const useDeleteDepoimento = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("depoimentos").delete().eq("id", id);
-      if (error) throw error;
+      await cmsDelete("depoimentos", id);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["cms", "depoimentos"] }),
   });
@@ -278,10 +284,7 @@ export const useUpsertConfig = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ chave, valor }: { chave: string; valor: string }) => {
-      const { error } = await supabase
-        .from("config_global")
-        .upsert({ chave, valor } as any, { onConflict: "chave" });
-      if (error) throw error;
+      await cmsUpsert("config_global", { chave, valor });
     },
     onSuccess: async () => {
       qc.invalidateQueries({ queryKey: ["cms", "config"] });
@@ -291,7 +294,9 @@ export const useUpsertConfig = () => {
 };
 
 // ============================================================
-// MEDIA UPLOAD
+// MEDIA UPLOAD — upload via URL assinada emitida pela edge
+// function `admin-data` (somente admin). O bucket continua público
+// para leitura, então a URL pública dos arquivos segue válida.
 // ============================================================
 export async function uploadMedia(
   file: File,
@@ -299,19 +304,19 @@ export async function uploadMedia(
 ): Promise<string> {
   const ext = file.name.split(".").pop() || "bin";
   const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-  const { error } = await supabase.storage.from("media").upload(path, file, {
-    cacheControl: "3600",
-    upsert: false,
-  });
+  const signed = await adminCall<{ path: string; token: string }>("media_sign_upload", { path });
+  const { error } = await supabase.storage
+    .from("media")
+    .uploadToSignedUrl(signed.path, signed.token, file);
   if (error) throw error;
-  const { data } = supabase.storage.from("media").getPublicUrl(path);
+  const { data } = supabase.storage.from("media").getPublicUrl(signed.path);
   return data.publicUrl;
 }
 
 export async function deleteMedia(publicUrl: string): Promise<void> {
-  // Extract path after "/media/"
   const idx = publicUrl.indexOf("/media/");
   if (idx === -1) return;
   const path = publicUrl.slice(idx + "/media/".length);
-  await supabase.storage.from("media").remove([path]);
+  await adminCall("media_delete", { path });
 }
+
