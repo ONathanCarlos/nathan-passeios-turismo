@@ -176,13 +176,14 @@ export const StandardForm = ({
     const halfN = (!adultsOnly && hasKids === "yes")
       ? ages.filter((a) => { const n = parseInt(a); return n >= 6 && n <= 10; }).length
       : 0;
-    const freeN = (!adultsOnly && hasKids === "yes")
-      ? ages.filter((a) => { const n = parseInt(a); return !isNaN(n) && n <= 5; }).length
+    const adultKidsN = (!adultsOnly && hasKids === "yes")
+      ? ages.filter((a) => { const n = parseInt(a); return !isNaN(n) && n > 10; }).length
       : 0;
+    // Crianças até 5 anos: grátis. 6–10: meia. Acima de 10: tarifa de adulto.
     // Lancha: valor fixo "a partir de" (não multiplica por pax)
     const baseOriginal = meta.from
       ? meta.value
-      : (paxN - freeN - halfN) * meta.value + halfN * (meta.value / 2);
+      : (paxN + adultKidsN) * meta.value + halfN * (meta.value / 2);
     const qr = loadQrPromo();
     const original = qr ? baseOriginal - (baseOriginal * qr.percent) / 100 : baseOriginal;
     const discount = effectiveCoupon ? (original * effectiveCoupon.percent) / 100 : 0;
@@ -547,6 +548,7 @@ export const StandardForm = ({
           </Field>
           <Field label={`👥 ${t.passengers}`} error={errors.pax} errorMsg={requiredMsg}>
             <Input value={pax} onChange={(e) => { setPax(e.target.value); clearErr("pax"); }} type="number" min={1} className={fieldClass} />
+            <p className="text-[11px] text-foreground/60 italic">{t.adultNote}</p>
           </Field>
 
           <Field label={`📅 ${t.tourDate}`} error={errors.date} errorMsg={requiredMsg}>

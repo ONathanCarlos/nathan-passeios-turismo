@@ -59,6 +59,7 @@ type Dict = {
   fullName: string;
   phone: string;
   passengers: string;
+  adultNote: string;
   hasChildren: string;
   yes: string;
   no: string;
@@ -158,7 +159,8 @@ export const dict: Record<Lang, Dict> = {
     bookingFor: "Reserva",
     fullName: "Nome completo do responsável",
     phone: "Número de telefone",
-    passengers: "Quantidade de passageiros",
+    passengers: "Passageiros Adultos",
+    adultNote: "*Crianças com idade acima de 10 anos são consideradas passageiros adultos",
     hasChildren: "Tem passageiros criança?",
     yes: "Sim",
     no: "Não",
@@ -252,7 +254,8 @@ export const dict: Record<Lang, Dict> = {
     bookingFor: "Reserva",
     fullName: "Nombre completo del responsable",
     phone: "Número de teléfono",
-    passengers: "Cantidad de pasajeros",
+    passengers: "Pasajeros Adultos",
+    adultNote: "*Niños mayores de 10 años se consideran pasajeros adultos",
     hasChildren: "¿Hay pasajeros niños?",
     yes: "Sí",
     no: "No",
@@ -346,7 +349,8 @@ export const dict: Record<Lang, Dict> = {
     bookingFor: "Booking",
     fullName: "Full name of person in charge",
     phone: "Phone number",
-    passengers: "Number of passengers",
+    passengers: "Adult Passengers",
+    adultNote: "*Children over 10 years old are considered adult passengers",
     hasChildren: "Any children passengers?",
     yes: "Yes",
     no: "No",
@@ -440,7 +444,8 @@ export const dict: Record<Lang, Dict> = {
     bookingFor: "Réservation",
     fullName: "Nom complet du responsable",
     phone: "Numéro de téléphone",
-    passengers: "Nombre de passagers",
+    passengers: "Passagers Adultes",
+    adultNote: "*Les enfants de plus de 10 ans sont considérés comme des passagers adultes",
     hasChildren: "Y a-t-il des enfants ?",
     yes: "Oui",
     no: "Non",
@@ -534,7 +539,8 @@ export const dict: Record<Lang, Dict> = {
     bookingFor: "Prenotazione",
     fullName: "Nome completo del responsabile",
     phone: "Numero di telefono",
-    passengers: "Numero di passeggeri",
+    passengers: "Passeggeri Adulti",
+    adultNote: "*I bambini sopra i 10 anni sono considerati passeggeri adulti",
     hasChildren: "Ci sono bambini?",
     yes: "Sì",
     no: "No",
