@@ -28,6 +28,14 @@ import { Tag, Lock } from "lucide-react";
 
 type Payment = "cash" | "debit" | "credit" | "pix";
 
+/** Rótulos de pagamento em PT fixo para a mensagem do WhatsApp. */
+const PAYMENT_PT: Record<Payment, string> = {
+  cash: "Dinheiro",
+  debit: "Cartão de débito",
+  credit: "Cartão de crédito",
+  pix: "Pix",
+};
+
 interface Props {
   lang: Lang;
   onLangChange: (l: Lang) => void;
