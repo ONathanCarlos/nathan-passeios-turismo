@@ -547,6 +547,7 @@ export const StandardForm = ({
           </Field>
           <Field label={`👥 ${t.passengers}`} error={errors.pax} errorMsg={requiredMsg}>
             <Input value={pax} onChange={(e) => { setPax(e.target.value); clearErr("pax"); }} type="number" min={1} className={fieldClass} />
+            <p className="text-[11px] text-foreground/60 italic">{t.adultNote}</p>
           </Field>
 
           <Field label={`📅 ${t.tourDate}`} error={errors.date} errorMsg={requiredMsg}>
