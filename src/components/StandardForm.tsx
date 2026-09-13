@@ -46,6 +46,8 @@ interface Props {
   tourKey?: TourKey;
   /** valor fixo de pacote promocional (R$). Cupons NÃO se aplicam. */
   packagePrice?: number;
+  /** nome do passeio/pacote em português (usado na mensagem do WhatsApp) */
+  titlePt?: string;
 }
 
 const fieldClass =
