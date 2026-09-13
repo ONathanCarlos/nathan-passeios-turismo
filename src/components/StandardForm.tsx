@@ -17,7 +17,7 @@ import { PromoBanner } from "./PromoBanner";
 import { QrPromoBoot } from "./QrPromo";
 import { loadQrPromo, urlIsExactRoot } from "@/lib/qrPromo";
 
-import { TourKey } from "@/lib/tours";
+import { TourKey, getTour } from "@/lib/tours";
 import { TOUR_PRICES, formatBRL, tourPriceLabel, COUPON_ELIGIBLE } from "@/lib/prices";
 import {
   isExpired, isTester, isAdminMode, loadPromo, markCouponUsed, PromoData,
