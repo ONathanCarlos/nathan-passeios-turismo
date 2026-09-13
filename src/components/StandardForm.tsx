@@ -56,7 +56,7 @@ const fieldClass =
 export const StandardForm = ({
   lang, onLangChange, onBack, title, backgroundImage,
   adultsOnly = false, requireCpf = false, notice, requirePousada = false, tourKey,
-  packagePrice,
+  packagePrice, titlePt,
 }: Props) => {
   const isPackage = typeof packagePrice === "number";
   const t = dict[lang];
