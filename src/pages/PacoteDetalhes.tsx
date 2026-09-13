@@ -123,6 +123,7 @@ const PacoteDetalhes = () => {
         onLangChange={setLang}
         onBack={() => setBookingOpen(false)}
         title={nome}
+        titlePt={pacote.nome_pt}
         backgroundImage={imgs[0] || escunaImg}
         packagePrice={pacote.preco}
       />

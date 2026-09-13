@@ -17,7 +17,7 @@ import { PromoBanner } from "./PromoBanner";
 import { QrPromoBoot } from "./QrPromo";
 import { loadQrPromo, urlIsExactRoot } from "@/lib/qrPromo";
 
-import { TourKey } from "@/lib/tours";
+import { TourKey, getTour } from "@/lib/tours";
 import { TOUR_PRICES, formatBRL, tourPriceLabel, COUPON_ELIGIBLE } from "@/lib/prices";
 import {
   isExpired, isTester, isAdminMode, loadPromo, markCouponUsed, PromoData,
@@ -27,6 +27,14 @@ import { createReservaInDb, markCouponUsedInDb, syncLead, completeReserva } from
 import { Tag, Lock } from "lucide-react";
 
 type Payment = "cash" | "debit" | "credit" | "pix";
+
+/** Rótulos de pagamento em PT fixo para a mensagem do WhatsApp. */
+const PAYMENT_PT: Record<Payment, string> = {
+  cash: "Dinheiro",
+  debit: "Cartão de débito",
+  credit: "Cartão de crédito",
+  pix: "Pix",
+};
 
 interface Props {
   lang: Lang;
@@ -46,6 +54,8 @@ interface Props {
   tourKey?: TourKey;
   /** valor fixo de pacote promocional (R$). Cupons NÃO se aplicam. */
   packagePrice?: number;
+  /** nome do passeio/pacote em português (usado na mensagem do WhatsApp) */
+  titlePt?: string;
 }
 
 const fieldClass =
@@ -54,7 +64,7 @@ const fieldClass =
 export const StandardForm = ({
   lang, onLangChange, onBack, title, backgroundImage,
   adultsOnly = false, requireCpf = false, notice, requirePousada = false, tourKey,
-  packagePrice,
+  packagePrice, titlePt,
 }: Props) => {
   const isPackage = typeof packagePrice === "number";
   const t = dict[lang];
@@ -286,45 +296,55 @@ export const StandardForm = ({
     rows.push({ label: lang === "pt" ? "Local Check-in" : "Check-in" , value: "Praça Santos Dummont, Cabine 03 - Búzios/RJ" });
     rows.push({ label: lang === "pt" ? "Horário Check-in" : "Check-in time", value: "Até 11:30 — falar com Nathan ou Mary" });
 
-    const lines = ["Olá Nathan! Aqui está minha reserva completa!", "", t.sumTitle, title, "", `👤 ${t.sumName}: ${name}`];
-    if (requireCpf) lines.push(`🪪 CPF: ${cpf}`);
+    // ===== Mensagem WhatsApp: estrutura e rótulos SEMPRE em português =====
+    // Dados digitados pelo cliente permanecem exatamente como inseridos.
+    const msgTitle = titlePt || (tourKey ? getTour(tourKey, "pt").title : title);
+    const noCheckin = tourKey === "arraial" || tourKey === "lancha";
+    const lines = [
+      "Olá Nathan! Aqui está minha reserva completa!",
+      "",
+      `🚤 NOVA RESERVA — ${msgTitle}`,
+      "",
+      `👤 Responsável: ${name}`,
+    ];
+    if (requireCpf && cpf.trim()) lines.push(`🪪 CPF: ${cpf.trim()}`);
     lines.push(
-      `📞 ${t.sumPhone}: ${fullPhone(phone)}`,
-      `📅 ${t.sumDate}: ${dateStr}`,
-      `👥 ${t.sumPax}: ${pax}`,
+      `📞 Telefone: ${fullPhone(phone)}`,
+      `📅 Data: ${dateStr}`,
+      "",
+      `👥 Passageiros Adultos: ${pax}`,
     );
     if (!adultsOnly && hasKids === "yes" && kidsN > 0) {
-      lines.push(`🧒 ${t.sumChildren}: ${kidsN} (${ages.filter(Boolean).map((a) => `${a} ${t.ageYears}`).join(", ")})`);
-      lines.push(`🆓 ${t.sumFree}: ${freeCount}`);
-      lines.push(`½ ${t.sumHalf}: ${halfCount}`);
+      lines.push(`🧒 Crianças: ${kidsN} (idades: ${ages.filter(Boolean).join(", ")})`);
+      if (freeCount > 0) lines.push(`🆓 Passageiros grátis: ${freeCount}`);
+      if (halfCount > 0) lines.push(`½ Passageiros meia: ${halfCount}`);
     }
     if (requirePousada) {
-      lines.push(`🛌 ${t.sumPousada}: ${pousada}`);
-      lines.push(`🔢 ${t.sumRoom}: ${room}`);
-      lines.push(`📍 ${t.sumAddress}: ${address}`);
+      if (pousada.trim()) lines.push(`🏨 Pousada: ${pousada.trim()}`);
+      if (room.trim()) lines.push(`🔢 Quarto: ${room.trim()}`);
+      if (address.trim()) lines.push(`📍 Endereço: ${address.trim()}`);
     }
-    if (adultsOnly) lines.push(`🔞 ${t.adultsOnly}`);
-    lines.push(`💳 ${t.sumPay}: ${paymentLabel(payment as Payment)}`);
-    if (payment === "credit") lines.push(t.creditWarning);
-    if (priceInfo) {
-      lines.push("", `💰 Valor original: ${formatBRL(priceInfo.original)}`);
-      if (effectiveCoupon) {
-        lines.push(
-          `🎟️ Cupom ${effectiveCoupon.code}`,
-          `Desconto: ${effectiveCoupon.percent}%`,
-          `✅ Valor com desconto aplicado: ${formatBRL(priceInfo.final)}`,
-        );
-      }
-      if (priceInfo.qrApplied) {
-        lines.push(`🎟 Promoção aplicada: ${priceInfo.qrPercent}% OFF via QR Code`);
-      }
+    lines.push("");
+    if (priceInfo) lines.push(`💰 Valor total: ${formatBRL(priceInfo.final)}`);
+    lines.push(`💳 Forma de pagamento: ${PAYMENT_PT[payment as Payment]}`);
+    if (payment === "credit") {
+      lines.push("⚠️ Será acrescentada uma taxa de 5% referente à taxa da máquina de cartão.");
+    }
+    if (effectiveCoupon) {
+      lines.push(`🎟 Promoção aplicada: ${effectiveCoupon.code} (−${effectiveCoupon.percent}%)`);
+    } else if (priceInfo?.qrApplied) {
+      lines.push(`🎟 Promoção aplicada: −${priceInfo.qrPercent}%`);
+    }
+    if (!noCheckin) {
+      lines.push(
+        "",
+        "📍 Local do Check-in: Praça Santos Dummont, Cabine de Passeios Número 03 - Armação dos Búzios - RJ.",
+        "🕐 Horário do Check-in: até às 11:20 da manhã. Falar com Nathan ou Mary.",
+      );
     }
     lines.push(
       "",
-      "📍 Local do Check-in: Praça Santos Dummont, Cabine de Passeios Número 03 - Armação dos Búzios - RJ.",
-      "🕐 Horário do Check-in: até às 11:30 da manhã. Falar com Nathan ou Mary.",
-      "",
-      "Reserva feita pelo site https://www.nathanturismo.com.br",
+      "Reserva feita pelo site - https://www.nathanturismo.com.br",
     );
     setOutput({ text: lines.join("\n"), rows });
 
