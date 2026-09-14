@@ -209,16 +209,31 @@
     transform: translate3d(0, 50%, 0);
   }
 
-  /* Field focus feedback without layout movement or paint-heavy animation. */
+  /* A focused data field carries a soft turquoise wave only on its border. */
+  @keyframes field-border-wave {
+    0%, 100% {
+      border-color: hsl(var(--turquoise) / 0.55);
+      box-shadow: 0 0 0 0 hsl(var(--turquoise) / 0), 0 0 5px hsl(var(--turquoise) / 0.18);
+    }
+    50% {
+      border-color: hsl(var(--turquoise-glow) / 0.95);
+      box-shadow: 0 0 0 2px hsl(var(--turquoise) / 0.2), 0 0 12px hsl(var(--turquoise-glow) / 0.38);
+    }
+  }
   .interactive-field {
     opacity: 0.94;
     transform: translateZ(0);
-    transition: opacity 180ms ease, transform 180ms ease, filter 180ms ease;
+    transition: opacity 180ms ease, transform 180ms ease;
   }
   .interactive-field:focus-within {
     opacity: 1;
     transform: translate3d(0, -1px, 0);
-    filter: drop-shadow(0 0 7px hsl(var(--turquoise) / 0.2));
+  }
+  :is(input, textarea, select, [role="combobox"]):focus,
+  .interactive-field:focus-within :is(input, textarea, select, [role="combobox"]),
+  .interactive-field:focus-within > button {
+    animation: field-border-wave 1.65s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    will-change: box-shadow;
   }
 
   /* Premium press feedback for actionable controls. */
@@ -245,40 +260,30 @@
     box-shadow: inset 0 2px 6px hsl(var(--background) / 0.25);
     transition-duration: 90ms;
   }
-  @keyframes ocean-ripple {
-    0%   { transform: translate3d(-50%, -50%, 0) scale(0); opacity: 0.82; }
-    58%  { opacity: 0.44; }
-    100% { transform: translate3d(-50%, -50%, 0) scale(1); opacity: 0; }
+  @keyframes button-border-ripple {
+    0% {
+      clip-path: circle(0 at var(--border-ripple-x) var(--border-ripple-y));
+      opacity: 0.95;
+    }
+    62% { opacity: 0.82; }
+    100% {
+      clip-path: circle(var(--border-ripple-reach) at var(--border-ripple-x) var(--border-ripple-y));
+      opacity: 0;
+    }
   }
-  .interaction-ripple-surface {
+  .border-ripple-surface {
     position: fixed;
-    z-index: 100;
+    z-index: 101;
     top: var(--ripple-surface-top);
     left: var(--ripple-surface-left);
     width: var(--ripple-surface-width);
     height: var(--ripple-surface-height);
-    overflow: hidden;
+    border: 2px solid hsl(var(--turquoise-glow) / 0.95);
+    box-shadow: 0 0 8px hsl(var(--turquoise-glow) / 0.5);
     pointer-events: none;
-    contain: strict;
-  }
-  .interaction-ripple {
-    position: absolute;
-    z-index: 20;
-    top: var(--ripple-y);
-    left: var(--ripple-x);
-    width: var(--ripple-size);
-    height: var(--ripple-size);
-    border-radius: 9999px;
-    background: radial-gradient(circle,
-      hsl(var(--foreground) / 0.68) 0%,
-      hsl(var(--turquoise-glow) / 0.52) 24%,
-      hsl(var(--turquoise) / 0.32) 48%,
-      transparent 70%);
-    transform: translate3d(-50%, -50%, 0) scale(0);
-    pointer-events: none;
-    opacity: 0;
-    animation: ocean-ripple 680ms cubic-bezier(0.2, 0.72, 0.22, 1) forwards;
-    will-change: transform, opacity;
+    contain: layout style paint;
+    animation: button-border-ripple 620ms cubic-bezier(0.2, 0.72, 0.22, 1) forwards;
+    will-change: clip-path, opacity;
   }
 
   /* Form field error state */
@@ -293,8 +298,8 @@
   .field-error input,
   .field-error [role="combobox"],
   .field-error button[role="radio"] {
-    border-color: hsl(0 80% 60%) !important;
-    box-shadow: 0 0 0 1px hsl(0 80% 60% / 0.5), 0 0 12px hsl(0 80% 60% / 0.35) !important;
+    border-color: hsl(0 80% 60%);
+    box-shadow: 0 0 0 1px hsl(0 80% 60% / 0.5), 0 0 12px hsl(0 80% 60% / 0.35);
     transition: border-color 220ms ease, box-shadow 220ms ease;
   }
   .field-error-shake {
@@ -407,8 +412,14 @@
     animation: none !important;
     will-change: auto;
   }
-  .interaction-ripple-surface {
+  .border-ripple-surface {
     display: none !important;
+  }
+  :is(input, textarea, select, [role="combobox"]):focus,
+  .interactive-field:focus-within :is(input, textarea, select, [role="combobox"]),
+  .interactive-field:focus-within > button {
+    animation: none !important;
+    will-change: auto;
   }
 }
 
