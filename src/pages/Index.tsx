@@ -36,6 +36,12 @@ import caboFrioImg from "@/assets/cabo-frio.jpg";
 type FormScreen = `form-${TourKey}`;
 type Screen = "menu" | { details: TourKey } | FormScreen;
 
+const FEATURED_BADGES: Partial<Record<TourKey, "mais_vendido" | "mais_procurado" | "mais_bem_avaliado">> = {
+  escuna: "mais_vendido",
+  arraial: "mais_procurado",
+  buggy: "mais_bem_avaliado",
+};
+
 
 
 const serialize = (s: Screen): string => (typeof s === "string" ? s : `details-${s.details}`);
@@ -252,6 +258,13 @@ const Index = () => {
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-night/85 via-night/10 to-transparent" />
+                  {FEATURED_BADGES[opt.key] && (
+                    <TourBadge
+                      type={FEATURED_BADGES[opt.key]}
+                      lang={lang}
+                      className="absolute top-3 left-3 z-10 max-w-[calc(100%-5.5rem)]"
+                    />
+                  )}
                   {opt.adultsOnly && (
                     <span className="absolute top-3 left-3 inline-flex items-center rounded-md bg-rose-500/90 px-2 py-0.5 text-[11px] font-bold text-white shadow">
                       +18
