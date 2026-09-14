@@ -249,6 +249,17 @@
     65%  { opacity: 0.18; }
     100% { transform: translate3d(-50%, -50%, 0) scale(1); opacity: 0; }
   }
+  .interaction-ripple-surface {
+    position: fixed;
+    z-index: 100;
+    top: var(--ripple-surface-top);
+    left: var(--ripple-surface-left);
+    width: var(--ripple-surface-width);
+    height: var(--ripple-surface-height);
+    overflow: hidden;
+    pointer-events: none;
+    contain: strict;
+  }
   .interaction-ripple {
     position: absolute;
     z-index: 20;
@@ -391,7 +402,7 @@
     animation: none !important;
     will-change: auto;
   }
-  .interaction-ripple {
+  .interaction-ripple-surface {
     display: none !important;
   }
 }

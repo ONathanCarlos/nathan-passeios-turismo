@@ -34,14 +34,23 @@ if (typeof window !== "undefined") {
       Math.hypot(rect.width - x, rect.height - y),
     );
 
+    const surface = document.createElement("span");
+    surface.className = "interaction-ripple-surface";
+    surface.style.setProperty("--ripple-surface-top", `${rect.top}px`);
+    surface.style.setProperty("--ripple-surface-left", `${rect.left}px`);
+    surface.style.setProperty("--ripple-surface-width", `${rect.width}px`);
+    surface.style.setProperty("--ripple-surface-height", `${rect.height}px`);
+    surface.style.borderRadius = window.getComputedStyle(element).borderRadius;
+
     const ripple = document.createElement("span");
     ripple.className = "interaction-ripple";
     ripple.style.setProperty("--ripple-x", `${x}px`);
     ripple.style.setProperty("--ripple-y", `${y}px`);
     ripple.style.setProperty("--ripple-size", `${radius * 2}px`);
-    element.appendChild(ripple);
+    surface.appendChild(ripple);
+    document.body.appendChild(surface);
 
-    ripple.addEventListener("animationend", () => ripple.remove(), { once: true });
+    ripple.addEventListener("animationend", () => surface.remove(), { once: true });
   };
 
   document.addEventListener("pointerdown", (event) => {
