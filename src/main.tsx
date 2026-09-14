@@ -2,14 +2,10 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 
-const RIPPLE_SELECTOR = [
+const BORDER_RIPPLE_SELECTOR = [
   "button",
   "a[href]",
-  "input:not([type='hidden'])",
-  "textarea",
-  "select",
   '[role="button"]',
-  '[role="combobox"]',
   '[role="menuitem"]',
   '[role="option"]',
   '[role="tab"]',
@@ -20,11 +16,11 @@ const RIPPLE_SELECTOR = [
   ".btn-press",
 ].join(",");
 
-// One delegated listener keeps touch, mouse and keyboard feedback lightweight.
+// One delegated listener keeps button-border feedback lightweight.
 if (typeof window !== "undefined") {
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-  const addRipple = (element: HTMLElement, clientX?: number, clientY?: number) => {
+  const addBorderRipple = (element: HTMLElement, clientX?: number, clientY?: number) => {
     if (reducedMotion.matches || element.matches(":disabled, [aria-disabled='true']")) return;
 
     const rect = element.getBoundingClientRect();
@@ -32,7 +28,7 @@ if (typeof window !== "undefined") {
 
     const x = clientX === undefined ? rect.width / 2 : clientX - rect.left;
     const y = clientY === undefined ? rect.height / 2 : clientY - rect.top;
-    const radius = Math.max(
+    const reach = Math.max(
       Math.hypot(x, y),
       Math.hypot(rect.width - x, y),
       Math.hypot(x, rect.height - y),
@@ -40,39 +36,35 @@ if (typeof window !== "undefined") {
     );
 
     const surface = document.createElement("span");
-    surface.className = "interaction-ripple-surface";
+    surface.className = "border-ripple-surface";
     surface.style.setProperty("--ripple-surface-top", `${rect.top}px`);
     surface.style.setProperty("--ripple-surface-left", `${rect.left}px`);
     surface.style.setProperty("--ripple-surface-width", `${rect.width}px`);
     surface.style.setProperty("--ripple-surface-height", `${rect.height}px`);
+    surface.style.setProperty("--border-ripple-x", `${x}px`);
+    surface.style.setProperty("--border-ripple-y", `${y}px`);
+    surface.style.setProperty("--border-ripple-reach", `${reach + 4}px`);
     surface.style.borderRadius = window.getComputedStyle(element).borderRadius;
-
-    const ripple = document.createElement("span");
-    ripple.className = "interaction-ripple";
-    ripple.style.setProperty("--ripple-x", `${x}px`);
-    ripple.style.setProperty("--ripple-y", `${y}px`);
-    ripple.style.setProperty("--ripple-size", `${radius * 2}px`);
-    surface.appendChild(ripple);
     document.body.appendChild(surface);
 
-    ripple.addEventListener("animationend", () => surface.remove(), { once: true });
+    surface.addEventListener("animationend", () => surface.remove(), { once: true });
   };
 
   document.addEventListener("pointerdown", (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
-    const interactive = target.closest<HTMLElement>(RIPPLE_SELECTOR);
+    const interactive = target.closest<HTMLElement>(BORDER_RIPPLE_SELECTOR);
     if (!interactive) return;
-    addRipple(interactive, event.clientX, event.clientY);
+    addBorderRipple(interactive, event.clientX, event.clientY);
   }, { passive: true });
 
   document.addEventListener("keydown", (event) => {
     if (event.repeat || (event.key !== "Enter" && event.key !== " ")) return;
     const target = event.target;
     if (!(target instanceof Element)) return;
-    const interactive = target.closest<HTMLElement>(RIPPLE_SELECTOR);
+    const interactive = target.closest<HTMLElement>(BORDER_RIPPLE_SELECTOR);
     if (!interactive) return;
-    addRipple(interactive);
+    addBorderRipple(interactive);
   });
 }
 
