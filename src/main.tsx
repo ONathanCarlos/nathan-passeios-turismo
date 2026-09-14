@@ -5,13 +5,18 @@ import "./index.css";
 const RIPPLE_SELECTOR = [
   "button",
   "a[href]",
+  "input:not([type='hidden'])",
+  "textarea",
+  "select",
   '[role="button"]',
+  '[role="combobox"]',
   '[role="menuitem"]',
   '[role="option"]',
   '[role="tab"]',
   '[role="switch"]',
   '[role="checkbox"]',
   '[role="radio"]',
+  "label:has([role='radio'])",
   ".btn-press",
 ].join(",");
 
