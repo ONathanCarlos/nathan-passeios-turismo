@@ -213,11 +213,12 @@
   .interactive-field {
     opacity: 0.94;
     transform: translateZ(0);
-    transition: opacity 180ms ease, transform 180ms ease;
+    transition: opacity 180ms ease, transform 180ms ease, filter 180ms ease;
   }
   .interactive-field:focus-within {
     opacity: 1;
     transform: translate3d(0, -1px, 0);
+    filter: drop-shadow(0 0 7px hsl(var(--turquoise) / 0.2));
   }
 
   /* Premium press feedback for actionable controls. */
@@ -245,8 +246,8 @@
     transition-duration: 90ms;
   }
   @keyframes ocean-ripple {
-    0%   { transform: translate3d(-50%, -50%, 0) scale(0); opacity: 0.5; }
-    65%  { opacity: 0.18; }
+    0%   { transform: translate3d(-50%, -50%, 0) scale(0); opacity: 0.82; }
+    58%  { opacity: 0.44; }
     100% { transform: translate3d(-50%, -50%, 0) scale(1); opacity: 0; }
   }
   .interaction-ripple-surface {
@@ -268,11 +269,15 @@
     width: var(--ripple-size);
     height: var(--ripple-size);
     border-radius: 9999px;
-    background: radial-gradient(circle, hsl(var(--foreground) / 0.5) 0%, hsl(var(--turquoise-glow) / 0.34) 45%, transparent 72%);
+    background: radial-gradient(circle,
+      hsl(var(--foreground) / 0.68) 0%,
+      hsl(var(--turquoise-glow) / 0.52) 24%,
+      hsl(var(--turquoise) / 0.32) 48%,
+      transparent 70%);
     transform: translate3d(-50%, -50%, 0) scale(0);
     pointer-events: none;
     opacity: 0;
-    animation: ocean-ripple 560ms cubic-bezier(0.2, 0.72, 0.22, 1) forwards;
+    animation: ocean-ripple 680ms cubic-bezier(0.2, 0.72, 0.22, 1) forwards;
     will-change: transform, opacity;
   }
 
