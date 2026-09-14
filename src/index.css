@@ -39,6 +39,10 @@
     --turquoise-glow: 174 90% 60%;
     --deep-blue: 0 0% 0%;
     --night: 0 0% 4%;
+    --whatsapp: 142 70% 49%;
+    --whatsapp-hover: 142 73% 43%;
+    --whatsapp-foreground: 0 0% 100%;
+    --whatsapp-fab-size: 3.5rem;
 
     --gradient-ocean: linear-gradient(170deg, hsl(0 0% 0%) 0%, hsl(270 40% 10%) 40%, hsl(190 70% 18%) 75%, hsl(174 72% 32%) 100%);
     --gradient-turquoise: linear-gradient(135deg, hsl(174 72% 48%) 0%, hsl(190 80% 55%) 100%);
@@ -134,9 +138,86 @@
     backface-visibility: hidden;
   }
 
-  /* WhatsApp FAB — static elegant glow, animation only on press */
+  /* WhatsApp FAB — compositor-only pulse and an idle label outside document flow */
+  @keyframes whatsapp-pulse {
+    0%, 100% { transform: translateZ(0) scale(1); }
+    50% { transform: translateZ(0) scale(1.035); }
+  }
+  .whatsapp-fab-wrap {
+    position: fixed;
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: max(1.25rem, env(safe-area-inset-bottom));
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    max-width: calc(100vw - 2rem);
+    pointer-events: none;
+  }
+  .scroll-top-fab {
+    position: fixed;
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: calc(max(1.25rem, env(safe-area-inset-bottom)) + var(--whatsapp-fab-size) + 0.75rem);
+  }
+  .whatsapp-fab {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 3.5rem;
+    min-height: 3.5rem;
+    padding: 0.75rem 1rem 0.75rem 0.75rem;
+    border-radius: 9999px;
+    color: hsl(var(--whatsapp-foreground));
+    background-color: hsl(var(--whatsapp));
+    font-weight: 600;
+    box-shadow: 0 8px 22px -8px hsl(var(--whatsapp) / 0.58);
+    transition: background-color 180ms ease, transform 180ms ease;
+  }
+  .whatsapp-fab:hover { background-color: hsl(var(--whatsapp-hover)); }
+  .whatsapp-fab-icon {
+    color: hsl(var(--whatsapp-foreground));
+    background-color: hsl(var(--whatsapp-foreground) / 0.15);
+    fill: currentColor;
+  }
   .wa-pulse {
-    box-shadow: 0 8px 24px -4px rgba(37, 211, 102, 0.55);
+    animation: whatsapp-pulse 2.8s ease-in-out infinite;
+    transform-origin: center;
+    will-change: transform;
+  }
+  .whatsapp-idle-label {
+    position: absolute;
+    right: calc(100% + 0.55rem);
+    bottom: 50%;
+    width: max-content;
+    max-width: min(10rem, calc(100vw - 2rem));
+    padding: 0.45rem 0.7rem;
+    border: 1px solid hsl(var(--whatsapp) / 0.45);
+    border-radius: 0.5rem;
+    color: hsl(var(--foreground));
+    background: hsl(var(--night) / 0.94);
+    box-shadow: 0 8px 20px -12px hsl(var(--whatsapp) / 0.65);
+    font-size: 0.75rem;
+    font-weight: 700;
+    opacity: 0;
+    transform: translate3d(6px, 50%, 0);
+    transition: opacity 180ms ease, transform 180ms ease;
+    pointer-events: none;
+  }
+  .whatsapp-idle-label.is-visible {
+    opacity: 1;
+    transform: translate3d(0, 50%, 0);
+  }
+
+  /* Field focus feedback without layout movement or paint-heavy animation. */
+  .interactive-field {
+    opacity: 0.94;
+    transform: translateZ(0);
+    transition: opacity 180ms ease, transform 180ms ease;
+  }
+  .interactive-field:focus-within {
+    opacity: 1;
+    transform: translate3d(0, -1px, 0);
   }
 
   /* Premium ocean ripple + press feedback for all interactive buttons (GPU layer) */
@@ -151,7 +232,6 @@
       border-color 220ms cubic-bezier(0.22, 1, 0.36, 1),
       color 220ms cubic-bezier(0.22, 1, 0.36, 1),
       opacity 220ms cubic-bezier(0.22, 1, 0.36, 1);
-    transform: translateZ(0);
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
@@ -181,10 +261,11 @@
     transform: translate3d(-50%, -50%, 0) scale(0);
     pointer-events: none;
     opacity: 0;
-    will-change: transform, opacity;
+    will-change: auto;
   }
   button:active::after, [role="button"]:active::after, a.btn:active::after, .btn-press:active::after {
     animation: ocean-ripple 720ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform, opacity;
   }
 
   /* Form field error state */
@@ -264,6 +345,19 @@
     .glass-card {
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
+      will-change: auto;
+    }
+    .whatsapp-fab {
+      width: 3.5rem;
+      padding-right: 0.75rem;
+    }
+    .rgb-border {
+      animation: none;
+      will-change: auto;
+    }
+    .float-soft {
+      animation: none;
+      will-change: auto;
     }
   }
 
@@ -294,6 +388,10 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  .wa-pulse {
+    animation: none !important;
+    will-change: auto;
   }
 }
 

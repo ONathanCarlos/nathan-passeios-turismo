@@ -689,7 +689,7 @@ export const StandardForm = ({
 };
 
 const Field = ({ label, children, error, errorMsg }: { label: string; children: React.ReactNode; error?: boolean; errorMsg?: string }) => (
-  <div className={`space-y-2 ${error ? "field-error field-error-shake" : ""}`}>
+  <div className={`interactive-field space-y-2 ${error ? "field-error field-error-shake" : ""}`}>
     <Label className="text-foreground font-semibold drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)]">{label}</Label>
     {children}
     {error && errorMsg && <p className="text-xs text-rose-400 mt-1">{errorMsg}</p>}
