@@ -298,8 +298,8 @@
   .field-error input,
   .field-error [role="combobox"],
   .field-error button[role="radio"] {
-    border-color: hsl(0 80% 60%) !important;
-    box-shadow: 0 0 0 1px hsl(0 80% 60% / 0.5), 0 0 12px hsl(0 80% 60% / 0.35) !important;
+    border-color: hsl(0 80% 60%);
+    box-shadow: 0 0 0 1px hsl(0 80% 60% / 0.5), 0 0 12px hsl(0 80% 60% / 0.35);
     transition: border-color 220ms ease, box-shadow 220ms ease;
   }
   .field-error-shake {
