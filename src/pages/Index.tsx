@@ -36,8 +36,8 @@ import caboFrioImg from "@/assets/cabo-frio.jpg";
 type FormScreen = `form-${TourKey}`;
 type Screen = "menu" | { details: TourKey } | FormScreen;
 
-const FEATURED_BADGES: Partial<Record<TourKey, "mais_vendido" | "mais_procurado" | "mais_bem_avaliado">> = {
-  escuna: "mais_vendido",
+const FEATURED_BADGES: Partial<Record<TourKey, "destaque_mais_vendido" | "mais_procurado" | "mais_bem_avaliado">> = {
+  escuna: "destaque_mais_vendido",
   arraial: "mais_procurado",
   buggy: "mais_bem_avaliado",
 };
@@ -276,7 +276,7 @@ const Index = () => {
                   </span>
                   {(() => {
                     const c = cmsByKey.get(opt.key);
-                    return c?.badge ? (
+                    return c?.badge && !FEATURED_BADGES[opt.key] ? (
                       <div className="absolute top-3 right-12">
                         <TourBadge type={c.badge} lang={lang} />
                       </div>

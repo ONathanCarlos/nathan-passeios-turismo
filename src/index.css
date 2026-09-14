@@ -181,8 +181,8 @@
   }
   .whatsapp-idle-label {
     position: absolute;
-    right: 0;
-    bottom: calc(100% + 0.55rem);
+    right: calc(100% + 0.55rem);
+    bottom: 50%;
     width: max-content;
     max-width: min(10rem, calc(100vw - 2rem));
     padding: 0.45rem 0.7rem;
@@ -194,13 +194,13 @@
     font-size: 0.75rem;
     font-weight: 700;
     opacity: 0;
-    transform: translate3d(0, 6px, 0);
+    transform: translate3d(6px, 50%, 0);
     transition: opacity 180ms ease, transform 180ms ease;
     pointer-events: none;
   }
   .whatsapp-idle-label.is-visible {
     opacity: 1;
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 50%, 0);
   }
 
   /* Field focus feedback without layout movement or paint-heavy animation. */
@@ -226,7 +226,6 @@
       border-color 220ms cubic-bezier(0.22, 1, 0.36, 1),
       color 220ms cubic-bezier(0.22, 1, 0.36, 1),
       opacity 220ms cubic-bezier(0.22, 1, 0.36, 1);
-    transform: translateZ(0);
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
@@ -256,10 +255,11 @@
     transform: translate3d(-50%, -50%, 0) scale(0);
     pointer-events: none;
     opacity: 0;
-    will-change: transform, opacity;
+    will-change: auto;
   }
   button:active::after, [role="button"]:active::after, a.btn:active::after, .btn-press:active::after {
     animation: ocean-ripple 720ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform, opacity;
   }
 
   /* Form field error state */
@@ -344,6 +344,14 @@
     .whatsapp-fab {
       width: 3.5rem;
       padding-right: 0.75rem;
+    }
+    .rgb-border {
+      animation: none;
+      will-change: auto;
+    }
+    .float-soft {
+      animation: none;
+      will-change: auto;
     }
   }
 

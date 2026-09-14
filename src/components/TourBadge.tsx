@@ -1,7 +1,7 @@
 // Selo visual configurável (mais vendido, premium, etc.) para cards de passeios e pacotes.
 import type { Lang } from "@/lib/i18n";
 
-type BadgeKey = "mais_vendido" | "favorito" | "hermanos" | "premium" | "experiencia_completa" | "mais_procurado" | "mais_bem_avaliado";
+type BadgeKey = "mais_vendido" | "favorito" | "hermanos" | "premium" | "experiencia_completa" | "destaque_mais_vendido" | "mais_procurado" | "mais_bem_avaliado";
 
 const MAP: Record<BadgeKey, { icon: string; label: Record<Lang, string>; cls: string }> = {
   mais_vendido: {
@@ -28,6 +28,11 @@ const MAP: Record<BadgeKey, { icon: string; label: Record<Lang, string>; cls: st
     icon: "🏝️",
     label: { pt: "Experiência completa", es: "Experiencia completa", en: "Complete experience", fr: "Expérience complète", it: "Esperienza completa" },
     cls: "bg-emerald-500/95 text-white",
+  },
+  destaque_mais_vendido: {
+    icon: "🔥",
+    label: { pt: "O mais vendido", es: "O mais vendido", en: "O mais vendido", fr: "O mais vendido", it: "O mais vendido" },
+    cls: "bg-rose-500/95 text-white",
   },
   mais_procurado: {
     icon: "🔥",

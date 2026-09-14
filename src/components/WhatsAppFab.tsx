@@ -21,24 +21,26 @@ export const WhatsAppFab = ({ lang }: Props) => {
   const { data: cfg } = useConfig();
   const [showIdleLabel, setShowIdleLabel] = useState(false);
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollFrame = useRef<number | null>(null);
   const wa = (cfg?.whatsapp || FALLBACK_WA).replace(/\D/g, "");
   const url = `https://wa.me/${wa}?text=${encodeURIComponent(MESSAGES[lang])}`;
 
   useEffect(() => {
-    const scheduleLabel = () => {
-      if (idleTimer.current) window.clearTimeout(idleTimer.current);
-      idleTimer.current = window.setTimeout(() => setShowIdleLabel(true), 1100);
-    };
     const onScroll = () => {
-      setShowIdleLabel(false);
-      scheduleLabel();
+      if (scrollFrame.current !== null) return;
+      scrollFrame.current = window.requestAnimationFrame(() => {
+        scrollFrame.current = null;
+        setShowIdleLabel(false);
+        if (idleTimer.current) window.clearTimeout(idleTimer.current);
+        idleTimer.current = window.setTimeout(() => setShowIdleLabel(true), 1100);
+      });
     };
 
-    scheduleLabel();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
       if (idleTimer.current) window.clearTimeout(idleTimer.current);
+      if (scrollFrame.current !== null) window.cancelAnimationFrame(scrollFrame.current);
     };
   }, []);
 
