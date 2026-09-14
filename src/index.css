@@ -229,7 +229,9 @@
     opacity: 1;
     transform: translate3d(0, -1px, 0);
   }
-  .interactive-field:focus-within :is(input, textarea, select, [role="combobox"]) {
+  :is(input, textarea, select, [role="combobox"]):focus,
+  .interactive-field:focus-within :is(input, textarea, select, [role="combobox"]),
+  .interactive-field:focus-within > button {
     animation: field-border-wave 1.65s cubic-bezier(0.4, 0, 0.2, 1) infinite;
     will-change: box-shadow;
   }
@@ -413,7 +415,9 @@
   .border-ripple-surface {
     display: none !important;
   }
-  .interactive-field:focus-within :is(input, textarea, select, [role="combobox"]) {
+  :is(input, textarea, select, [role="combobox"]):focus,
+  .interactive-field:focus-within :is(input, textarea, select, [role="combobox"]),
+  .interactive-field:focus-within > button {
     animation: none !important;
     will-change: auto;
   }

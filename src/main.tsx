@@ -55,6 +55,8 @@ if (typeof window !== "undefined") {
     if (!(target instanceof Element)) return;
     const interactive = target.closest<HTMLElement>(BORDER_RIPPLE_SELECTOR);
     if (!interactive) return;
+    // Buttons acting as form fields use the continuous focused-border wave instead.
+    if (interactive.closest(".interactive-field") || interactive.matches('[role="combobox"]')) return;
     addBorderRipple(interactive, event.clientX, event.clientY);
   }, { passive: true });
 
@@ -64,6 +66,7 @@ if (typeof window !== "undefined") {
     if (!(target instanceof Element)) return;
     const interactive = target.closest<HTMLElement>(BORDER_RIPPLE_SELECTOR);
     if (!interactive) return;
+    if (interactive.closest(".interactive-field") || interactive.matches('[role="combobox"]')) return;
     addBorderRipple(interactive);
   });
 }
