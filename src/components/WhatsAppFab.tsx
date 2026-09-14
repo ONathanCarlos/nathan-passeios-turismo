@@ -21,7 +21,7 @@ export const WhatsAppFab = ({ lang }: Props) => {
   const t = dict[lang];
   const { data: cfg } = useConfig();
   const [showIdleLabel, setShowIdleLabel] = useState(false);
-  const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const idleTimer = useRef<number | null>(null);
   const scrollFrame = useRef<number | null>(null);
   const wa = (cfg?.whatsapp || FALLBACK_WA).replace(/\D/g, "");
   const url = `https://wa.me/${wa}?text=${encodeURIComponent(MESSAGES[lang])}`;
