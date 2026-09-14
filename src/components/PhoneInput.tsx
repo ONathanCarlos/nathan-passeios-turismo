@@ -99,7 +99,7 @@ export const PhoneInput = ({ value, onChange, inputClassName }: Props) => {
         value={value.ddi}
         onValueChange={(ddi) => onChange({ ...value, ddi })}
       >
-        <SelectTrigger className={`${inputClassName ?? ""} w-[9.5rem] sm:w-[10.5rem] flex-shrink-0`}>
+        <SelectTrigger className={`${inputClassName ?? ""} w-[7.5rem] sm:w-[10.5rem] flex-shrink-0`}>
           <SelectValue>
             {(() => {
               const c = COUNTRIES.find((x) => x.code === value.ddi);
@@ -107,7 +107,7 @@ export const PhoneInput = ({ value, onChange, inputClassName }: Props) => {
                 <span className="flex items-center gap-1.5">
                   <span>{c.flag}</span>
                   <span className="font-mono text-sm">{c.code}</span>
-                  <span className="text-muted-foreground text-[10px] uppercase">{c.name.slice(0, 6)}</span>
+                  <span className="hidden sm:inline text-muted-foreground text-[10px] uppercase">{c.name.slice(0, 6)}</span>
                 </span>
               ) : value.ddi;
             })()}

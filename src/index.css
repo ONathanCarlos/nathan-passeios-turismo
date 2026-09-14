@@ -42,6 +42,7 @@
     --whatsapp: 142 70% 49%;
     --whatsapp-hover: 142 73% 43%;
     --whatsapp-foreground: 0 0% 100%;
+    --whatsapp-fab-size: 3.5rem;
 
     --gradient-ocean: linear-gradient(170deg, hsl(0 0% 0%) 0%, hsl(270 40% 10%) 40%, hsl(190 70% 18%) 75%, hsl(174 72% 32%) 100%);
     --gradient-turquoise: linear-gradient(135deg, hsl(174 72% 48%) 0%, hsl(190 80% 55%) 100%);
@@ -152,6 +153,11 @@
     justify-content: flex-end;
     max-width: calc(100vw - 2rem);
     pointer-events: none;
+  }
+  .scroll-top-fab {
+    position: fixed;
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: calc(max(1.25rem, env(safe-area-inset-bottom)) + var(--whatsapp-fab-size) + 0.75rem);
   }
   .whatsapp-fab {
     pointer-events: auto;
