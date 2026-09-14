@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Lang, dict } from "@/lib/i18n";
 import { useConfig } from "@/lib/cms";
 
@@ -44,7 +45,7 @@ export const WhatsAppFab = ({ lang }: Props) => {
     };
   }, []);
 
-  return (
+  return createPortal(
     <div className="whatsapp-fab-wrap">
       <span
         className={`whatsapp-idle-label ${showIdleLabel ? "is-visible" : ""}`}
@@ -66,6 +67,7 @@ export const WhatsAppFab = ({ lang }: Props) => {
         </span>
         <span className="hidden sm:inline">{t.whatsappSupport}</span>
       </a>
-    </div>
+    </div>,
+    document.body,
   );
 };
