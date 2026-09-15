@@ -1,3 +1,5 @@
+import { flushSync } from "react-dom";
+
 type ViewTransitionDocument = Document & {
   startViewTransition?: (update: () => void) => void;
 };
@@ -12,5 +14,7 @@ export const runNavigationTransition = (update: () => void) => {
     return;
   }
 
-  transitionDocument.startViewTransition(update);
+  transitionDocument.startViewTransition(() => {
+    flushSync(update);
+  });
 };
