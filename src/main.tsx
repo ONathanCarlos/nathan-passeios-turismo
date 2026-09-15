@@ -37,15 +37,11 @@ if (typeof window !== "undefined") {
 
     const surface = document.createElement("span");
     surface.className = "border-ripple-surface";
-    surface.style.setProperty("--ripple-surface-top", `${rect.top}px`);
-    surface.style.setProperty("--ripple-surface-left", `${rect.left}px`);
-    surface.style.setProperty("--ripple-surface-width", `${rect.width}px`);
-    surface.style.setProperty("--ripple-surface-height", `${rect.height}px`);
     surface.style.setProperty("--border-ripple-x", `${x}px`);
     surface.style.setProperty("--border-ripple-y", `${y}px`);
     surface.style.setProperty("--border-ripple-reach", `${reach + 4}px`);
     surface.style.borderRadius = window.getComputedStyle(element).borderRadius;
-    document.body.appendChild(surface);
+    element.appendChild(surface);
 
     surface.addEventListener("animationend", () => surface.remove(), { once: true });
   };
