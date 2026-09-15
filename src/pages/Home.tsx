@@ -14,6 +14,7 @@ import { loadPromo } from "@/lib/promo";
 import { QrPromoBoot } from "@/components/QrPromo";
 import { CampaignPromoModal } from "@/components/CampaignPromoModal";
 import { useIsAdmin } from "@/lib/adminAuth";
+import { runNavigationTransition } from "@/lib/viewTransition";
 
 import nathanProfile from "@/assets/nathan-profile.jpg";
 import escunaImg from "@/assets/escuna.jpg";
@@ -217,7 +218,7 @@ const Home = () => {
             quadrants={avulsosImgs}
             title={C.avulsosTitle}
             desc={C.avulsosDesc}
-            onClick={() => nav("/passeios")}
+            onClick={() => runNavigationTransition(() => nav("/passeios"))}
             highlight={promoActive}
             highlightLabel={promoActive ? C.promoHint : undefined}
           />
@@ -225,7 +226,7 @@ const Home = () => {
             quadrants={pacotesImgs}
             title={C.pacotesTitle}
             desc={C.pacotesDesc}
-            onClick={() => nav("/pacotes")}
+            onClick={() => runNavigationTransition(() => nav("/pacotes"))}
             badge={C.pacotesSlogan}
           />
         </div>

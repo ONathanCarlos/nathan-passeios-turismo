@@ -19,6 +19,7 @@ import { TourBadge, UrgencyTag } from "@/components/TourBadge";
 import { DepoimentosSection } from "@/components/DepoimentosSection";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import type { TourKey } from "@/lib/tours";
+import { runNavigationTransition } from "@/lib/viewTransition";
 
 import escunaImg from "@/assets/escuna.jpg";
 import buggyImg from "@/assets/buggy.jpg";
@@ -84,7 +85,7 @@ const Pacotes = () => {
         <div className="flex items-center justify-between mb-6">
           <button
             type="button"
-            onClick={() => nav("/")}
+            onClick={() => runNavigationTransition(() => nav("/"))}
             className="inline-flex items-center gap-1 text-sm text-foreground/80 hover:text-turquoise-glow transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -144,14 +145,14 @@ const Pacotes = () => {
                   <div className="mt-4 flex flex-col gap-2">
                     <button
                       type="button"
-                      onClick={() => nav(`/pacotes/${p.key}`)}
+                      onClick={() => runNavigationTransition(() => nav(`/pacotes/${p.key}`))}
                       className="w-full rounded-xl border border-turquoise/40 bg-turquoise/10 px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-turquoise/20 hover:border-turquoise/70 transition-colors"
                     >
                       {L.details[lang]}
                     </button>
                     <button
                       type="button"
-                      onClick={() => nav(`/pacotes/${p.key}?reservar=1`)}
+                      onClick={() => runNavigationTransition(() => nav(`/pacotes/${p.key}?reservar=1`))}
                       className="rgb-border w-full block"
                     >
                       <span className="flex items-center justify-center gap-1.5 rounded-[0.65rem] bg-gradient-to-r from-deep-blue to-night px-4 py-2.5 text-sm font-bold text-foreground">

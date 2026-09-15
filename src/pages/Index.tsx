@@ -8,7 +8,7 @@ import { TourDetails } from "@/components/TourDetails";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { TourKey } from "@/lib/tours";
 import { Star, Tag, ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { TourBadge, UrgencyTag } from "@/components/TourBadge";
 import { DepoimentosSection } from "@/components/DepoimentosSection";
 import { PageTransition } from "@/components/PageTransition";
@@ -16,6 +16,7 @@ import { PromoBanner } from "@/components/PromoBanner";
 import { COUPON_ELIGIBLE, tourPriceLabel, TOUR_PRICES, formatBRL } from "@/lib/prices";
 import { useIsAdmin } from "@/lib/adminAuth";
 import { AdminFab } from "@/components/AdminPanel";
+import { runNavigationTransition } from "@/lib/viewTransition";
 
 import { QrPromoBoot } from "@/components/QrPromo";
 import { SpanishLangModal } from "@/components/SpanishLangModal";
@@ -52,6 +53,7 @@ const deserialize = (s: string): Screen => {
 };
 
 const Index = () => {
+  const routeNavigate = useNavigate();
   const [lang, setLangState] = useState<Lang>(() => loadLang());
   const setLang = (l: Lang) => { saveLang(l); setLangState(l); };
   const [screen, setScreen] = useState<Screen>("menu");
@@ -69,7 +71,7 @@ const Index = () => {
     }
     const onPop = (e: PopStateEvent) => {
       const code = e.state?.screen ?? "menu";
-      setScreen(deserialize(code));
+      runNavigationTransition(() => setScreen(deserialize(code)));
       // Reset scroll on back/forward navigation
       requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: "auto" }));
     };
@@ -79,7 +81,7 @@ const Index = () => {
 
   const navigate = (next: Screen) => {
     window.history.pushState({ screen: serialize(next) }, "");
-    setScreen(next);
+    runNavigationTransition(() => setScreen(next));
     // Always start the next page from the top
     requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: "auto" }));
   };
@@ -194,6 +196,10 @@ const Index = () => {
         <div className="flex items-center justify-between mb-8 gap-2">
           <Link
             to="/"
+            onClick={(event) => {
+              event.preventDefault();
+              runNavigationTransition(() => routeNavigate("/"));
+            }}
             aria-label="Voltar"
             className="inline-flex items-center gap-1.5 rounded-full border border-turquoise/40 bg-night/60 backdrop-blur px-3 py-1.5 text-xs font-semibold text-foreground hover:border-turquoise/70 hover:bg-night/80 transition-colors"
           >

@@ -21,6 +21,7 @@ import { useTours, pickLang } from "@/lib/cms";
 import { TOUR_PRICES } from "@/lib/prices";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import type { TourKey } from "@/lib/tours";
+import { runNavigationTransition } from "@/lib/viewTransition";
 
 import escunaImg from "@/assets/escuna.jpg";
 import buggyImg from "@/assets/buggy.jpg";
@@ -104,7 +105,7 @@ const PacoteDetalhes = () => {
         <div aria-hidden className="ocean-static-bg pointer-events-none fixed inset-0 z-0" />
         <div className="relative z-10 text-center">
           <p className="text-foreground/70 mb-4">Pacote não encontrado.</p>
-          <button onClick={() => nav("/pacotes")} className="text-turquoise-glow underline">Ver pacotes</button>
+          <button onClick={() => runNavigationTransition(() => nav("/pacotes"))} className="text-turquoise-glow underline">Ver pacotes</button>
         </div>
       </main>
     );
@@ -121,7 +122,7 @@ const PacoteDetalhes = () => {
       <StandardForm
         lang={lang}
         onLangChange={setLang}
-        onBack={() => setBookingOpen(false)}
+        onBack={() => runNavigationTransition(() => setBookingOpen(false))}
         title={nome}
         titlePt={pacote.nome_pt}
         backgroundImage={imgs[0] || escunaImg}
@@ -137,7 +138,7 @@ const PacoteDetalhes = () => {
         <div className="flex items-center justify-between mb-4">
           <button
             type="button"
-            onClick={() => nav("/pacotes")}
+            onClick={() => runNavigationTransition(() => nav("/pacotes"))}
             className="inline-flex items-center gap-1 text-sm text-foreground/80 hover:text-turquoise-glow transition-colors"
           >
             <ArrowLeft className="w-4 h-4" /> {L.back[lang]}
@@ -176,7 +177,7 @@ const PacoteDetalhes = () => {
               />
               <button
                 type="button"
-                onClick={() => setBookingOpen(true)}
+                onClick={() => runNavigationTransition(() => setBookingOpen(true))}
                 className="rgb-border block"
               >
                 <span className="flex items-center justify-center gap-2 rounded-[0.7rem] bg-gradient-to-r from-deep-blue to-night px-6 py-3 text-sm font-bold text-foreground tracking-wide">
@@ -212,7 +213,7 @@ const PacoteDetalhes = () => {
                     lang={lang}
                     onLangChange={setLang}
                     onBack={() => {}}
-                    onBook={() => setBookingOpen(true)}
+                    onBook={() => runNavigationTransition(() => setBookingOpen(true))}
                     embedded
                   />
                 </div>
@@ -242,7 +243,7 @@ const PacoteDetalhes = () => {
         <div className="mt-10">
           <button
             type="button"
-            onClick={() => setBookingOpen(true)}
+            onClick={() => runNavigationTransition(() => setBookingOpen(true))}
             className="rgb-border w-full block"
           >
             <span className="flex items-center justify-center gap-2 rounded-[0.7rem] bg-gradient-to-r from-deep-blue to-night px-6 py-4 text-base font-bold text-foreground">
