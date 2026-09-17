@@ -56,6 +56,8 @@ interface Props {
   packagePrice?: number;
   /** nome do passeio/pacote em português (usado na mensagem do WhatsApp) */
   titlePt?: string;
+  /** nomes em português dos passeios vinculados ao pacote */
+  packageTourNames?: string[];
 }
 
 const fieldClass =
@@ -64,7 +66,7 @@ const fieldClass =
 export const StandardForm = ({
   lang, onLangChange, onBack, title, backgroundImage,
   adultsOnly = false, requireCpf = false, notice, requirePousada = false, tourKey,
-  packagePrice, titlePt,
+  packagePrice, titlePt, packageTourNames,
 }: Props) => {
   const isPackage = typeof packagePrice === "number";
   const t = dict[lang];
@@ -304,9 +306,11 @@ export const StandardForm = ({
       "Olá Nathan! Aqui está minha reserva completa!",
       "",
       `🚤 NOVA RESERVA — ${msgTitle}`,
-      "",
-      `👤 Responsável: ${name}`,
     ];
+    if (isPackage && packageTourNames?.length) {
+      lines.push("", `Passeios incluídos: ${packageTourNames.join(" & ")}.`);
+    }
+    lines.push("", `👤 Responsável: ${name}`);
     if (requireCpf && cpf.trim()) lines.push(`🪪 CPF: ${cpf.trim()}`);
     lines.push(
       `📞 Telefone: ${fullPhone(phone)}`,

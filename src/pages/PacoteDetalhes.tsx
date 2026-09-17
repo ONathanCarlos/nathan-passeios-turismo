@@ -20,7 +20,7 @@ import { usePacote, pickPacoteLang } from "@/lib/pacotes";
 import { useTours, pickLang } from "@/lib/cms";
 import { TOUR_PRICES } from "@/lib/prices";
 import { ArrowLeft, Sparkles } from "lucide-react";
-import type { TourKey } from "@/lib/tours";
+import { getTour, type TourKey } from "@/lib/tours";
 import { runNavigationTransition } from "@/lib/viewTransition";
 
 import escunaImg from "@/assets/escuna.jpg";
@@ -116,6 +116,12 @@ const PacoteDetalhes = () => {
   const imgs = pacote.imagem_url ? [pacote.imagem_url] : pacote.tour_keys.map(imgOf).filter(Boolean);
   const totalAvulso = savingsItems.reduce((a, b) => a + b.price, 0);
   const originalPrice = pacote.preco_original ?? totalAvulso;
+  const packageTourNames = Array.from(new Set(pacote.tour_keys)).map((tourKey) => {
+    const cms = tours?.find((tour) => tour.key === tourKey);
+    if (cms?.nome_pt) return cms.nome_pt;
+    if (isRealTour(tourKey)) return getTour(tourKey, "pt").title;
+    return PSEUDO_LABELS[tourKey]?.pt || tourKey;
+  });
 
   if (bookingOpen) {
     return (
@@ -127,6 +133,7 @@ const PacoteDetalhes = () => {
         titlePt={pacote.nome_pt}
         backgroundImage={imgs[0] || escunaImg}
         packagePrice={pacote.preco}
+        packageTourNames={packageTourNames}
       />
     );
   }
