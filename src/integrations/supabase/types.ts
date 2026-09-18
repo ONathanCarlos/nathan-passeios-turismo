@@ -14,6 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
+      avaliacoes: {
+        Row: {
+          autorizacao_publicacao: boolean
+          autorizado_em: string
+          avaliacao_passeio: string
+          avaliado_em: string
+          cliente_nome: string
+          convite_id: string
+          expira_em: string
+          id: string
+          media_final: number
+          melhoria: string | null
+          nota_atendimento: number
+          nota_passeio: number
+          nota_plataforma: number
+          nota_recomendacao: number
+          observacoes: string | null
+          passeio_key: string
+          passeio_nome: string
+          reserva_id: string
+          status_admin: string
+          status_publicacao: string
+        }
+        Insert: {
+          autorizacao_publicacao: boolean
+          autorizado_em: string
+          avaliacao_passeio: string
+          avaliado_em?: string
+          cliente_nome: string
+          convite_id: string
+          expira_em: string
+          id?: string
+          media_final: number
+          melhoria?: string | null
+          nota_atendimento: number
+          nota_passeio: number
+          nota_plataforma: number
+          nota_recomendacao: number
+          observacoes?: string | null
+          passeio_key: string
+          passeio_nome: string
+          reserva_id: string
+          status_admin?: string
+          status_publicacao?: string
+        }
+        Update: {
+          autorizacao_publicacao?: boolean
+          autorizado_em?: string
+          avaliacao_passeio?: string
+          avaliado_em?: string
+          cliente_nome?: string
+          convite_id?: string
+          expira_em?: string
+          id?: string
+          media_final?: number
+          melhoria?: string | null
+          nota_atendimento?: number
+          nota_passeio?: number
+          nota_plataforma?: number
+          nota_recomendacao?: number
+          observacoes?: string | null
+          passeio_key?: string
+          passeio_nome?: string
+          reserva_id?: string
+          status_admin?: string
+          status_publicacao?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avaliacoes_convite_id_fkey"
+            columns: ["convite_id"]
+            isOneToOne: false
+            referencedRelation: "convites_avaliacao"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacoes_reserva_id_fkey"
+            columns: ["reserva_id"]
+            isOneToOne: false
+            referencedRelation: "reservas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       config_global: {
         Row: {
           chave: string
@@ -37,6 +121,41 @@ export type Database = {
           valor_jsonb?: Json | null
         }
         Relationships: []
+      }
+      convites_avaliacao: {
+        Row: {
+          criado_em: string
+          id: string
+          passeio_keys: string[]
+          reserva_id: string
+          token_hash: string
+          usado_em: string | null
+        }
+        Insert: {
+          criado_em?: string
+          id?: string
+          passeio_keys: string[]
+          reserva_id: string
+          token_hash: string
+          usado_em?: string | null
+        }
+        Update: {
+          criado_em?: string
+          id?: string
+          passeio_keys?: string[]
+          reserva_id?: string
+          token_hash?: string
+          usado_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "convites_avaliacao_reserva_id_fkey"
+            columns: ["reserva_id"]
+            isOneToOne: true
+            referencedRelation: "reservas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cupons: {
         Row: {

@@ -26,6 +26,51 @@ const json = (body: unknown, status = 200) =>
 const str = (v: unknown, max = 500): string =>
   typeof v === "string" ? v.slice(0, max) : "";
 
+const REVIEWABLE_PSEUDO_KEYS = new Set(["almoco"]);
+const rating = (v: unknown): number | null => {
+  const value = Number(v);
+  return Number.isFinite(value) && value >= 1 && value <= 5 && Number.isInteger(value * 2)
+    ? value
+    : null;
+};
+
+const sha256 = async (value: string) => {
+  const bytes = new TextEncoder().encode(value);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+};
+
+const randomToken = () => {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+};
+
+const resolveReservationTours = async (destino: string) => {
+  const { data: tours } = await supabase
+    .from("tours")
+    .select("key,nome_pt,nome_en,nome_es,nome_fr,nome_it");
+  const tourRows = tours || [];
+  const directTour = tourRows.find((tour) =>
+    [tour.nome_pt, tour.nome_en, tour.nome_es, tour.nome_fr, tour.nome_it].some((name) => name === destino)
+  );
+  if (directTour) return [{ key: directTour.key, nome: directTour.nome_pt }];
+
+  const { data: packages } = await supabase
+    .from("pacotes")
+    .select("tour_keys,nome_pt,nome_en,nome_es,nome_fr,nome_it");
+  const packageRow = (packages || []).find((item) =>
+    [item.nome_pt, item.nome_en, item.nome_es, item.nome_fr, item.nome_it].some((name) => name === destino)
+  );
+  if (!packageRow) return [];
+
+  const uniqueKeys = Array.from(new Set((packageRow.tour_keys || []) as string[]))
+    .filter((key) => !REVIEWABLE_PSEUDO_KEYS.has(key));
+  return uniqueKeys.flatMap((key) => {
+    const tour = tourRows.find((item) => item.key === key);
+    return tour ? [{ key, nome: tour.nome_pt }] : [];
+  });
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -153,13 +198,143 @@ Deno.serve(async (req) => {
     if (action === "complete_reserva") {
       const id = str(body?.id, 60);
       if (!id) return json({ ok: false, error: "invalid_input" }, 400);
-      const { error } = await supabase
+      const { data: reserva, error } = await supabase
         .from("reservas")
         .update({ status: "concluida" })
         .eq("id", id)
-        .eq("status", "pendente");
+        .eq("status", "pendente")
+        .select("id,destino")
+        .maybeSingle();
       if (error) return json({ ok: false, error: "db_error" }, 500);
-      return json({ ok: true });
+      if (!reserva) return json({ ok: true });
+
+      const allowedTours = await resolveReservationTours(reserva.destino);
+      if (allowedTours.length === 0) return json({ ok: true });
+      const reviewToken = randomToken();
+      const { error: inviteError } = await supabase.from("convites_avaliacao").insert({
+        reserva_id: reserva.id,
+        token_hash: await sha256(reviewToken),
+        passeio_keys: allowedTours.map((tour) => tour.key),
+      });
+      if (inviteError && inviteError.code !== "23505") {
+        return json({ ok: false, error: "review_invite_error" }, 500);
+      }
+      return json({ ok: true, review_token: inviteError ? null : reviewToken });
+    }
+
+    // -------------------- AVALIAÇÕES --------------------
+    if (action === "get_review_context") {
+      const token = str(body?.token, 128).trim();
+      if (!/^[a-f0-9]{64}$/.test(token)) return json({ ok: false, error: "invalid_link" }, 404);
+
+      const { data: invite } = await supabase
+        .from("convites_avaliacao")
+        .select("id,reserva_id,passeio_keys,usado_em")
+        .eq("token_hash", await sha256(token))
+        .maybeSingle();
+      if (!invite) return json({ ok: false, error: "invalid_link" }, 404);
+      if (invite.usado_em) return json({ ok: false, error: "already_submitted" }, 409);
+
+      const { data: reserva } = await supabase
+        .from("reservas")
+        .select("nome,destino,status,data_viagem")
+        .eq("id", invite.reserva_id)
+        .eq("status", "concluida")
+        .maybeSingle();
+      if (!reserva) return json({ ok: false, error: "invalid_link" }, 404);
+
+      const { data: tours } = await supabase
+        .from("tours")
+        .select("key,nome_pt")
+        .in("key", invite.passeio_keys);
+      const byKey = new Map((tours || []).map((tour) => [tour.key, tour.nome_pt]));
+      const allowedTours = (invite.passeio_keys as string[]).flatMap((key) => {
+        const nome = byKey.get(key);
+        return nome ? [{ key, nome }] : [];
+      });
+      if (allowedTours.length === 0) return json({ ok: false, error: "invalid_link" }, 404);
+
+      return json({
+        ok: true,
+        context: {
+          cliente_nome: reserva.nome,
+          reserva_destino: reserva.destino,
+          data_viagem: reserva.data_viagem,
+          passeios: allowedTours,
+        },
+      });
+    }
+
+    if (action === "submit_review") {
+      const token = str(body?.token, 128).trim();
+      if (!/^[a-f0-9]{64}$/.test(token)) return json({ ok: false, error: "invalid_link" }, 404);
+      const notaAtendimento = rating(body?.nota_atendimento);
+      const notaPlataforma = rating(body?.nota_plataforma);
+      const notaPasseio = rating(body?.nota_passeio);
+      const notaRecomendacao = rating(body?.nota_recomendacao);
+      const passeioKey = str(body?.passeio_key, 100).trim();
+      const avaliacaoPasseio = str(body?.avaliacao_passeio, 401).trim();
+      const melhoria = str(body?.melhoria, 1001).trim();
+      const observacoes = str(body?.observacoes, 1001).trim();
+      const autorizado = body?.autorizacao_publicacao === true;
+      if (!notaAtendimento || !notaPlataforma || !notaPasseio || !notaRecomendacao || !passeioKey ||
+          !avaliacaoPasseio || avaliacaoPasseio.length > 400 || melhoria.length > 1000 ||
+          observacoes.length > 1000 || (notaPasseio < 4 && !melhoria) || !autorizado) {
+        return json({ ok: false, error: "invalid_input" }, 400);
+      }
+
+      const { data: invite } = await supabase
+        .from("convites_avaliacao")
+        .select("id,reserva_id,passeio_keys,usado_em")
+        .eq("token_hash", await sha256(token))
+        .maybeSingle();
+      if (!invite) return json({ ok: false, error: "invalid_link" }, 404);
+      if (invite.usado_em) return json({ ok: false, error: "already_submitted" }, 409);
+      if (!(invite.passeio_keys as string[]).includes(passeioKey)) {
+        return json({ ok: false, error: "invalid_tour" }, 400);
+      }
+
+      const [{ data: reserva }, { data: tour }] = await Promise.all([
+        supabase.from("reservas").select("nome,status").eq("id", invite.reserva_id).eq("status", "concluida").maybeSingle(),
+        supabase.from("tours").select("nome_pt").eq("key", passeioKey).maybeSingle(),
+      ]);
+      if (!reserva || !tour) return json({ ok: false, error: "invalid_link" }, 404);
+
+      const now = new Date();
+      const expires = new Date(now);
+      expires.setUTCMonth(expires.getUTCMonth() + 6);
+      const average = Number(((notaAtendimento + notaPlataforma + notaPasseio + notaRecomendacao) / 4).toFixed(2));
+      const { data: created, error: insertError } = await supabase
+        .from("avaliacoes")
+        .insert({
+          convite_id: invite.id,
+          reserva_id: invite.reserva_id,
+          cliente_nome: reserva.nome,
+          passeio_key: passeioKey,
+          passeio_nome: tour.nome_pt,
+          nota_atendimento: notaAtendimento,
+          nota_plataforma: notaPlataforma,
+          nota_passeio: notaPasseio,
+          avaliacao_passeio: avaliacaoPasseio,
+          melhoria: melhoria || null,
+          nota_recomendacao: notaRecomendacao,
+          observacoes: observacoes || null,
+          autorizacao_publicacao: true,
+          autorizado_em: now.toISOString(),
+          avaliado_em: now.toISOString(),
+          expira_em: expires.toISOString(),
+          media_final: average,
+        })
+        .select("id")
+        .maybeSingle();
+      if (insertError) {
+        if (insertError.code === "23505" || insertError.message.includes("convite_ja_utilizado")) {
+          return json({ ok: false, error: "already_submitted" }, 409);
+        }
+        return json({ ok: false, error: "db_error" }, 500);
+      }
+      await supabase.from("convites_avaliacao").update({ usado_em: now.toISOString() }).eq("id", invite.id).is("usado_em", null);
+      return json({ ok: true, review: { id: created?.id, passeio_nome: tour.nome_pt, media_final: average } });
     }
 
     return json({ ok: false, error: "unknown_action" }, 400);
