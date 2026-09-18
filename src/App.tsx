@@ -9,6 +9,7 @@ import Index from "./pages/Index.tsx";
 const Admin = lazy(() => import("./pages/Admin.tsx"));
 const Pacotes = lazy(() => import("./pages/Pacotes.tsx"));
 const PacoteDetalhes = lazy(() => import("./pages/PacoteDetalhes.tsx"));
+const Avaliacao = lazy(() => import("./pages/Avaliacao.tsx"));
 import NotFound from "./pages/NotFound.tsx";
 import { ScrollToTopFab } from "@/components/ScrollToTopFab";
 import { bootCmsCache, subscribeCmsCache } from "@/lib/cmsCache";
@@ -40,6 +41,7 @@ const App = () => (
               <Route path="/passeios" element={<Index />} />
               <Route path="/pacotes" element={<Pacotes />} />
               <Route path="/pacotes/:key" element={<PacoteDetalhes />} />
+              <Route path="/avaliar/:token" element={<Avaliacao />} />
               <Route path="/admin" element={<Admin />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
