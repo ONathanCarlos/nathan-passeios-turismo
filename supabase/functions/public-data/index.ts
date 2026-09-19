@@ -40,9 +40,17 @@ const sha256 = async (value: string) => {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 };
 
-const randomToken = () => {
-  const bytes = crypto.getRandomValues(new Uint8Array(32));
-  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+const reservationReviewToken = async (reservaId: string) => {
+  const secret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(`review-link:${secret}`),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(reservaId));
+  return Array.from(new Uint8Array(signature), (byte) => byte.toString(16).padStart(2, "0")).join("");
 };
 
 const resolveReservationTours = async (destino: string) => {
@@ -74,13 +82,13 @@ const resolveReservationTours = async (destino: string) => {
 const createReviewInvite = async (reservaId: string, destino: string) => {
   const allowedTours = await resolveReservationTours(destino);
   if (allowedTours.length === 0) return { token: null, error: null };
-  const reviewToken = randomToken();
+  const reviewToken = await reservationReviewToken(reservaId);
   const { error } = await supabase.from("convites_avaliacao").insert({
     reserva_id: reservaId,
     token_hash: await sha256(reviewToken),
     passeio_keys: allowedTours.map((tour) => tour.key),
   });
-  return { token: error ? null : reviewToken, error };
+  return { token: !error || error.code === "23505" ? reviewToken : null, error };
 };
 
 Deno.serve(async (req) => {

@@ -76,6 +76,19 @@ const CONFLICT: Record<string, string> = {
 
 const onlyDigits = (s: string) => (s || "").replace(/\D/g, "");
 
+const reservationReviewToken = async (reservaId: string) => {
+  const secret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  const key = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(`review-link:${secret}`),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, enc.encode(reservaId));
+  return Array.from(new Uint8Array(signature), (byte) => byte.toString(16).padStart(2, "0")).join("");
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -113,6 +126,19 @@ Deno.serve(async (req) => {
         .order("avaliado_em", { ascending: false })
         .limit(limit);
       return json({ ok: true, rows: data || [] });
+    }
+
+    if (action === "get_reserva_review_link") {
+      const reservaId = str(body?.id, 60);
+      if (!reservaId) return json({ ok: false, error: "invalid_input" }, 400);
+      const { data: invite } = await supabase
+        .from("convites_avaliacao")
+        .select("id,usado_em")
+        .eq("reserva_id", reservaId)
+        .maybeSingle();
+      if (!invite) return json({ ok: false, error: "invite_not_found" }, 404);
+      if (invite.usado_em) return json({ ok: false, error: "already_submitted" }, 409);
+      return json({ ok: true, review_token: await reservationReviewToken(reservaId) });
     }
 
     if (action === "pending_reservation_phones") {
