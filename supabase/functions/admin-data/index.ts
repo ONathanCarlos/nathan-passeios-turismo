@@ -106,6 +106,15 @@ Deno.serve(async (req) => {
       return json({ ok: true, rows: data || [] });
     }
 
+    if (action === "list_avaliacoes") {
+      const { data } = await supabase
+        .from("avaliacoes")
+        .select("*")
+        .order("avaliado_em", { ascending: false })
+        .limit(limit);
+      return json({ ok: true, rows: data || [] });
+    }
+
     if (action === "pending_reservation_phones") {
       const { data } = await supabase
         .from("reservas")

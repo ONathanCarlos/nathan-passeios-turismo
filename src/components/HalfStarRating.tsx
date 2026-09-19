@@ -13,11 +13,11 @@ export const HalfStarRating = ({ value, onChange, label, disabled = false }: Hal
     <div className="flex items-center gap-1" role="radiogroup" aria-label={label}>
       {Array.from({ length: 5 }, (_, index) => {
         const star = index + 1;
-        const fill = value >= star ? "100%" : value >= star - 0.5 ? "50%" : "0%";
+        const fillClass = value >= star ? "w-full" : value >= star - 0.5 ? "w-1/2" : "w-0";
         return (
           <div key={star} className="relative h-11 w-11 shrink-0 sm:h-12 sm:w-12">
             <Star aria-hidden className="absolute inset-1 h-9 w-9 text-muted-foreground/35 sm:h-10 sm:w-10" />
-            <span aria-hidden className="absolute inset-1 overflow-hidden text-amber-300" style={{ width: fill }}>
+            <span aria-hidden className={cn("absolute inset-y-1 left-1 overflow-hidden text-amber-300", fillClass)}>
               <Star className="h-9 w-9 fill-current sm:h-10 sm:w-10" />
             </span>
             {[star - 0.5, star].map((ratingValue, half) => (
