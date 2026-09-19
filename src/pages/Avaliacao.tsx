@@ -217,7 +217,7 @@ const Avaliacao = () => {
               className="mt-0.5 h-5 w-5"
             />
             <label htmlFor="review-consent" className="cursor-pointer text-xs leading-relaxed text-foreground/85">
-              Autorizo que esta avaliação seja exibida publicamente no site como depoimento e avaliação de cliente, pelo período máximo de 6 meses. Após esse período, ela deverá deixar de ser pública.
+              Autorizo que esta avaliação seja exibida publicamente no site como depoimento e avaliação de cliente, pelo período máximo de 6 meses. Após esse período, ela deverá deixar de ser exibida e ser removida conforme a política de retenção de dados do sistema.
             </label>
           </div>
           <FieldError text={errors.autorizacao_publicacao} />

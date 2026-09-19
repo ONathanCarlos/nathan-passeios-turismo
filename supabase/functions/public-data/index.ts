@@ -40,9 +40,17 @@ const sha256 = async (value: string) => {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 };
 
-const randomToken = () => {
-  const bytes = crypto.getRandomValues(new Uint8Array(32));
-  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+const reservationReviewToken = async (reservaId: string) => {
+  const secret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(`review-link:${secret}`),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(reservaId));
+  return Array.from(new Uint8Array(signature), (byte) => byte.toString(16).padStart(2, "0")).join("");
 };
 
 const resolveReservationTours = async (destino: string) => {
@@ -69,6 +77,18 @@ const resolveReservationTours = async (destino: string) => {
     const tour = tourRows.find((item) => item.key === key);
     return tour ? [{ key, nome: tour.nome_pt }] : [];
   });
+};
+
+const createReviewInvite = async (reservaId: string, destino: string) => {
+  const allowedTours = await resolveReservationTours(destino);
+  if (allowedTours.length === 0) return { token: null, error: null };
+  const reviewToken = await reservationReviewToken(reservaId);
+  const { error } = await supabase.from("convites_avaliacao").insert({
+    reserva_id: reservaId,
+    token_hash: await sha256(reviewToken),
+    passeio_keys: allowedTours.map((tour) => tour.key),
+  });
+  return { token: !error || error.code === "23505" ? reviewToken : null, error };
 };
 
 Deno.serve(async (req) => {
@@ -188,10 +208,13 @@ Deno.serve(async (req) => {
           valor_com_desconto: body?.valor_com_desconto != null ? Number(body.valor_com_desconto) : null,
           status,
         })
-        .select("id")
+        .select("id,destino")
         .maybeSingle();
       if (error) return json({ ok: false, error: "db_error" }, 500);
-      return json({ ok: true, id: data?.id ?? null });
+      if (!data || status !== "concluida") return json({ ok: true, id: data?.id ?? null });
+      const invite = await createReviewInvite(data.id, data.destino);
+      if (invite.error && invite.error.code !== "23505") return json({ ok: false, error: "review_invite_error" }, 500);
+      return json({ ok: true, id: data.id, review_token: invite.token });
     }
 
     // Marca uma reserva PENDENTE como concluída (transição única e segura).
@@ -208,18 +231,12 @@ Deno.serve(async (req) => {
       if (error) return json({ ok: false, error: "db_error" }, 500);
       if (!reserva) return json({ ok: true });
 
-      const allowedTours = await resolveReservationTours(reserva.destino);
-      if (allowedTours.length === 0) return json({ ok: true });
-      const reviewToken = randomToken();
-      const { error: inviteError } = await supabase.from("convites_avaliacao").insert({
-        reserva_id: reserva.id,
-        token_hash: await sha256(reviewToken),
-        passeio_keys: allowedTours.map((tour) => tour.key),
-      });
+      const invite = await createReviewInvite(reserva.id, reserva.destino);
+      const inviteError = invite.error;
       if (inviteError && inviteError.code !== "23505") {
         return json({ ok: false, error: "review_invite_error" }, 500);
       }
-      return json({ ok: true, review_token: inviteError ? null : reviewToken });
+      return json({ ok: true, review_token: invite.token });
     }
 
     // -------------------- AVALIAÇÕES --------------------
