@@ -242,15 +242,15 @@ Deno.serve(async (req) => {
     // -------------------- AVALIAÇÕES --------------------
     if (action === "get_review_context") {
       const token = str(body?.token, 128).trim();
-      if (!/^[a-f0-9]{64}$/.test(token)) return json({ ok: false, error: "invalid_link" }, 404);
+      if (!/^[a-f0-9]{64}$/.test(token)) return json({ ok: false, error: "invalid_link" });
 
       const { data: invite } = await supabase
         .from("convites_avaliacao")
         .select("id,reserva_id,passeio_keys,usado_em")
         .eq("token_hash", await sha256(token))
         .maybeSingle();
-      if (!invite) return json({ ok: false, error: "invalid_link" }, 404);
-      if (invite.usado_em) return json({ ok: false, error: "already_submitted" }, 409);
+      if (!invite) return json({ ok: false, error: "invalid_link" });
+      if (invite.usado_em) return json({ ok: false, error: "already_submitted" });
 
       const { data: reserva } = await supabase
         .from("reservas")
@@ -258,7 +258,7 @@ Deno.serve(async (req) => {
         .eq("id", invite.reserva_id)
         .eq("status", "concluida")
         .maybeSingle();
-      if (!reserva) return json({ ok: false, error: "invalid_link" }, 404);
+      if (!reserva) return json({ ok: false, error: "invalid_link" });
 
       const { data: tours } = await supabase
         .from("tours")
@@ -269,7 +269,7 @@ Deno.serve(async (req) => {
         const nome = byKey.get(key);
         return nome ? [{ key, nome }] : [];
       });
-      if (allowedTours.length === 0) return json({ ok: false, error: "invalid_link" }, 404);
+      if (allowedTours.length === 0) return json({ ok: false, error: "invalid_link" });
 
       return json({
         ok: true,
@@ -284,7 +284,7 @@ Deno.serve(async (req) => {
 
     if (action === "submit_review") {
       const token = str(body?.token, 128).trim();
-      if (!/^[a-f0-9]{64}$/.test(token)) return json({ ok: false, error: "invalid_link" }, 404);
+      if (!/^[a-f0-9]{64}$/.test(token)) return json({ ok: false, error: "invalid_link" });
       const notaAtendimento = rating(body?.nota_atendimento);
       const notaPlataforma = rating(body?.nota_plataforma);
       const notaPasseio = rating(body?.nota_passeio);
@@ -297,7 +297,7 @@ Deno.serve(async (req) => {
       if (!notaAtendimento || !notaPlataforma || !notaPasseio || !notaRecomendacao || !passeioKey ||
           !avaliacaoPasseio || avaliacaoPasseio.length > 400 || melhoria.length > 1000 ||
           observacoes.length > 1000 || (notaPasseio < 4 && !melhoria) || !autorizado) {
-        return json({ ok: false, error: "invalid_input" }, 400);
+        return json({ ok: false, error: "invalid_input" });
       }
 
       const { data: invite } = await supabase
@@ -305,17 +305,17 @@ Deno.serve(async (req) => {
         .select("id,reserva_id,passeio_keys,usado_em")
         .eq("token_hash", await sha256(token))
         .maybeSingle();
-      if (!invite) return json({ ok: false, error: "invalid_link" }, 404);
-      if (invite.usado_em) return json({ ok: false, error: "already_submitted" }, 409);
+      if (!invite) return json({ ok: false, error: "invalid_link" });
+      if (invite.usado_em) return json({ ok: false, error: "already_submitted" });
       if (!(invite.passeio_keys as string[]).includes(passeioKey)) {
-        return json({ ok: false, error: "invalid_tour" }, 400);
+        return json({ ok: false, error: "invalid_tour" });
       }
 
       const [{ data: reserva }, { data: tour }] = await Promise.all([
         supabase.from("reservas").select("nome,status").eq("id", invite.reserva_id).eq("status", "concluida").maybeSingle(),
         supabase.from("tours").select("nome_pt").eq("key", passeioKey).maybeSingle(),
       ]);
-      if (!reserva || !tour) return json({ ok: false, error: "invalid_link" }, 404);
+      if (!reserva || !tour) return json({ ok: false, error: "invalid_link" });
 
       const now = new Date();
       const expires = new Date(now);
@@ -346,7 +346,7 @@ Deno.serve(async (req) => {
         .maybeSingle();
       if (insertError) {
         if (insertError.code === "23505" || insertError.message.includes("convite_ja_utilizado")) {
-          return json({ ok: false, error: "already_submitted" }, 409);
+          return json({ ok: false, error: "already_submitted" });
         }
         return json({ ok: false, error: "db_error" }, 500);
       }
