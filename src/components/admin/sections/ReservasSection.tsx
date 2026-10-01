@@ -57,7 +57,7 @@ export const ReservasSection = () => {
     const result = await getReservaReviewLink(r.id);
     setReviewPendingId(null);
 
-    if (!result.ok) {
+    if ("error" in result) {
       const messages: Record<string, string> = {
         already_submitted: "Este cliente já enviou a avaliação.",
         reservation_not_completed: "Marque a reserva como concluída antes de pedir a avaliação.",
