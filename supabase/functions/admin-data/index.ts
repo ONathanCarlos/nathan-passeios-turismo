@@ -89,6 +89,34 @@ const reservationReviewToken = async (reservaId: string) => {
   return Array.from(new Uint8Array(signature), (byte) => byte.toString(16).padStart(2, "0")).join("");
 };
 
+const sha256 = async (value: string) => {
+  const digest = await crypto.subtle.digest("SHA-256", enc.encode(value));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+};
+
+const resolveReservationTourKeys = async (destino: string): Promise<string[]> => {
+  const { data: tours } = await supabase
+    .from("tours")
+    .select("key,nome_pt,nome_en,nome_es,nome_fr,nome_it");
+  const tourRows = tours || [];
+  const directTour = tourRows.find((tour) =>
+    [tour.nome_pt, tour.nome_en, tour.nome_es, tour.nome_fr, tour.nome_it].some((name) => name === destino)
+  );
+  if (directTour) return [directTour.key];
+
+  const { data: packages } = await supabase
+    .from("pacotes")
+    .select("tour_keys,nome_pt,nome_en,nome_es,nome_fr,nome_it");
+  const packageRow = (packages || []).find((item) =>
+    [item.nome_pt, item.nome_en, item.nome_es, item.nome_fr, item.nome_it].some((name) => name === destino)
+  );
+  if (!packageRow) return [];
+
+  const validKeys = new Set(tourRows.map((tour) => tour.key));
+  return Array.from(new Set((packageRow.tour_keys || []) as string[]))
+    .filter((key) => key !== "almoco" && validKeys.has(key));
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -131,13 +159,34 @@ Deno.serve(async (req) => {
     if (action === "get_reserva_review_link") {
       const reservaId = str(body?.id, 60);
       if (!reservaId) return json({ ok: false, error: "invalid_input" }, 400);
-      const { data: invite } = await supabase
+      const { data: reserva } = await supabase
+        .from("reservas")
+        .select("id,destino,status")
+        .eq("id", reservaId)
+        .maybeSingle();
+      if (!reserva) return json({ ok: false, error: "reservation_not_found" });
+      if (reserva.status !== "concluida") return json({ ok: false, error: "reservation_not_completed" });
+
+      const { data: existingInvite } = await supabase
         .from("convites_avaliacao")
         .select("id,usado_em")
         .eq("reserva_id", reservaId)
         .maybeSingle();
-      if (!invite) return json({ ok: false, error: "invite_not_found" }, 404);
-      if (invite.usado_em) return json({ ok: false, error: "already_submitted" }, 409);
+      if (existingInvite?.usado_em) return json({ ok: false, error: "already_submitted" });
+
+      if (!existingInvite) {
+        const passeioKeys = await resolveReservationTourKeys(reserva.destino);
+        if (passeioKeys.length === 0) return json({ ok: false, error: "no_reviewable_tours" });
+        const reviewToken = await reservationReviewToken(reservaId);
+        const { error: inviteError } = await supabase.from("convites_avaliacao").insert({
+          reserva_id: reservaId,
+          token_hash: await sha256(reviewToken),
+          passeio_keys: passeioKeys,
+        });
+        if (inviteError && inviteError.code !== "23505") {
+          return json({ ok: false, error: "invite_create_failed" });
+        }
+      }
       return json({ ok: true, review_token: await reservationReviewToken(reservaId) });
     }
 
