@@ -150,6 +150,10 @@ export const useModais = () =>
   useQuery({
     queryKey: ["cms", "modais"],
     queryFn: async () => {
+      if (getAdminToken()) {
+        const result = await adminCall<{ rows: CmsModal[] }>("cms_list", { table: "modais" });
+        return (result.rows || []).sort((a, b) => a.key.localeCompare(b.key));
+      }
       const { data, error } = await supabase.from("modais").select("*").order("key");
       if (error) throw error;
       return (data || []) as CmsModal[];
@@ -172,10 +176,17 @@ export const useConfig = () =>
   useQuery({
     queryKey: ["cms", "config"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("config_global").select("*");
-      if (error) throw error;
+      let data: Array<{ chave: string; valor: string | null }>;
+      if (getAdminToken()) {
+        const result = await adminCall<{ rows: Array<{ chave: string; valor: string | null }> }>("cms_list", { table: "config_global" });
+        data = result.rows || [];
+      } else {
+        const response = await supabase.from("config_global").select("chave,valor");
+        if (response.error) throw response.error;
+        data = response.data || [];
+      }
       const map: Record<string, string> = {};
-      (data || []).forEach((r: any) => { map[r.chave] = r.valor ?? ""; });
+      data.forEach((r) => { map[r.chave] = r.valor ?? ""; });
       return map;
     },
   });
