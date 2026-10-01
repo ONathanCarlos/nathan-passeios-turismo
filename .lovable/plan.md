@@ -1,22 +1,22 @@
-# Página compartilhável de avaliações com código individual
+# Envio direto de avaliação pelo Admin
 
 ## Objetivo
-Criar uma entrada pública em `/avaliar` para o cliente informar seu código individual e abrir a avaliação já vinculada à reserva correta.
+Adicionar às reservas concluídas no Admin a ação “Pedir avaliação”, sem exigir qualquer código ou dado do cliente.
 
 ## Implementação
-- Adicionar a rota `/avaliar`, preservando a rota segura existente `/avaliar/:token`.
-- Criar uma tela simples para colar ou digitar o código individual recebido.
-- Validar o formato do código antes de continuar e mostrar mensagens claras para código incompleto ou inválido.
-- Consultar o vínculo seguro já existente antes de abrir o formulário, sem revelar dados de outras reservas.
-- Aceitar também o link completo no campo, extraindo automaticamente o código.
-- Redirecionar para `/avaliar/:codigo` após a validação, mantendo o formulário e o envio atuais intactos.
+- Manter o endereço seguro existente `/avaliar/:token`, que abre diretamente o formulário já vinculado à reserva.
+- Adicionar “Pedir avaliação” na lista de reservas concluídas.
+- Ao clicar, buscar no servidor o token exclusivo associado à reserva.
+- Montar automaticamente o link no domínio atual e abrir o WhatsApp do cliente com a mensagem `👉 Avalie aqui: [LINK]`.
+- Se a reserva ainda não possuir convite, gerar o vínculo seguro automaticamente no servidor antes de montar o link.
+- Informar no Admin quando a avaliação já tiver sido enviada ou quando não houver passeio válido vinculado.
 
-## Segurança
-- Cada código continuará sendo exclusivo de uma reserva concluída.
-- O servidor continuará validando o código, os passeios permitidos e se a avaliação já foi enviada.
-- Nenhuma busca pública por nome, telefone ou data será criada.
+## Segurança e escopo
+- O token permanece associado à reserva, validado somente no servidor e invisível como etapa para o cliente.
+- Preservar validações de reserva, passeios permitidos, duplicidade e autorização de publicação.
+- Não alterar o formulário de avaliação, preços, pacotes ou demais funcionalidades.
 
 ## Verificação
-- Testar código válido, inválido e já utilizado.
-- Conferir a página em celular e computador, sem estouro horizontal.
-- Confirmar que as rotas, reservas, preços, pacotes e formulário atual não foram alterados.
+- Testar a ação em reserva concluída e o link direto no celular e computador.
+- Confirmar que reserva pendente não oferece a ação.
+- Confirmar o tratamento de avaliação já enviada e link inválido.
