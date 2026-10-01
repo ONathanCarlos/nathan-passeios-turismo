@@ -4,8 +4,8 @@
 import { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, CalendarCheck2, CheckCircle2, Clock } from "lucide-react";
-import { fetchReservas, updateReservaStatus } from "@/lib/db";
+import { RefreshCw, CalendarCheck2, CheckCircle2, Clock, MessageCircle } from "lucide-react";
+import { fetchReservas, getReservaReviewLink, updateReservaStatus } from "@/lib/db";
 import { toast } from "sonner";
 
 type StatusRow = "pendente" | "concluida";
@@ -26,6 +26,7 @@ export const ReservasSection = () => {
   const [rows, setRows] = useState<Reserva[]>([]);
   const [loading, setLoading] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [reviewPendingId, setReviewPendingId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -49,6 +50,28 @@ export const ReservasSection = () => {
     } else {
       toast.success(next === "concluida" ? "Reserva marcada como concluída" : "Reserva marcada como pendente");
     }
+  };
+
+  const requestReview = async (r: Reserva) => {
+    setReviewPendingId(r.id);
+    const result = await getReservaReviewLink(r.id);
+    setReviewPendingId(null);
+
+    if (!result.ok) {
+      const messages: Record<string, string> = {
+        already_submitted: "Este cliente já enviou a avaliação.",
+        reservation_not_completed: "Marque a reserva como concluída antes de pedir a avaliação.",
+        no_reviewable_tours: "Não foi encontrado um passeio válido nesta reserva.",
+        unauthorized: "Sua sessão administrativa expirou. Entre novamente.",
+      };
+      toast.error(messages[result.error] || "Não foi possível gerar o link de avaliação.");
+      return;
+    }
+
+    const reviewUrl = `${window.location.origin}/avaliar/${result.reviewToken}`;
+    const message = `👉 Avalie aqui: ${reviewUrl}`;
+    const phone = (r.telefone || "").replace(/\D/g, "");
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -76,11 +99,12 @@ export const ReservasSection = () => {
               <TableHead>Cupom</TableHead>
               <TableHead>Valor</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Avaliação</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-6">
+              <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-6">
                 <CalendarCheck2 className="h-4 w-4 inline mr-2" /> Nenhuma reserva ainda
               </TableCell></TableRow>
             ) : rows.map((r) => {
@@ -112,6 +136,27 @@ export const ReservasSection = () => {
                       {isDone ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
                       {isDone ? "Concluída" : "Pendente"}
                     </button>
+                  </TableCell>
+                  <TableCell>
+                    {isDone ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => requestReview(r)}
+                        disabled={reviewPendingId === r.id}
+                        className="h-8 whitespace-nowrap border-turquoise/40 text-[11px] text-turquoise hover:bg-turquoise/10"
+                      >
+                        {reviewPendingId === r.id ? (
+                          <RefreshCw className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <MessageCircle className="mr-1.5 h-3.5 w-3.5" />
+                        )}
+                        Pedir avaliação
+                      </Button>
+                    ) : (
+                      <span className="text-[11px] text-muted-foreground">Conclua primeiro</span>
+                    )}
                   </TableCell>
                 </TableRow>
               );
