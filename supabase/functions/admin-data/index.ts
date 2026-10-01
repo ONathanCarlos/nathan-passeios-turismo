@@ -258,6 +258,14 @@ Deno.serve(async (req) => {
     }
 
     // -------------------- CMS (escrita) --------------------
+    if (action === "cms_list") {
+      const table = str(body?.table, 40);
+      if (!CMS_TABLES.has(table)) return json({ ok: false, error: "invalid_table" }, 400);
+      const { data, error } = await supabase.from(table).select("*");
+      if (error) return json({ ok: false, error: "db_error" }, 500);
+      return json({ ok: true, rows: data || [] });
+    }
+
     if (action === "cms_upsert") {
       const table = str(body?.table, 40);
       if (!CMS_TABLES.has(table)) return json({ ok: false, error: "invalid_table" }, 400);
