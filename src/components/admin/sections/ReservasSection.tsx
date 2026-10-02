@@ -68,8 +68,17 @@ export const ReservasSection = () => {
       return;
     }
 
-    const reviewUrl = `${window.location.origin}/avaliar/${result.reviewToken}`;
-    const message = `👉 Avalie aqui: ${reviewUrl}`;
+    const reviewUrl = `https://nathanturismo.com.br/a/${result.shortCode}`;
+    const message = `Oi! 😊 Aqui é o Nathan, tudo bem?
+
+Queria saber como foi sua experiência com a gente! 🌊☀️
+
+Leva só 1 minutinho pra contar o que você achou e, como agradecimento, você ganha 5% de desconto na próxima reserva. 🎁
+
+👉 AVALIE AQUI:
+${reviewUrl}
+
+Valeu por confiar na gente! ❤️`;
     const phone = (r.telefone || "").replace(/\D/g, "");
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
   };

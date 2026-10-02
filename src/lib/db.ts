@@ -244,17 +244,17 @@ export async function fetchReservas(limit = 200): Promise<Reserva[]> {
 }
 
 export type ReservaReviewLinkResult =
-  | { ok: true; reviewToken: string }
+  | { ok: true; shortCode: string }
   | { ok: false; error: string };
 
 /** Admin: gera ou recupera o convite seguro de avaliação de uma reserva concluída. */
 export async function getReservaReviewLink(id: string): Promise<ReservaReviewLinkResult> {
   try {
-    const res = await callAdmin<{ ok: boolean; review_token?: string; error?: string }>(
+    const res = await callAdmin<{ ok: boolean; short_code?: string; error?: string }>(
       "get_reserva_review_link",
       { id },
     );
-    if (res.ok && res.review_token) return { ok: true, reviewToken: res.review_token };
+    if (res.ok && res.short_code) return { ok: true, shortCode: res.short_code };
     return { ok: false, error: res.error || "invite_create_failed" };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : "invite_create_failed" };

@@ -26,7 +26,8 @@ const initialForm: ReviewSubmission = {
 const fieldClass = "interactive-field border-turquoise/25 bg-night/80 focus-visible:ring-turquoise";
 
 const Avaliacao = () => {
-  const { token = "" } = useParams<{ token: string }>();
+  const { token = "", codigo = "" } = useParams<{ token?: string; codigo?: string }>();
+  const reviewAccess = useMemo(() => codigo ? { short_code: codigo } : { token }, [codigo, token]);
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [context, setContext] = useState<ReviewContext | null>(null);
   const [form, setForm] = useState(initialForm);
@@ -37,7 +38,7 @@ const Avaliacao = () => {
   useEffect(() => {
     document.title = "Avalie sua experiência · Nathan Turismo";
     let active = true;
-    getReviewContext(token)
+    getReviewContext(reviewAccess)
       .then((result) => {
         if (!active) return;
         if (result.ok && result.context) {
@@ -53,7 +54,7 @@ const Avaliacao = () => {
       })
       .catch(() => active && setLoadState("error"));
     return () => { active = false; };
-  }, [token]);
+  }, [reviewAccess]);
 
   const average = useMemo(() => {
     const ratings = [form.nota_atendimento, form.nota_plataforma, form.nota_passeio, form.nota_recomendacao];
@@ -82,7 +83,7 @@ const Avaliacao = () => {
     if (!validate()) return;
     setSubmitting(true);
     try {
-      const result = await submitReview(token, form);
+      const result = await submitReview(reviewAccess, form);
       if (result.ok && result.review) {
         setSubmitted({ passeio_nome: result.review.passeio_nome, media_final: result.review.media_final });
         window.scrollTo({ top: 0, behavior: "smooth" });

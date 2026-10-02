@@ -40,6 +40,14 @@ const sha256 = async (value: string) => {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 };
 
+const randomShortCode = () => {
+  const bytes = crypto.getRandomValues(new Uint8Array(9));
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+};
+
 const reservationReviewToken = async (reservaId: string) => {
   const secret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
   const key = await crypto.subtle.importKey(
@@ -83,12 +91,38 @@ const createReviewInvite = async (reservaId: string, destino: string) => {
   const allowedTours = await resolveReservationTours(destino);
   if (allowedTours.length === 0) return { token: null, error: null };
   const reviewToken = await reservationReviewToken(reservaId);
-  const { error } = await supabase.from("convites_avaliacao").insert({
-    reserva_id: reservaId,
-    token_hash: await sha256(reviewToken),
-    passeio_keys: allowedTours.map((tour) => tour.key),
-  });
-  return { token: !error || error.code === "23505" ? reviewToken : null, error };
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const { error } = await supabase.from("convites_avaliacao").insert({
+      reserva_id: reservaId,
+      token_hash: await sha256(reviewToken),
+      passeio_keys: allowedTours.map((tour) => tour.key),
+      codigo_curto: randomShortCode(),
+    });
+    if (!error || error.code === "23505" && error.message.includes("reserva_id")) {
+      return { token: reviewToken, error };
+    }
+    if (error.code !== "23505") return { token: null, error };
+  }
+  return { token: null, error: { code: "short_code_collision" } };
+};
+
+const findReviewInvite = async (token: string, shortCode: string) => {
+  if (shortCode) {
+    if (!/^[A-Za-z0-9]{10,16}$/.test(shortCode)) return null;
+    const { data } = await supabase
+      .from("convites_avaliacao")
+      .select("id,reserva_id,passeio_keys,usado_em")
+      .eq("codigo_curto", shortCode)
+      .maybeSingle();
+    return data;
+  }
+  if (!/^[a-f0-9]{64}$/.test(token)) return null;
+  const { data } = await supabase
+    .from("convites_avaliacao")
+    .select("id,reserva_id,passeio_keys,usado_em")
+    .eq("token_hash", await sha256(token))
+    .maybeSingle();
+  return data;
 };
 
 Deno.serve(async (req) => {
@@ -242,13 +276,8 @@ Deno.serve(async (req) => {
     // -------------------- AVALIAÇÕES --------------------
     if (action === "get_review_context") {
       const token = str(body?.token, 128).trim();
-      if (!/^[a-f0-9]{64}$/.test(token)) return json({ ok: false, error: "invalid_link" });
-
-      const { data: invite } = await supabase
-        .from("convites_avaliacao")
-        .select("id,reserva_id,passeio_keys,usado_em")
-        .eq("token_hash", await sha256(token))
-        .maybeSingle();
+      const shortCode = str(body?.short_code, 16).trim();
+      const invite = await findReviewInvite(token, shortCode);
       if (!invite) return json({ ok: false, error: "invalid_link" });
       if (invite.usado_em) return json({ ok: false, error: "already_submitted" });
 
@@ -284,7 +313,7 @@ Deno.serve(async (req) => {
 
     if (action === "submit_review") {
       const token = str(body?.token, 128).trim();
-      if (!/^[a-f0-9]{64}$/.test(token)) return json({ ok: false, error: "invalid_link" });
+      const shortCode = str(body?.short_code, 16).trim();
       const notaAtendimento = rating(body?.nota_atendimento);
       const notaPlataforma = rating(body?.nota_plataforma);
       const notaPasseio = rating(body?.nota_passeio);
@@ -300,11 +329,7 @@ Deno.serve(async (req) => {
         return json({ ok: false, error: "invalid_input" });
       }
 
-      const { data: invite } = await supabase
-        .from("convites_avaliacao")
-        .select("id,reserva_id,passeio_keys,usado_em")
-        .eq("token_hash", await sha256(token))
-        .maybeSingle();
+      const invite = await findReviewInvite(token, shortCode);
       if (!invite) return json({ ok: false, error: "invalid_link" });
       if (invite.usado_em) return json({ ok: false, error: "already_submitted" });
       if (!(invite.passeio_keys as string[]).includes(passeioKey)) {
