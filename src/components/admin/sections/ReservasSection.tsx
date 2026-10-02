@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw, CalendarCheck2, CheckCircle2, Clock, MessageCircle } from "lucide-react";
 import { fetchReservas, getReservaReviewLink, updateReservaStatus } from "@/lib/db";
 import { buildReviewWhatsAppMessage, buildShortReviewUrl } from "@/lib/reviewInvite";
+import { getFirstName } from "@/lib/firstName";
 import { toast } from "sonner";
 
 type StatusRow = "pendente" | "concluida";
@@ -15,7 +16,7 @@ type Reserva = {
   id: string; nome: string; telefone: string; email: string | null;
   destino: string; data_viagem: string | null; passageiros: number | null;
   cupom_aplicado: string | null; valor_original: number | null;
-  valor_com_desconto: number | null; status: string; created_at: string;
+  valor_com_desconto: number | null; idioma_reserva: string | null; status: string; created_at: string;
 };
 
 const normalizeStatus = (s: string): StatusRow =>
@@ -71,7 +72,7 @@ export const ReservasSection = () => {
     }
 
     const reviewUrl = buildShortReviewUrl(result.shortCode);
-    const message = buildReviewWhatsAppMessage(reviewUrl);
+    const message = buildReviewWhatsAppMessage(reviewUrl, r.nome, r.idioma_reserva || "pt");
     const phone = (r.telefone || "").replace(/\D/g, "");
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
   };
@@ -114,7 +115,7 @@ export const ReservasSection = () => {
               const isDone = st === "concluida";
               return (
                 <TableRow key={r.id}>
-                  <TableCell className="font-medium">{r.nome}</TableCell>
+                  <TableCell className="font-medium">{getFirstName(r.nome)}</TableCell>
                   <TableCell className="font-mono text-xs">{r.telefone}</TableCell>
                   <TableCell className="text-xs">{r.destino}</TableCell>
                   <TableCell className="text-xs">{r.data_viagem || "—"}</TableCell>

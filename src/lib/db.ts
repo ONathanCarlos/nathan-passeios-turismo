@@ -160,6 +160,7 @@ export interface NewReserva {
   nome: string;
   telefone: string;
   email?: string;
+  idioma_reserva?: string | null;
   destino: string;
   data_viagem?: string | null;
   passageiros?: number | null;
@@ -173,6 +174,7 @@ export interface Reserva {
   nome: string;
   telefone: string;
   email: string | null;
+  idioma_reserva: string | null;
   destino: string;
   data_viagem: string | null;
   passageiros: number | null;
@@ -192,6 +194,7 @@ export async function createReservaInDb(
       nome: r.nome,
       telefone: onlyDigits(r.telefone),
       email: r.email || null,
+      idioma_reserva: r.idioma_reserva || null,
       destino: r.destino,
       data_viagem: r.data_viagem || null,
       passageiros: r.passageiros ?? null,

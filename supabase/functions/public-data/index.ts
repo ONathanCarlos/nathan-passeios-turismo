@@ -224,6 +224,7 @@ Deno.serve(async (req) => {
       const nome = str(body?.nome, 200);
       const telefone = onlyDigits(str(body?.telefone, 40));
       const destino = str(body?.destino, 200);
+      const idiomaReserva = str(body?.idioma_reserva, 10) || null;
       if (!nome || !telefone || !destino) return json({ ok: false, error: "invalid_input" }, 400);
       const status = body?.status === "concluida" ? "concluida" : "pendente";
       const { data, error } = await supabase
@@ -232,6 +233,7 @@ Deno.serve(async (req) => {
           nome,
           telefone,
           email: str(body?.email, 200) || null,
+          idioma_reserva: idiomaReserva,
           destino,
           data_viagem: str(body?.data_viagem, 20) || null,
           passageiros: Number.isFinite(Number(body?.passageiros)) ? Number(body?.passageiros) : null,

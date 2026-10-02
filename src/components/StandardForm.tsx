@@ -360,6 +360,7 @@ export const StandardForm = ({
       {
         nome: name,
         telefone: waPersist,
+        idioma_reserva: lang,
         destino: title,
         data_viagem: date ? date.toISOString().slice(0, 10) : null,
         passageiros: parseInt(pax) || null,
@@ -400,6 +401,7 @@ export const StandardForm = ({
         {
           nome: name,
           telefone: wa,
+          idioma_reserva: lang,
           destino: title,
           data_viagem: date ? date.toISOString().slice(0, 10) : null,
           passageiros: parseInt(pax) || null,
