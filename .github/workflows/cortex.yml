@@ -1,0 +1,43 @@
+# Automacao do mapa do projeto (gerada pela extensao).
+# versao-workflow: 3
+# Gera um resumo tecnico do projeto no CI e o commita (graphify-out/) de volta ao repositorio.
+#
+# SO POR DISPARO DA EXTENSAO. Antes havia tambem `on: push`, e era isso
+# que fazia o Actions rodar a cada commit do dono do repositorio —
+# inclusive de quem parou de usar a extensao ou esta com a chave
+# expirada, porque este arquivo vive no repositorio DELE e nao pergunta
+# nada ao servidor. O mapa agora e gerado quando a extensao pede.
+name: Mapa do Projeto
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cortex-main
+  cancel-in-progress: true
+
+jobs:
+  build-cortex:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Prepara engine
+        run: uv tool install graphifyy
+
+      - name: Gera o mapa do projeto
+        run: graphify extract . --code-only --force
+
+      - name: Salva o mapa do projeto
+        run: |
+          git config user.name "cortex-bot"
+          git config user.email "cortex-bot@users.noreply.github.com"
+          git add graphify-out
+          git diff --staged --quiet || git commit -m "chore: atualiza mapa do projeto"
+          git push
