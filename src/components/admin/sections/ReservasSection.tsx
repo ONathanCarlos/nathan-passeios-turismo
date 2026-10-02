@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { RefreshCw, CalendarCheck2, CheckCircle2, Clock, MessageCircle } from "lucide-react";
 import { fetchReservas, getReservaReviewLink, updateReservaStatus } from "@/lib/db";
+import { buildReviewWhatsAppMessage, buildShortReviewUrl } from "@/lib/reviewInvite";
 import { toast } from "sonner";
 
 type StatusRow = "pendente" | "concluida";
@@ -62,14 +63,15 @@ export const ReservasSection = () => {
         already_submitted: "Este cliente já enviou a avaliação.",
         reservation_not_completed: "Marque a reserva como concluída antes de pedir a avaliação.",
         no_reviewable_tours: "Não foi encontrado um passeio válido nesta reserva.",
+        short_link_create_failed: "Não foi possível gerar o link curto. Tente novamente.",
         unauthorized: "Sua sessão administrativa expirou. Entre novamente.",
       };
       toast.error(messages[result.error] || "Não foi possível gerar o link de avaliação.");
       return;
     }
 
-    const reviewUrl = `${window.location.origin}/avaliar/${result.reviewToken}`;
-    const message = `👉 Avalie aqui: ${reviewUrl}`;
+    const reviewUrl = buildShortReviewUrl(result.shortCode);
+    const message = buildReviewWhatsAppMessage(reviewUrl);
     const phone = (r.telefone || "").replace(/\D/g, "");
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
   };

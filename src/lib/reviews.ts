@@ -31,11 +31,13 @@ const callReviews = async <T>(action: string, payload: Record<string, unknown>) 
   return data as PublicReviewResponse<T>;
 };
 
-export const getReviewContext = (token: string) =>
-  callReviews<{ context?: ReviewContext }>("get_review_context", { token });
+type ReviewAccess = { token?: string; short_code?: string };
 
-export const submitReview = (token: string, submission: ReviewSubmission) =>
+export const getReviewContext = (access: ReviewAccess) =>
+  callReviews<{ context?: ReviewContext }>("get_review_context", access);
+
+export const submitReview = (access: ReviewAccess, submission: ReviewSubmission) =>
   callReviews<{ review?: { id: string; passeio_nome: string; media_final: number } }>("submit_review", {
-    token,
+    ...access,
     ...submission,
   });

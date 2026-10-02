@@ -124,6 +124,7 @@ export type Database = {
       }
       convites_avaliacao: {
         Row: {
+          codigo_curto: string | null
           criado_em: string
           id: string
           passeio_keys: string[]
@@ -132,6 +133,7 @@ export type Database = {
           usado_em: string | null
         }
         Insert: {
+          codigo_curto?: string | null
           criado_em?: string
           id?: string
           passeio_keys: string[]
@@ -140,6 +142,7 @@ export type Database = {
           usado_em?: string | null
         }
         Update: {
+          codigo_curto?: string | null
           criado_em?: string
           id?: string
           passeio_keys?: string[]

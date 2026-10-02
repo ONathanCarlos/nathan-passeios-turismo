@@ -94,6 +94,36 @@ const sha256 = async (value: string) => {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 };
 
+const randomShortCode = () => {
+  const bytes = crypto.getRandomValues(new Uint8Array(12));
+  const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join("");
+};
+
+const assignShortCode = async (inviteId: string): Promise<string | null> => {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const shortCode = randomShortCode();
+    const { data, error } = await supabase
+      .from("convites_avaliacao")
+      .update({ codigo_curto: shortCode })
+      .eq("id", inviteId)
+      .is("codigo_curto", null)
+      .select("codigo_curto")
+      .maybeSingle();
+    if (data?.codigo_curto) return data.codigo_curto;
+    if (!error) {
+      const { data: current } = await supabase
+        .from("convites_avaliacao")
+        .select("codigo_curto")
+        .eq("id", inviteId)
+        .maybeSingle();
+      return current?.codigo_curto || null;
+    }
+    if (error.code !== "23505") return null;
+  }
+  return null;
+};
+
 const resolveReservationTourKeys = async (destino: string): Promise<string[]> => {
   const { data: tours } = await supabase
     .from("tours")
@@ -169,25 +199,43 @@ Deno.serve(async (req) => {
 
       const { data: existingInvite } = await supabase
         .from("convites_avaliacao")
-        .select("id,usado_em")
+        .select("id,usado_em,codigo_curto")
         .eq("reserva_id", reservaId)
         .maybeSingle();
       if (existingInvite?.usado_em) return json({ ok: false, error: "already_submitted" });
 
+      let inviteId = existingInvite?.id || null;
+      let shortCode = existingInvite?.codigo_curto || null;
       if (!existingInvite) {
         const passeioKeys = await resolveReservationTourKeys(reserva.destino);
         if (passeioKeys.length === 0) return json({ ok: false, error: "no_reviewable_tours" });
         const reviewToken = await reservationReviewToken(reservaId);
-        const { error: inviteError } = await supabase.from("convites_avaliacao").insert({
-          reserva_id: reservaId,
-          token_hash: await sha256(reviewToken),
-          passeio_keys: passeioKeys,
-        });
+        const { data: createdInvite, error: inviteError } = await supabase
+          .from("convites_avaliacao")
+          .insert({
+            reserva_id: reservaId,
+            token_hash: await sha256(reviewToken),
+            passeio_keys: passeioKeys,
+          })
+          .select("id")
+          .maybeSingle();
         if (inviteError && inviteError.code !== "23505") {
           return json({ ok: false, error: "invite_create_failed" });
         }
+        inviteId = createdInvite?.id || null;
+        if (!inviteId) {
+          const { data: concurrentInvite } = await supabase
+            .from("convites_avaliacao")
+            .select("id,codigo_curto")
+            .eq("reserva_id", reservaId)
+            .maybeSingle();
+          inviteId = concurrentInvite?.id || null;
+          shortCode = concurrentInvite?.codigo_curto || null;
+        }
       }
-      return json({ ok: true, review_token: await reservationReviewToken(reservaId) });
+      if (!shortCode && inviteId) shortCode = await assignShortCode(inviteId);
+      if (!shortCode) return json({ ok: false, error: "short_link_create_failed" }, 500);
+      return json({ ok: true, short_code: shortCode });
     }
 
     if (action === "pending_reservation_phones") {
