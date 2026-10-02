@@ -41,7 +41,7 @@ const sha256 = async (value: string) => {
 };
 
 const randomShortCode = () => {
-  const bytes = crypto.getRandomValues(new Uint8Array(9));
+  const bytes = crypto.getRandomValues(new Uint8Array(12));
   const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join("");
 };

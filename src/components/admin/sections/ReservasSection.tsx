@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { RefreshCw, CalendarCheck2, CheckCircle2, Clock, MessageCircle } from "lucide-react";
 import { fetchReservas, getReservaReviewLink, updateReservaStatus } from "@/lib/db";
+import { buildReviewWhatsAppMessage, buildShortReviewUrl } from "@/lib/reviewInvite";
 import { toast } from "sonner";
 
 type StatusRow = "pendente" | "concluida";
@@ -69,17 +70,8 @@ export const ReservasSection = () => {
       return;
     }
 
-    const reviewUrl = `https://nathanturismo.com.br/a/${result.shortCode}`;
-    const message = `Oi! 😊 Aqui é o Nathan, tudo bem?
-
-Queria saber como foi sua experiência com a gente! 🌊☀️
-
-Leva só 1 minutinho pra contar o que você achou e, como agradecimento, você ganha 5% de desconto na próxima reserva. 🎁
-
-👉 AVALIE AQUI:
-${reviewUrl}
-
-Valeu por confiar na gente! ❤️`;
+    const reviewUrl = buildShortReviewUrl(result.shortCode);
+    const message = buildReviewWhatsAppMessage(reviewUrl);
     const phone = (r.telefone || "").replace(/\D/g, "");
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
   };
