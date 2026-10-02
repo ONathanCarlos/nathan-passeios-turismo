@@ -30,15 +30,16 @@ export const buildReviewWhatsAppMessage = (
     : "pt";
 
   const messages: Record<Lang, string> = {
-    pt: `Olá, ${name}! 😊
-Esperamos que tenha aproveitado o passeio conosco.
+    pt: `Oi ${name} !😊 Aqui é o Nathan, tudo bem?
 
-Sua opinião é muito importante para nós! Se puder, deixe uma avaliação sobre sua experiência. Isso nos ajuda muito! ❤️
+Queria saber como foi sua experiência com a gente! 🌊☀️
+
+Leva só 1 minutinho pra contar o que você achou e, como agradecimento, você ganha 5% de desconto na próxima reserva. 🎁
 
 👉 AVALIE AQUI:
 ${reviewUrl}
 
-Muito obrigado por confiar na gente!`,
+Valeu por confiar na gente! ❤️`,
     es: `¡Hola, ${name}! 😊
 Esperamos que hayas disfrutado mucho del paseo con nosotros.
 
