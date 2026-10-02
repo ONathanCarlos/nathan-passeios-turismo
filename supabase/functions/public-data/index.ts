@@ -274,6 +274,36 @@ Deno.serve(async (req) => {
     }
 
     // -------------------- AVALIAÇÕES --------------------
+    if (action === "get_public_reviews") {
+      const passeioKey = str(body?.passeio_key, 100).trim();
+      if (!passeioKey) return json({ ok: false, error: "invalid_input" }, 400);
+
+      const { data: reviews, error } = await supabase
+        .from("avaliacoes")
+        .select("cliente_nome,media_final,avaliacao_passeio,passeio_key")
+        .eq("autorizacao_publicacao", true)
+        .eq("passeio_key", passeioKey)
+        .gt("expira_em", new Date().toISOString())
+        .not("avaliado_em", "is", null)
+        .order("avaliado_em", { ascending: false });
+
+      if (error) return json({ ok: false, error: "db_error" }, 500);
+
+      const publicReviews = (reviews || []).map((review) => {
+        const normalizedName = typeof review.cliente_nome === "string"
+          ? review.cliente_nome.trim().replace(/\\s+/g, " ")
+          : "";
+        return {
+          nome: normalizedName ? normalizedName.split(" ")[0] : "Cliente",
+          nota: Number(review.media_final),
+          comentario: review.avaliacao_passeio,
+          passeio_key: review.passeio_key,
+        };
+      });
+
+      return json({ ok: true, reviews: publicReviews });
+    }
+
     if (action === "get_review_context") {
       const token = str(body?.token, 128).trim();
       const shortCode = str(body?.short_code, 16).trim();
