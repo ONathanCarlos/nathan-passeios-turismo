@@ -21,7 +21,7 @@ describe("solicitação de avaliação", () => {
   });
 
   it.each([
-    ["pt", "Olá, João! 😊", "Sua opinião é muito importante para nós!"],
+    ["pt", "Oi João !😊", "Queria saber como foi sua experiência com a gente! 🌊☀️"],
     ["es", "¡Hola, João! 😊", "¡Tu opinión es muy importante para nosotros!"],
     ["en", "Hi, João! 😊", "Your opinion means a lot to us!"],
     ["fr", "Bonjour, João ! 😊", "Votre avis est très important pour nous !"],
@@ -36,8 +36,8 @@ describe("solicitação de avaliação", () => {
 
   it("usa português quando o idioma não está disponível", () => {
     const message = buildReviewWhatsAppMessage(url, "Maria Fernanda", "de");
-    expect(message).toContain("Olá, Maria! 😊");
-    expect(message).toContain("Sua opinião é muito importante para nós!");
+    expect(message).toContain("Oi Maria !😊");
+    expect(message).toContain("Queria saber como foi sua experiência com a gente! 🌊☀️");
   });
 
   it("mantém compatibilidade com a assinatura anterior", () => {
