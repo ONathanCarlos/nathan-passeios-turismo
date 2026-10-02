@@ -3,27 +3,12 @@ import { Star } from "lucide-react";
 import type { Lang } from "@/lib/i18n";
 import { getPublicReviews, type PublicReview } from "@/lib/publicReviews";
 
-const L: Record<Lang, { title: string; commentLabel: string }> = {
-  pt: {
-    title: "Avaliações de quem já viveu essa experiência",
-    commentLabel: "Comentário",
-  },
-  es: {
-    title: "Opiniones de quienes ya vivieron esta experiencia",
-    commentLabel: "Comentario",
-  },
-  en: {
-    title: "Reviews from people who lived this experience",
-    commentLabel: "Comment",
-  },
-  fr: {
-    title: "Avis de ceux qui ont déjà vécu cette expérience",
-    commentLabel: "Commentaire",
-  },
-  it: {
-    title: "Recensioni di chi ha già vissuto questa esperienza",
-    commentLabel: "Commento",
-  },
+const L: Record<Lang, { title: string }> = {
+  pt: { title: "Quem já foi, conta" },
+  es: { title: "Quienes ya fueron, cuentan" },
+  en: { title: "What our guests say" },
+  fr: { title: "Ce que disent nos clients" },
+  it: { title: "Cosa dicono i nostri clienti" },
 };
 
 type Props = {
@@ -40,10 +25,14 @@ export const PublicReviewsSection = ({ passeioKey, lang, className = "" }: Props
 
   useEffect(() => {
     let active = true;
+    setReviews([]);
     setActiveIndex(0);
+
     getPublicReviews(passeioKey)
       .then((items) => {
-        if (active) setReviews(items.filter((review) => review.passeio_key === passeioKey));
+        if (active) {
+          setReviews(items.filter((review) => review.passeio_key === passeioKey));
+        }
       })
       .catch(() => {
         if (active) setReviews([]);
@@ -77,10 +66,7 @@ export const PublicReviewsSection = ({ passeioKey, lang, className = "" }: Props
   const rating = Math.max(0, Math.min(5, Number(review.nota) || 0));
 
   return (
-    <section
-      aria-label={t.title}
-      className={`mt-10 ${className}`}
-    >
+    <section aria-label={t.title} className={`mt-10 ${className}`}>
       <div className="text-center mb-5">
         <h2 className="text-xl sm:text-2xl font-extrabold text-foreground">
           <span className="bg-gradient-to-r from-amber-300 via-turquoise-glow to-turquoise bg-clip-text text-transparent">
@@ -97,29 +83,24 @@ export const PublicReviewsSection = ({ passeioKey, lang, className = "" }: Props
           className={`transition-opacity duration-500 ${reducedMotion ? "duration-0" : ""}`}
           key={`${review.nome}-${activeIndex}`}
         >
-          <div className="flex items-center justify-between gap-4 mb-4">
-            <div>
-              <p className="text-base font-bold text-foreground">{review.nome}</p>
-              <div className="flex items-center gap-1 mt-2" aria-label={`${rating} de 5 estrelas`}>
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <Star
-                    key={index}
-                    aria-hidden="true"
-                    className={`h-4 w-4 ${
-                      index + 1 <= rating
-                        ? "fill-amber-300 text-amber-300"
-                        : "text-muted-foreground/30"
-                    }`}
-                  />
-                ))}
-                <span className="ml-1 text-sm font-semibold text-amber-200">{rating.toFixed(1)}</span>
-              </div>
-            </div>
+          <div className="flex items-center gap-1 mb-4" aria-label={`${rating} de 5 estrelas`}>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <Star
+                key={index}
+                aria-hidden="true"
+                className={`h-4 w-4 ${
+                  index + 1 <= rating
+                    ? "fill-amber-300 text-amber-300"
+                    : "text-muted-foreground/30"
+                }`}
+              />
+            ))}
           </div>
 
           <p className="text-sm leading-relaxed text-foreground/85 italic">
             “{review.comentario}”
           </p>
+          <p className="mt-4 text-base font-bold text-foreground">{review.nome}</p>
         </div>
       </article>
 

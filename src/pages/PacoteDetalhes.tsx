@@ -12,7 +12,6 @@ import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { AdminFab } from "@/components/AdminPanel";
 import { useIsAdmin } from "@/lib/adminAuth";
 import { TourDetails } from "@/components/TourDetails";
-import { PublicReviewsSection } from "@/components/PublicReviewsSection";
 import { StandardForm } from "@/components/StandardForm";
 import { PackageCover } from "@/components/PackageCover";
 import { SavingsBox, PriceWithDiscount } from "@/components/SavingsBox";
@@ -224,7 +223,6 @@ const PacoteDetalhes = () => {
                     onBook={() => runNavigationTransition(() => setBookingOpen(true))}
                     embedded
                   />
-                  <PublicReviewsSection passeioKey={tk} lang={lang} className="px-5 pb-5" />
                 </div>
               );
             }

@@ -8,6 +8,7 @@ import { TOUR_PRICES, tourPriceLabel, formatBRL } from "@/lib/prices";
 import { loadQrPromo } from "@/lib/qrPromo";
 import { useEffect, useState } from "react";
 import { subscribeQrPromo } from "@/lib/qrPromo";
+import { PublicReviewsSection } from "@/components/PublicReviewsSection";
 
 interface Props {
   tourKey: TourKey;
@@ -170,6 +171,8 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embed
               </div>
             )}
           </div>
+
+          <PublicReviewsSection passeioKey={tourKey} lang={lang} />
 
           {/* Sticky CTA */}
           <div className="mt-8 mb-10">
