@@ -62,6 +62,7 @@ export const ReservasSection = () => {
         already_submitted: "Este cliente já enviou a avaliação.",
         reservation_not_completed: "Marque a reserva como concluída antes de pedir a avaliação.",
         no_reviewable_tours: "Não foi encontrado um passeio válido nesta reserva.",
+        short_link_create_failed: "Não foi possível gerar o link curto. Tente novamente.",
         unauthorized: "Sua sessão administrativa expirou. Entre novamente.",
       };
       toast.error(messages[result.error] || "Não foi possível gerar o link de avaliação.");
