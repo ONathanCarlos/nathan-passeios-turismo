@@ -2,7 +2,7 @@ import { Lang } from "@/lib/i18n";
 import { TourKey, getTour, sectionLabels } from "@/lib/tours";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Button } from "./ui/button";
-import { ArrowLeft, Star, Clock, MapPin, Users, Check, AlertCircle } from "lucide-react";
+import { ArrowLeft, Clock, MapPin, Users, Check, AlertCircle } from "lucide-react";
 import { dict } from "@/lib/i18n";
 import { TOUR_PRICES, tourPriceLabel, formatBRL } from "@/lib/prices";
 import { loadQrPromo } from "@/lib/qrPromo";
@@ -89,21 +89,7 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embed
             “{tour.hook}”
           </p>
 
-          {/* Rating box */}
-          <div className="mt-4 glass-card rounded-2xl px-4 py-3 flex items-center justify-between">
-            <div>
-              <div className="text-xs uppercase tracking-wider text-muted-foreground">{L.rating}</div>
-              <div className="text-2xl font-bold text-foreground leading-tight">
-                {tour.rating.toFixed(1)}<span className="text-base text-muted-foreground">/5</span>
-              </div>
-              <div className="text-[11px] text-muted-foreground">{tour.reviews.toLocaleString()} reviews</div>
-            </div>
-            <div className="flex items-center gap-0.5">
-              {[0,1,2,3,4].map((i) => (
-                <Star key={i} className="h-5 w-5 fill-turquoise text-turquoise drop-shadow-[0_0_6px_hsl(var(--turquoise-glow)/0.6)]" />
-              ))}
-            </div>
-          </div>
+          <PublicReviewsSection passeioKey={tourKey} lang={lang} className="mt-4" />
 
           {/* Quick cards (Languages removido nessa página) */}
           <div className="mt-4 grid grid-cols-2 gap-3">
@@ -171,8 +157,6 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embed
               </div>
             )}
           </div>
-
-          <PublicReviewsSection passeioKey={tourKey} lang={lang} />
 
           {/* Sticky CTA */}
           <div className="mt-8 mb-10">
