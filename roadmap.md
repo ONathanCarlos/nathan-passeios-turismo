@@ -6,4 +6,6 @@
 - [x] Preservar formulário e validações existentes; validar o fluxo.
 - [x] Gerar código curto aleatório para cada convite de avaliação.
 - [x] Enviar a nova mensagem do WhatsApp com o link `/a/:codigo`.
-- [ ] Validar link correto, inválido e alterado em celular e computador.
+- [x] Validar link correto, inválido e alterado em celular e computador.
+- [x] Substituir a avaliação fictícia no topo pela seção pública real do passeio.
+- [x] Validar avaliações públicas reais no topo em celular e computador.
