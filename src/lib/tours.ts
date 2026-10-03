@@ -217,6 +217,53 @@ const L: Record<Lang, Record<string, string>> = {
 
 export const sectionLabels = (lang: Lang) => L[lang];
 
+type ForeignLang = Exclude<Lang, "pt">;
+const C: Record<string, Record<ForeignLang, string>> = {
+  "Banheiros": { es: "Baños", en: "Restrooms", fr: "Toilettes", it: "Servizi igienici" },
+  "Boias": { es: "Flotadores", en: "Floats", fr: "Bouées", it: "Galleggianti" },
+  "Coletes salva-vidas": { es: "Chalecos salvavidas", en: "Life jackets", fr: "Gilets de sauvetage", it: "Giubbotti di salvataggio" },
+  "Bar com barman": { es: "Bar con barman", en: "Bar with bartender", fr: "Bar avec barman", it: "Bar con barman" },
+  "Churrasco (Espetos)": { es: "Parrillada (Brochetas)", en: "Barbecue (Skewers)", fr: "Barbecue (Brochettes)", it: "Barbecue (Spiedini)" },
+  "Máscara de mergulho": { es: "Máscara de buceo", en: "Diving mask", fr: "Masque de plongée", it: "Maschera da immersione" },
+  "Fotos profissionais": { es: "Fotos profesionales", en: "Professional photos", fr: "Photos professionnelles", it: "Foto professionali" },
+  "0–5 — grátis": { es: "0–5 — gratis", en: "0–5 — free", fr: "0–5 — gratuit", it: "0–5 — gratuito" },
+  "6–10 — meia passagem": { es: "6–10 — media tarifa", en: "6–10 — half fare", fr: "6–10 — demi-tarif", it: "6–10 — metà tariffa" },
+  "11+ — integral": { es: "11+ — tarifa completa", en: "11+ — full fare", fr: "11+ — plein tarif", it: "11+ — tariffa intera" },
+  "Roteiro sujeito às condições climáticas.": { es: "Itinerario sujeto a las condiciones climáticas.", en: "Itinerary subject to weather conditions.", fr: "Itinéraire soumis aux conditions météorologiques.", it: "Itinerario soggetto alle condizioni meteorologiche." },
+  "Ao chegarmos em Arraial do Cabo, os passageiros são transferidos para uma Jardineira até o píer de embarque.": { es: "Al llegar a Arraial do Cabo, los pasajeros son trasladados en una jardinera hasta el muelle de embarque.", en: "Upon arrival in Arraial do Cabo, passengers are transferred by open-air bus to the boarding pier.", fr: "À l'arrivée à Arraial do Cabo, les passagers sont transférés en bus ouvert jusqu'au quai d'embarquement.", it: "All'arrivo ad Arraial do Cabo, i passeggeri vengono trasferiti con un bus aperto fino al molo d'imbarco." },
+  "Translado": { es: "Traslado", en: "Transfer", fr: "Transfert", it: "Trasferimento" },
+  "Almoço Buffet Livre": { es: "Almuerzo buffet libre", en: "All-you-can-eat buffet lunch", fr: "Déjeuner buffet à volonté", it: "Pranzo a buffet libero" },
+  "Som ambiente": { es: "Música ambiente", en: "Ambient music", fr: "Musique d'ambiance", it: "Musica d'ambiente" },
+  "Coletes": { es: "Chalecos salvavidas", en: "Life jackets", fr: "Gilets de sauvetage", it: "Giubbotti di salvataggio" },
+  "8 praias": { es: "8 playas", en: "8 beaches", fr: "8 plages", it: "8 spiagge" },
+  "3 mirantes": { es: "3 miradores", en: "3 viewpoints", fr: "3 belvédères", it: "3 punti panoramici" },
+  "Paradas para fotos": { es: "Paradas para fotos", en: "Photo stops", fr: "Arrêts photo", it: "Soste fotografiche" },
+  "Almoço": { es: "Almuerzo", en: "Lunch", fr: "Déjeuner", it: "Pranzo" },
+  "Transporte": { es: "Transporte", en: "Transportation", fr: "Transport", it: "Trasporto" },
+  "Guia bilíngue": { es: "Guía bilingüe", en: "Bilingual guide", fr: "Guide bilingue", it: "Guida bilingue" },
+  "Almoço buffet": { es: "Almuerzo buffet", en: "Buffet lunch", fr: "Déjeuner buffet", it: "Pranzo a buffet" },
+  "12 praias": { es: "12 playas", en: "12 beaches", fr: "12 plages", it: "12 spiagge" },
+  "2 mirantes": { es: "2 miradores", en: "2 viewpoints", fr: "2 belvédères", it: "2 punti panoramici" },
+  "Parada para banho na Praia do Forno": { es: "Parada para bañarse en Praia do Forno", en: "Swimming stop at Praia do Forno", fr: "Arrêt baignade à Praia do Forno", it: "Sosta per il bagno a Praia do Forno" },
+  "3 ilhas": { es: "3 islas", en: "3 islands", fr: "3 îles", it: "3 isole" },
+  "3 paradas": { es: "3 paradas", en: "3 stops", fr: "3 arrêts", it: "3 soste" },
+  "DJ a bordo": { es: "DJ a bordo", en: "Onboard DJ", fr: "DJ à bord", it: "DJ a bordo" },
+  "Ducha": { es: "Ducha", en: "Shower", fr: "Douche", it: "Doccia" },
+  "Música ambiente": { es: "Música ambiente", en: "Ambient music", fr: "Musique d'ambiance", it: "Musica d'ambiente" },
+  "Fotos subaquáticas": { es: "Fotos submarinas", en: "Underwater photos", fr: "Photos sous-marines", it: "Foto subacquee" },
+  "Equipamento completo": { es: "Equipo completo", en: "Full equipment", fr: "Équipement complet", it: "Attrezzatura completa" },
+  "4 fotos subaquáticas": { es: "4 fotos submarinas", en: "4 underwater photos", fr: "4 photos sous-marines", it: "4 foto subacquee" },
+  "1 vídeo subaquático": { es: "1 vídeo submarino", en: "1 underwater video", fr: "1 vidéo sous-marine", it: "1 video subacqueo" },
+  "Instrutor certificado": { es: "Instructor certificado", en: "Certified instructor", fr: "Moniteur certifié", it: "Istruttore certificato" },
+  "10 praias": { es: "10 playas", en: "10 beaches", fr: "10 plages", it: "10 spiagge" },
+  "Espaguetes flutuantes": { es: "Churros flotantes", en: "Pool noodles", fr: "Frites flottantes", it: "Tubi galleggianti" },
+  "Gelo": { es: "Hielo", en: "Ice", fr: "Glace", it: "Ghiaccio" },
+  "Valor variável conforme o modelo da lancha.": { es: "El valor varía según el modelo de la lancha.", en: "Price varies according to the speedboat model.", fr: "Le prix varie selon le modèle du bateau.", it: "Il prezzo varia in base al modello del motoscafo." },
+};
+
+const tr = (lang: Lang, value: string) => lang === "pt" ? value : C[value]?.[lang] ?? value;
+const trs = (lang: Lang, values: string[]) => values.map((value) => tr(lang, value));
+
 // Hooks (emotional phrases) and titles per language
 type Texts = { title: string; hook: string };
 const T: Record<TourKey, Record<Lang, Texts>> = {
@@ -292,7 +339,7 @@ const _getTour = (key: TourKey, lang: Lang): TourDetail => {
   // Fonte única: CMS (Supabase via cmsCache). Sem overrides persistidos.
   const db = getCachedTour(key);
   const overrideImg = db?.imagem_url || undefined;
-  const overrideDesc = db?.descricao?.[lang] || db?.descricao?.pt || undefined;
+  const overrideDesc = db?.descricao?.[lang] || (lang === "pt" ? db?.descricao?.pt : undefined) || undefined;
   const overrideTitle = db?.nome?.[lang] || db?.nome?.pt || undefined;
   const tt = { title: overrideTitle || t.title, hook: overrideDesc || t.hook };
 
@@ -309,11 +356,11 @@ const _getTour = (key: TourKey, lang: Lang): TourDetail => {
           { title: l.beaches, items: ["Praia do Canto","Praia do Osso","Praia da Azeda","Praia da Azedinha","Praia de João Fernandes","Praia de João Fernandinho","Praia da Tartaruga","Praia dos Amores","Praia das Virgens","Praia da Armação","Praia Brava"] },
           { title: l.islands, items: ["Ilha do Caboclo","Ilha Branca","Ilha Feia"] },
           { title: l.stops, items: ["João Fernandes","Ilha Feia","Praia da Tartaruga"] },
-          { title: l.included, items: ["Banheiros","Boias","Coletes salva-vidas"] },
-          { title: l.optional, items: ["Bar com barman","Churrasco (Espetos)","Máscara de mergulho","Fotos profissionais"] },
+          { title: l.included, items: trs(lang, ["Banheiros","Boias","Coletes salva-vidas"]) },
+          { title: l.optional, items: trs(lang, ["Bar com barman","Churrasco (Espetos)","Máscara de mergulho","Fotos profissionais"]) },
         ],
-        childrenPolicy: ["0–5 — grátis","6–10 — meia passagem","11+ — integral"],
-        notice: "Roteiro sujeito às condições climáticas.",
+        childrenPolicy: trs(lang, ["0–5 — grátis","6–10 — meia passagem","11+ — integral"]),
+        notice: tr(lang, "Roteiro sujeito às condições climáticas."),
       };
     case "arraial":
       return {
@@ -323,12 +370,12 @@ const _getTour = (key: TourKey, lang: Lang): TourDetail => {
         capacity: `${l.upTo} 50 ${l.persons}`, languages: l.languagesAll,
         sections: [
           { title: l.schedule, text: `${l.pickup}: 08h · ${l.return}: 17h` },
-          { title: l.description, text: "Ao chegarmos em Arraial do Cabo, os passageiros são transferidos para uma Jardineira até o píer de embarque." },
+          { title: l.description, text: tr(lang, "Ao chegarmos em Arraial do Cabo, os passageiros são transferidos para uma Jardineira até o píer de embarque.") },
           { title: l.boatRide, text: "3h30" },
           { title: l.itinerary, items: ["Ilha do Farol","Prainhas do Pontal","Fenda de Nossa Senhora","Pedra do Macaco","Gruta Azul","Buraco do Meteorito","Gruta do Amor","Praia do Forno"] },
-          { title: l.included, items: ["Translado","Almoço Buffet Livre","Wi-Fi","Som ambiente","Banheiros","Coletes"] },
+          { title: l.included, items: trs(lang, ["Translado","Almoço Buffet Livre","Wi-Fi","Som ambiente","Banheiros","Coletes"]) },
         ],
-        notice: "Roteiro sujeito às condições climáticas.",
+        notice: tr(lang, "Roteiro sujeito às condições climáticas."),
       };
     case "buggy":
       return {
@@ -337,7 +384,7 @@ const _getTour = (key: TourKey, lang: Lang): TourDetail => {
         duration: "1h30", location: l.locBuzios,
         capacity: `${l.upTo} 4 ${l.persons}`, languages: l.languagesAll,
         sections: [
-          { title: l.itinerary, items: ["8 praias","3 mirantes","Paradas para fotos"] },
+          { title: l.itinerary, items: trs(lang, ["8 praias","3 mirantes","Paradas para fotos"]) },
         ],
       };
     case "cabofrio":
@@ -348,8 +395,8 @@ const _getTour = (key: TourKey, lang: Lang): TourDetail => {
         capacity: `${l.upTo} 35 ${l.persons}`, languages: l.languagesAll,
         sections: [
           { title: l.schedule, text: "08h — 17h" },
-          { title: l.itinerary, items: ["Praia do Peró","Praia das Conchas","Ilha do Japonês","Almoço","Shopping Park Lagos"] },
-          { title: l.included, items: ["Transporte","Guia bilíngue","Almoço buffet"] },
+          { title: l.itinerary, items: trs(lang, ["Praia do Peró","Praia das Conchas","Ilha do Japonês","Almoço","Shopping Park Lagos"]) },
+          { title: l.included, items: trs(lang, ["Transporte","Guia bilíngue","Almoço buffet"]) },
         ],
       };
     case "jardineira":
@@ -360,7 +407,7 @@ const _getTour = (key: TourKey, lang: Lang): TourDetail => {
         capacity: `35 ${l.persons}`, languages: l.languagesAll,
         sections: [
           { title: l.departures, items: ["09h","12h","15h"] },
-          { title: l.itinerary, items: ["12 praias","2 mirantes","Parada para banho na Praia do Forno"] },
+          { title: l.itinerary, items: trs(lang, ["12 praias","2 mirantes","Parada para banho na Praia do Forno"]) },
         ],
       };
     case "catamara":
@@ -370,9 +417,9 @@ const _getTour = (key: TourKey, lang: Lang): TourDetail => {
         duration: "2h30", location: l.locBuzios,
         capacity: `${l.upTo} 80 ${l.persons}`, languages: l.languagesAll,
         sections: [
-          { title: l.itinerary, items: ["12 praias","3 ilhas","3 paradas"] },
-          { title: l.included, items: ["DJ a bordo","Banheiros","Ducha","Música ambiente"] },
-          { title: l.extras, items: ["Bar","Snorkeling","Fotos subaquáticas"] },
+          { title: l.itinerary, items: trs(lang, ["12 praias","3 ilhas","3 paradas"]) },
+          { title: l.included, items: trs(lang, ["DJ a bordo","Banheiros","Ducha","Música ambiente"]) },
+          { title: l.extras, items: trs(lang, ["Bar","Snorkeling","Fotos subaquáticas"]) },
         ],
       };
     case "mergulho":
@@ -388,7 +435,7 @@ const _getTour = (key: TourKey, lang: Lang): TourDetail => {
             `20 min — ${l.practice}`,
             `30 min — ${l.diving}`,
           ]},
-          { title: l.included, items: ["Equipamento completo","4 fotos subaquáticas","1 vídeo subaquático","Instrutor certificado"] },
+          { title: l.included, items: trs(lang, ["Equipamento completo","4 fotos subaquáticas","1 vídeo subaquático","Instrutor certificado"]) },
         ],
       };
     case "lancha":
@@ -398,11 +445,11 @@ const _getTour = (key: TourKey, lang: Lang): TourDetail => {
         duration: "4h — 8h", location: l.locBuzios,
         capacity: `${l.upTo} 12 ${l.persons}`, languages: l.languagesAll,
         sections: [
-          { title: l.itinerary, items: ["10 praias","3 ilhas"] },
+          { title: l.itinerary, items: trs(lang, ["10 praias","3 ilhas"]) },
           { title: l.stops, items: ["Azeda","João Fernandes","Tartaruga","Ilha Feia"] },
-          { title: l.included, items: ["Snorkel","Espaguetes flutuantes","Gelo","Música ambiente"] },
+          { title: l.included, items: trs(lang, ["Snorkel","Espaguetes flutuantes","Gelo","Música ambiente"]) },
         ],
-        notice: "Valor variável conforme o modelo da lancha.",
+        notice: tr(lang, "Valor variável conforme o modelo da lancha."),
       };
   }
 };
