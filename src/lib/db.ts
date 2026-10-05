@@ -264,6 +264,50 @@ export async function getReservaReviewLink(id: string): Promise<ReservaReviewLin
   }
 }
 
+// ---------------- AVALIAÇÕES (ADMIN) ----------------
+export type ReviewPublicationStatus = "pendente" | "publicada" | "oculta";
+
+export interface AdminReview {
+  id: string;
+  cliente_nome: string;
+  passeio_nome: string;
+  nota_atendimento: number;
+  nota_plataforma: number;
+  nota_passeio: number;
+  avaliacao_passeio: string;
+  melhoria: string | null;
+  nota_recomendacao: number;
+  observacoes: string | null;
+  avaliado_em: string;
+  expira_em: string;
+  status_admin: "nova" | "visualizada";
+  status_publicacao: ReviewPublicationStatus;
+  media_final: number;
+}
+
+export async function fetchReviews(limit = 300): Promise<AdminReview[]> {
+  try {
+    const res = await callAdmin<{ rows: AdminReview[] }>("list_avaliacoes", { limit });
+    return res.rows || [];
+  } catch (error) {
+    console.warn("[db] fetchReviews falhou", error);
+    return [];
+  }
+}
+
+export async function updateReviewStatus(
+  id: string,
+  status: Exclude<ReviewPublicationStatus, "pendente">,
+): Promise<boolean> {
+  try {
+    await callAdmin("update_review_status", { id, status_publicacao: status });
+    return true;
+  } catch (error) {
+    console.warn("[db] updateReviewStatus falhou", error);
+    return false;
+  }
+}
+
 // ---------------- ADMIN STATS ----------------
 export async function fetchAdminStats() {
   try {

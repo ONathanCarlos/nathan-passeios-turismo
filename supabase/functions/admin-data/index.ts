@@ -186,6 +186,23 @@ Deno.serve(async (req) => {
       return json({ ok: true, rows: data || [] });
     }
 
+    if (action === "update_review_status") {
+      const id = str(body?.id, 60);
+      const statusPublicacao = body?.status_publicacao;
+      if (!id || !["publicada", "oculta"].includes(statusPublicacao)) {
+        return json({ ok: false, error: "invalid_input" }, 400);
+      }
+      const { data, error } = await supabase
+        .from("avaliacoes")
+        .update({ status_publicacao: statusPublicacao, status_admin: "visualizada" })
+        .eq("id", id)
+        .select("id,status_publicacao,status_admin")
+        .maybeSingle();
+      if (error) return json({ ok: false, error: "db_error" }, 500);
+      if (!data) return json({ ok: false, error: "review_not_found" }, 404);
+      return json({ ok: true, review: data });
+    }
+
     if (action === "get_reserva_review_link") {
       const reservaId = str(body?.id, 60);
       if (!reservaId) return json({ ok: false, error: "invalid_input" }, 400);
