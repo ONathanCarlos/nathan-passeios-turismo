@@ -17,7 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import {
   Settings2, Trash2, Upload, Plus, Save, Sparkles, Gift, Eye,
   LayoutDashboard, Compass, FileText, MessageSquare, Ticket,
-  CalendarCheck2, Users, Image as ImageIcon, Settings, RefreshCw, Package,
+  CalendarCheck2, Users, Image as ImageIcon, Settings, RefreshCw, Package, Star,
 } from "lucide-react";
 import { toast } from "sonner";
 import { TourKey } from "@/lib/tours";
@@ -35,6 +35,7 @@ import {
 import { DashboardSection } from "./admin/sections/DashboardSection";
 import { ReservasSection } from "./admin/sections/ReservasSection";
 import { LeadsSection } from "./admin/sections/LeadsSection";
+import { ReviewsSection } from "./admin/sections/ReviewsSection";
 
 const TOUR_KEYS: { key: TourKey; label: string }[] = [
   { key: "escuna", label: "Escuna" },
@@ -147,7 +148,7 @@ export const AdminPanel = ({ open, onOpenChange, defaultTab = "dashboard" }: { o
         </DialogHeader>
 
         <Tabs defaultValue={defaultTab} className="w-full">
-          <TabsList className="grid grid-cols-10 w-full bg-night/60 h-auto">
+          <TabsList className="grid grid-cols-6 w-full bg-night/60 h-auto">
             <TabsTrigger value="dashboard" className={tabBtn}><LayoutDashboard className="h-3.5 w-3.5" />Dashboard</TabsTrigger>
             <TabsTrigger value="tours" className={tabBtn}><Compass className="h-3.5 w-3.5" />Passeios</TabsTrigger>
             <TabsTrigger value="pacotes" className={tabBtn}><Package className="h-3.5 w-3.5" />Pacotes</TabsTrigger>
@@ -155,6 +156,7 @@ export const AdminPanel = ({ open, onOpenChange, defaultTab = "dashboard" }: { o
             <TabsTrigger value="modais" className={tabBtn}><MessageSquare className="h-3.5 w-3.5" />Modais</TabsTrigger>
             <TabsTrigger value="coupons" className={tabBtn}><Ticket className="h-3.5 w-3.5" />Cupons</TabsTrigger>
             <TabsTrigger value="reservas" className={tabBtn}><CalendarCheck2 className="h-3.5 w-3.5" />Reservas</TabsTrigger>
+            <TabsTrigger value="reviews" className={tabBtn}><Star className="h-3.5 w-3.5" />Avaliações</TabsTrigger>
             <TabsTrigger value="leads" className={tabBtn}><Users className="h-3.5 w-3.5" />Leads</TabsTrigger>
             <TabsTrigger value="media" className={tabBtn}><ImageIcon className="h-3.5 w-3.5" />Mídia</TabsTrigger>
             <TabsTrigger value="config" className={tabBtn}><Settings className="h-3.5 w-3.5" />Config</TabsTrigger>
@@ -359,6 +361,11 @@ export const AdminPanel = ({ open, onOpenChange, defaultTab = "dashboard" }: { o
           {/* ---------------- RESERVAS ---------------- */}
           <TabsContent value="reservas" className="mt-4">
             <ReservasSection />
+          </TabsContent>
+
+          {/* ---------------- AVALIAÇÕES ---------------- */}
+          <TabsContent value="reviews" className="mt-4">
+            <ReviewsSection />
           </TabsContent>
 
           {/* ---------------- LEADS ---------------- */}

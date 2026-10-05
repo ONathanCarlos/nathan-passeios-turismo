@@ -282,6 +282,7 @@ Deno.serve(async (req) => {
         .from("avaliacoes")
         .select("cliente_nome,media_final,avaliacao_passeio,passeio_key")
         .eq("autorizacao_publicacao", true)
+        .eq("status_publicacao", "publicada")
         .eq("passeio_key", passeioKey)
         .gt("expira_em", new Date().toISOString())
         .not("avaliado_em", "is", null)
@@ -405,7 +406,6 @@ Deno.serve(async (req) => {
         }
         return json({ ok: false, error: "db_error" }, 500);
       }
-      await supabase.from("convites_avaliacao").update({ usado_em: now.toISOString() }).eq("id", invite.id).is("usado_em", null);
       return json({ ok: true, review: { id: created?.id, passeio_nome: tour.nome_pt, media_final: average } });
     }
 

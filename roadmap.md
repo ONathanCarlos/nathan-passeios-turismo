@@ -9,3 +9,5 @@
 - [x] Validar link correto, inválido e alterado em celular e computador.
 - [x] Substituir a avaliação fictícia no topo pela seção pública real do passeio.
 - [x] Validar avaliações públicas reais no topo em celular e computador.
+- [x] Manter novas avaliações ocultas até aprovação no CMS.
+- [x] Tornar atômicos o envio da avaliação e o bloqueio do convite.
