@@ -16,7 +16,7 @@ import { CampaignPromoModal } from "@/components/CampaignPromoModal";
 import { useIsAdmin } from "@/lib/adminAuth";
 import { runNavigationTransition } from "@/lib/viewTransition";
 
-import nathanProfile from "@/assets/nathan-profile.jpg";
+import onyxLogo from "@/assets/onyx-turismo-buzios-logo.jpg.asset.json";
 import escunaImg from "@/assets/escuna.jpg";
 import buggyImg from "@/assets/buggy.jpg";
 import arraialImg from "@/assets/arraial-do-cabo.jpg";
@@ -166,10 +166,10 @@ const Home = () => {
         <div className="brand-topbar flex items-center justify-between mb-10">
           <div className="flex items-center gap-3">
             <div className="relative w-11 h-11 rounded-full overflow-hidden border border-turquoise/40 shadow-[0_0_12px_hsl(var(--turquoise)/0.4)]">
-              <img src={nathanProfile} alt="Nathan" loading="eager" decoding="async" className="w-full h-full object-cover" />
+              <img src={onyxLogo.url} alt="Ônix Turismo Búzios" loading="eager" decoding="async" className="w-full h-full object-contain" />
             </div>
             <div className="leading-tight">
-              <div className="text-sm font-bold text-foreground">Ônix</div>
+              <div className="text-sm font-bold text-foreground">Ônix Turismo Búzios</div>
               <div className="text-[11px] text-muted-foreground">{t.brandSubtitle}</div>
             </div>
           </div>
