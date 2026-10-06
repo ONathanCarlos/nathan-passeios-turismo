@@ -144,7 +144,7 @@ type Dict = {
 
 export const dict: Record<Lang, Dict> = {
   pt: {
-    brand: "Nathan Passeios e Turismo",
+    brand: "Ônix Turismo Búzios",
     tagline: "",
     language: "Idioma",
     menuTitle: "Escolha seu passeio",
@@ -239,7 +239,7 @@ export const dict: Record<Lang, Dict> = {
     noticeCatamara: "Não é permitido levar coolers, caixas ou bolsas térmicas para a embarcação.",
   },
   es: {
-    brand: "Nathan Paseos y Turismo",
+    brand: "Ônix Turismo Búzios",
     tagline: "",
     language: "Idioma",
     menuTitle: "Elige tu paseo",
@@ -334,7 +334,7 @@ export const dict: Record<Lang, Dict> = {
     noticeCatamara: "No se permite llevar neveras, cajas ni bolsas térmicas a bordo.",
   },
   en: {
-    brand: "Nathan Tours & Tourism",
+    brand: "Ônix Turismo Búzios",
     tagline: "",
     language: "Language",
     menuTitle: "Choose your tour",
@@ -429,7 +429,7 @@ export const dict: Record<Lang, Dict> = {
     noticeCatamara: "Coolers, boxes or thermal bags are not allowed onboard.",
   },
   fr: {
-    brand: "Nathan Excursions & Tourisme",
+    brand: "Ônix Turismo Búzios",
     tagline: "",
     language: "Langue",
     menuTitle: "Choisissez votre excursion",
@@ -524,7 +524,7 @@ export const dict: Record<Lang, Dict> = {
     noticeCatamara: "Glacières, boîtes ou sacs isothermes ne sont pas autorisés à bord.",
   },
   it: {
-    brand: "Nathan Escursioni e Turismo",
+    brand: "Ônix Turismo Búzios",
     tagline: "",
     language: "Lingua",
     menuTitle: "Scegli la tua escursione",

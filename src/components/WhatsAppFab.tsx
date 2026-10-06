@@ -7,7 +7,7 @@ interface Props {
   lang: Lang;
 }
 
-const FALLBACK_WA = "5522998216796";
+import { bookingWhatsApp } from "@/lib/brand";
 
 const MESSAGES: Record<Lang, string> = {
   pt: "Olá! Vim pelo site e gostaria de informações sobre os passeios.",
@@ -23,7 +23,7 @@ export const WhatsAppFab = ({ lang }: Props) => {
   const [showIdleLabel, setShowIdleLabel] = useState(false);
   const idleTimer = useRef<number | null>(null);
   const scrollFrame = useRef<number | null>(null);
-  const wa = (cfg?.whatsapp || FALLBACK_WA).replace(/\D/g, "");
+  const wa = bookingWhatsApp(cfg?.whatsapp);
   const url = `https://wa.me/${wa}?text=${encodeURIComponent(MESSAGES[lang])}`;
 
   useEffect(() => {

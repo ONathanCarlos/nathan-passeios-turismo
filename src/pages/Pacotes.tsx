@@ -64,7 +64,7 @@ const Pacotes = () => {
   const { data: pacotes } = usePacotes(true);
   const { data: tours } = useTours(false);
 
-  useEffect(() => { document.title = "Pacotes promocionais · Nathan Turismo"; }, []);
+  useEffect(() => { document.title = "Pacotes promocionais · Ônix Turismo Búzios"; }, []);
 
   const imgOf = (key: string) =>
     tours?.find((x) => x.key === key)?.imagem_url || FALLBACK[key] || "";
@@ -169,7 +169,7 @@ const Pacotes = () => {
         <DepoimentosSection lang={lang} />
 
         <footer className="text-center mt-14 text-xs text-muted-foreground/70">
-          © Nathan {t.brandSubtitle} · {t.footerRegion}
+          © {t.brand} · {t.footerRegion}
         </footer>
       </div>
       <WhatsAppFab lang={lang} />

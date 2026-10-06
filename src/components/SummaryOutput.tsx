@@ -16,7 +16,7 @@ interface Props {
   onSend?: () => void;
 }
 
-const WA_NUMBER = "5522998216796";
+import { BOOKING_WHATSAPP } from "@/lib/brand";
 
 const HEADER: Record<Lang, { ready: string; instr: string; review: string; send: string; back: string; tour: string }> = {
   pt: { ready: "Reserva Pronta!", instr: "Revise abaixo os dados da sua reserva antes de enviar pelo WhatsApp.", review: "Revise antes de enviar", send: "Confirmar e enviar para WhatsApp", back: "Voltar ao Passeio", tour: "Passeio" },
@@ -28,7 +28,7 @@ const HEADER: Record<Lang, { ready: string; instr: string; review: string; send:
 
 export const SummaryOutput = ({ text, lang, onReset, rows, tourTitle, onSend }: Props) => {
   const h = HEADER[lang];
-  const waUrl = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
+  const waUrl = `https://wa.me/${BOOKING_WHATSAPP}?text=${encodeURIComponent(text)}`;
 
   return (
     <div className="space-y-5 animate-in fade-in slide-in-from-bottom-3 duration-500">
@@ -70,9 +70,9 @@ export const SummaryOutput = ({ text, lang, onReset, rows, tourTitle, onSend }: 
             window.location.replace("/");
           }, 600);
         }}
-        className="block w-full rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 text-white font-bold text-base h-14 flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(16,185,129,0.55)] hover:opacity-95"
+        className="w-full rounded-xl bg-primary text-primary-foreground font-bold text-sm sm:text-base min-h-14 py-3 px-4 flex items-center justify-center gap-2 text-center hover:opacity-95"
       >
-        <svg viewBox="0 0 32 32" className="w-5 h-5 fill-white" aria-hidden="true">
+        <svg viewBox="0 0 32 32" className="w-5 h-5 shrink-0 fill-current" aria-hidden="true">
           <path d="M19.11 17.205c-.372 0-1.088 1.39-1.518 1.39a.63.63 0 0 1-.315-.1c-.802-.402-1.504-.817-2.163-1.447-.545-.516-1.146-1.29-1.46-1.963a.426.426 0 0 1-.073-.215c0-.33.99-.945.99-1.49 0-.143-.73-2.09-.832-2.335-.143-.372-.214-.487-.6-.487-.187 0-.36-.043-.53-.043-.302 0-.53.115-.745.315-.688.645-1.032 1.318-1.06 2.264v.114c-.015.99.472 1.977 1.017 2.79 1.23 1.82 2.506 3.41 4.554 4.34.616.287 2.035.888 2.722.888.817 0 2.15-.515 2.478-1.318.13-.302.13-.561.13-.762 0-.53-.057-.72-.486-.93-.428-.215-1.43-.701-1.96-.701zM16.066 6.733c-5.244 0-9.553 4.31-9.553 9.554 0 1.79.5 3.532 1.46 5.05L6 26.067l4.818-1.502a9.482 9.482 0 0 0 5.266 1.59h.014c5.252 0 9.561-4.309 9.561-9.553 0-2.55-1.075-4.945-2.864-6.756a9.49 9.49 0 0 0-6.729-2.713zm0 17.486h-.013a7.93 7.93 0 0 1-4.046-1.103l-.288-.172-3.022.945.96-2.937-.187-.302a7.929 7.929 0 0 1-1.218-4.252c0-4.382 3.561-7.943 7.943-7.943a7.886 7.886 0 0 1 5.61 2.32 7.881 7.881 0 0 1 2.327 5.616 7.972 7.972 0 0 1-7.957 7.928z" />
         </svg>
         {h.send}
@@ -93,6 +93,6 @@ export const SummaryOutput = ({ text, lang, onReset, rows, tourTitle, onSend }: 
 const Row = ({ label, value, bold }: { label: string; value: string; bold?: boolean }) => (
   <div className="flex items-start justify-between gap-4 py-3">
     <span className="text-sm text-turquoise-glow/90">{label}</span>
-    <span className={`text-sm text-right text-foreground ${bold ? "font-bold" : "font-semibold"}`}>{value}</span>
+    <span className={`min-w-0 break-words text-sm text-right text-foreground ${bold ? "font-bold" : "font-semibold"}`}>{value}</span>
   </div>
 );

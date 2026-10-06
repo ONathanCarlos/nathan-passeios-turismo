@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* Nathan Passeios - Tema Black & Turquoise */
+    /* Ônix Turismo Búzios — ciano, azul escuro e preto */
     --background: 0 0% 0%;
     --foreground: 0 0% 100%;
 
@@ -14,16 +14,16 @@
     --popover: 0 0% 4%;
     --popover-foreground: 0 0% 100%;
 
-    --primary: 174 72% 48%;
+    --primary: 188 92% 55%;
     --primary-foreground: 0 0% 0%;
 
     --secondary: 0 0% 10%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 0 0% 8%;
-    --muted-foreground: 180 10% 75%;
+    --muted-foreground: 200 18% 80%;
 
-    --accent: 174 80% 55%;
+    --accent: 188 95% 68%;
     --accent-foreground: 0 0% 0%;
 
     --destructive: 0 75% 55%;
@@ -31,21 +31,21 @@
 
     --border: 0 0% 14%;
     --input: 0 0% 10%;
-    --ring: 174 72% 48%;
+    --ring: 188 92% 55%;
 
     --radius: 0.85rem;
 
-    --turquoise: 174 72% 48%;
-    --turquoise-glow: 174 90% 60%;
-    --deep-blue: 0 0% 0%;
+    --turquoise: 188 92% 55%;
+    --turquoise-glow: 188 95% 68%;
+    --deep-blue: 213 78% 12%;
     --night: 0 0% 4%;
     --whatsapp: 142 70% 49%;
     --whatsapp-hover: 142 73% 43%;
     --whatsapp-foreground: 0 0% 100%;
     --whatsapp-fab-size: 3.5rem;
 
-    --gradient-ocean: linear-gradient(170deg, hsl(0 0% 0%) 0%, hsl(270 40% 10%) 40%, hsl(190 70% 18%) 75%, hsl(174 72% 32%) 100%);
-    --gradient-turquoise: linear-gradient(135deg, hsl(174 72% 48%) 0%, hsl(190 80% 55%) 100%);
+    --gradient-ocean: linear-gradient(170deg, hsl(var(--background)), hsl(var(--deep-blue)));
+    --gradient-turquoise: linear-gradient(135deg, hsl(var(--turquoise)), hsl(var(--turquoise-glow)));
     --gradient-card: linear-gradient(145deg, hsl(0 0% 8% / 0.92), hsl(0 0% 4% / 0.92));
 
     --shadow-glow: 0 10px 40px -10px hsl(174 80% 50% / 0.45);
@@ -69,7 +69,7 @@
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
     /* Hint browsers to dedicate a compositor layer to the document */
-    text-rendering: optimizeSpeed;
+    text-rendering: optimizeLegibility;
   }
   body {
     @apply text-foreground;
@@ -92,14 +92,11 @@
     inset: 0;
     pointer-events: none;
     z-index: -1;
-    background:
-      radial-gradient(circle at 18% 20%, hsl(174 90% 60% / 0.18), transparent 45%),
-      radial-gradient(circle at 82% 75%, hsl(190 85% 55% / 0.18), transparent 50%),
-      radial-gradient(circle at 50% 110%, hsl(174 80% 50% / 0.20), transparent 55%);
+    background: none;
   }
   h1, h2, h3 {
     font-family: 'Comfortaa', system-ui, sans-serif;
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
   }
 }
 
@@ -438,16 +435,18 @@
   }
 }
 
-/* Fundo estático moderno — preto profundo → roxo → turquesa */
+/* Shared Ônix backdrop; no decorative image changes. */
 .ocean-static-bg {
-  background-color: hsl(0 0% 0%);
-  background-image:
-    radial-gradient(ellipse 90% 60% at 20% 15%, hsl(174 80% 45% / 0.28) 0%, transparent 60%),
-    radial-gradient(ellipse 100% 70% at 85% 80%, hsl(270 70% 35% / 0.35) 0%, transparent 65%),
-    radial-gradient(ellipse 120% 60% at 50% 110%, hsl(190 85% 45% / 0.30) 0%, transparent 60%),
-    linear-gradient(180deg, hsl(0 0% 0%) 0%, hsl(260 30% 6%) 50%, hsl(0 0% 0%) 100%);
+  background: var(--gradient-ocean);
   background-attachment: scroll;
 }
+
+.brand-title { color: hsl(var(--turquoise-glow)); overflow-wrap: anywhere; }
+.brand-topbar { gap: 0.75rem; flex-wrap: wrap; }
+.brand-topbar > div { min-width: 0; }
+.brand-topbar > div:first-of-type { flex-shrink: 1; }
+.brand-topbar img { flex-shrink: 0; }
+footer { color: hsl(var(--muted-foreground)); }
 
 #lovable-badge {
   display: none !important;

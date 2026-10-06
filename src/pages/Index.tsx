@@ -193,7 +193,7 @@ const Index = () => {
 
       <div className="relative z-10 mx-auto max-w-6xl">
         {/* Top bar */}
-        <div className="flex items-center justify-between mb-8 gap-2">
+        <div className="brand-topbar flex items-center justify-between mb-8 gap-2">
           <Link
             to="/"
             onClick={(event) => {
@@ -211,7 +211,7 @@ const Index = () => {
               <img src={nathanProfile} alt="Nathan" className="w-full h-full object-cover" />
             </div>
             <div className="leading-tight">
-              <div className="text-sm font-bold text-foreground">Nathan</div>
+              <div className="text-sm font-bold text-foreground">Ônix</div>
               <div className="text-[11px] text-muted-foreground">{t.brandSubtitle}</div>
             </div>
           </div>
@@ -356,7 +356,7 @@ const Index = () => {
         <DepoimentosSection lang={lang} />
 
         <footer className="text-center mt-14 text-xs text-muted-foreground/70">
-          © Nathan {t.brandSubtitle} · {t.footerRegion}
+          © {t.brand} · {t.footerRegion}
         </footer>
       </div>
       <WhatsAppFab lang={lang} />
