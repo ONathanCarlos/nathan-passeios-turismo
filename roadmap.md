@@ -1,6 +1,7 @@
 # Roadmap
 
 - [ ] Conferir e ajustar identidade Ônix, logo, contraste e WhatsApp em celular e desktop sem publicar.
+- [ ] Importar logo e favicon da branch GitHub preview/onix-turismo-buzios.
 
 - [x] Adicionar “Pedir avaliação” às reservas concluídas no Admin.
 - [x] Gerar/usar automaticamente o link seguro vinculado à reserva.
