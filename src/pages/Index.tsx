@@ -24,7 +24,7 @@ import { CampaignPromoModal } from "@/components/CampaignPromoModal";
 import { loadQrPromo, urlHasPromoParam, subscribeQrPromo } from "@/lib/qrPromo";
 import { useTours, pickLang } from "@/lib/cms";
 
-import nathanProfile from "@/assets/nathan-profile.jpg";
+const onyxLogo = "/onyx-turismo-buzios-logo.jpg";
 import arraialImg from "@/assets/arraial-do-cabo.jpg";
 import escunaImg from "@/assets/escuna.jpg";
 import buggyImg from "@/assets/buggy.jpg";
@@ -208,10 +208,10 @@ const Index = () => {
           </Link>
           <div className="flex items-center gap-3">
             <div className="relative w-11 h-11 rounded-full overflow-hidden border border-turquoise/40 shadow-[0_0_12px_hsl(var(--turquoise)/0.4)]">
-              <img src={nathanProfile} alt="Nathan" className="w-full h-full object-cover" />
+              <img src={onyxLogo} alt="Ônix Turismo Búzios" className="w-full h-full object-cover" />
             </div>
             <div className="leading-tight">
-              <div className="text-sm font-bold text-foreground">Nathan</div>
+              <div className="text-sm font-bold text-foreground">Ônix</div>
               <div className="text-[11px] text-muted-foreground">{t.brandSubtitle}</div>
             </div>
           </div>
@@ -223,7 +223,7 @@ const Index = () => {
           <div className="relative inline-flex items-center justify-center mb-6">
             <div className="absolute inset-0 -m-3 rounded-full bg-turquoise/20 blur-2xl" aria-hidden />
             <div className="relative w-32 h-32 rounded-full border-2 border-turquoise/40 p-1 bg-night/50 backdrop-blur-sm">
-              <img src={nathanProfile} alt="Nathan" className="w-full h-full rounded-full object-cover" />
+              <img src={onyxLogo} alt="Ônix Turismo Búzios" className="w-full h-full rounded-full object-cover" />
               <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-400 border-2 border-night shadow-[0_0_10px_rgba(16,185,129,0.7)]" />
             </div>
           </div>
@@ -232,7 +232,7 @@ const Index = () => {
               className="bg-gradient-to-r from-turquoise via-turquoise-glow to-turquoise bg-clip-text text-transparent"
               style={{ filter: "drop-shadow(0 3px 12px rgba(0,0,0,0.85))" }}
             >
-              Nathan
+              Ônix
             </span>
           </h1>
           <p className="float-soft text-turquoise-glow text-base sm:text-lg font-medium mb-5">{t.brandSubtitle}</p>
@@ -356,7 +356,7 @@ const Index = () => {
         <DepoimentosSection lang={lang} />
 
         <footer className="text-center mt-14 text-xs text-muted-foreground/70">
-          © Nathan {t.brandSubtitle} · {t.footerRegion}
+          © {t.brandSubtitle} · {t.footerRegion}
         </footer>
       </div>
       <WhatsAppFab lang={lang} />

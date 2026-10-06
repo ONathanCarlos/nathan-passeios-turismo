@@ -36,7 +36,7 @@ const Avaliacao = () => {
   const [submitted, setSubmitted] = useState<{ passeio_nome: string; media_final: number } | null>(null);
 
   useEffect(() => {
-    document.title = "Avalie sua experiência · Nathan Turismo";
+    document.title = "Avalie sua experiência · Ônix Turismo Búzios";
     let active = true;
     getReviewContext(reviewAccess)
       .then((result) => {

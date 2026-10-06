@@ -303,7 +303,7 @@ export const StandardForm = ({
     const msgTitle = titlePt || (tourKey ? getTour(tourKey, "pt").title : title);
     const noCheckin = tourKey === "arraial" || tourKey === "lancha";
     const lines = [
-      "Olá Nathan! Aqui está minha reserva completa!",
+      "Olá! Aqui está minha reserva para a Ônix Turismo Búzios.",
       "",
       `🚤 NOVA RESERVA — ${msgTitle}`,
     ];
@@ -343,7 +343,7 @@ export const StandardForm = ({
       lines.push(
         "",
         "📍 Local do Check-in: Praça Santos Dummont, Cabine de Passeios Número 03 - Armação dos Búzios - RJ.",
-        "🕐 Horário do Check-in: até às 11:20 da manhã. Falar com Nathan ou Mary.",
+        "🕐 Horário do Check-in: até às 11:20 da manhã. Fale com a Ônix Turismo Búzios.",
       );
     }
     lines.push(

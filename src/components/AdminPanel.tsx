@@ -140,7 +140,7 @@ export const AdminPanel = ({ open, onOpenChange, defaultTab = "dashboard" }: { o
         <DialogHeader>
           <DialogTitle className="text-foreground flex items-center gap-2">
             <Settings2 className="h-5 w-5 text-turquoise-glow" />
-            CMS — Nathan Turismo
+            CMS — Ônix Turismo Búzios
           </DialogTitle>
           <DialogDescription>
             Painel central. Toda configuração, conteúdo e gestão do site acontece aqui.

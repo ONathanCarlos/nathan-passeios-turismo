@@ -4,11 +4,11 @@ import { Star } from "lucide-react";
 import type { Lang } from "@/lib/i18n";
 
 const L: Record<Lang, { title: string; subtitle: string }> = {
-  pt: { title: "Quem viajou com a gente", subtitle: "Avaliações reais de quem viveu Búzios com o Nathan." },
-  es: { title: "Quienes viajaron con nosotros", subtitle: "Opiniones reales de quienes vivieron Búzios con Nathan." },
-  en: { title: "Travelers who joined us", subtitle: "Real reviews from people who lived Búzios with Nathan." },
-  fr: { title: "Ils ont voyagé avec nous", subtitle: "Avis réels de ceux qui ont vécu Búzios avec Nathan." },
-  it: { title: "Hanno viaggiato con noi", subtitle: "Recensioni reali di chi ha vissuto Búzios con Nathan." },
+  pt: { title: "Quem viajou com a gente", subtitle: "Avaliações reais de quem viveu Búzios com a Ônix Turismo Búzios." },
+  es: { title: "Quienes viajaron con nosotros", subtitle: "Opiniones reales de quienes vivieron Búzios con Ônix Turismo Búzios." },
+  en: { title: "Travelers who joined us", subtitle: "Real reviews from people who lived Búzios with Ônix Turismo Búzios." },
+  fr: { title: "Ils ont voyagé avec nous", subtitle: "Avis réels de ceux qui ont vécu Búzios avec Ônix Turismo Búzios." },
+  it: { title: "Hanno viaggiato con noi", subtitle: "Recensioni reali di chi ha vissuto Búzios con Ônix Turismo Búzios." },
 };
 
 const initials = (name: string) =>

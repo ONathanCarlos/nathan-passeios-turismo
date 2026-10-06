@@ -16,7 +16,7 @@ import { CampaignPromoModal } from "@/components/CampaignPromoModal";
 import { useIsAdmin } from "@/lib/adminAuth";
 import { runNavigationTransition } from "@/lib/viewTransition";
 
-import nathanProfile from "@/assets/nathan-profile.jpg";
+const onyxLogo = "/onyx-turismo-buzios-logo.jpg";
 import escunaImg from "@/assets/escuna.jpg";
 import buggyImg from "@/assets/buggy.jpg";
 import arraialImg from "@/assets/arraial-do-cabo.jpg";
@@ -139,7 +139,7 @@ const Home = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [promoTick, lang]);
 
-  useEffect(() => { document.title = "Nathan Turismo · Búzios"; }, []);
+  useEffect(() => { document.title = "Ônix Turismo Búzios"; }, []);
 
   // Scroll suave até "Passeios Avulsos" quando promo está ativa
   useEffect(() => {
@@ -166,10 +166,10 @@ const Home = () => {
         <div className="flex items-center justify-between mb-10">
           <div className="flex items-center gap-3">
             <div className="relative w-11 h-11 rounded-full overflow-hidden border border-turquoise/40 shadow-[0_0_12px_hsl(var(--turquoise)/0.4)]">
-              <img src={nathanProfile} alt="Nathan" loading="eager" decoding="async" className="w-full h-full object-cover" />
+              <img src={onyxLogo} alt="Ônix Turismo Búzios" loading="eager" decoding="async" className="w-full h-full object-cover" />
             </div>
             <div className="leading-tight">
-              <div className="text-sm font-bold text-foreground">Nathan</div>
+              <div className="text-sm font-bold text-foreground">Ônix</div>
               <div className="text-[11px] text-muted-foreground">{t.brandSubtitle}</div>
             </div>
           </div>
@@ -179,7 +179,7 @@ const Home = () => {
         {/* Hero emocional */}
         <header className="text-center mb-8 animate-in fade-in slide-in-from-top-3 duration-700">
           <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight mb-3">
-            <span className="bg-gradient-to-r from-turquoise via-turquoise-glow to-amber-300 bg-clip-text text-transparent drop-shadow-[0_3px_12px_rgba(0,0,0,0.85)]">
+            <span className="bg-gradient-to-r from-turquoise via-turquoise-glow to-turquoise bg-clip-text text-transparent drop-shadow-[0_3px_12px_rgba(0,0,0,0.85)]">
               {C.headline}
             </span>
           </h1>
@@ -234,7 +234,7 @@ const Home = () => {
         <DepoimentosSection lang={lang} />
 
         <footer className="text-center mt-12 text-xs text-muted-foreground/70">
-          © Nathan {t.brandSubtitle} · {t.footerRegion}
+          © {t.brandSubtitle} · {t.footerRegion}
         </footer>
       </div>
       <WhatsAppFab lang={lang} />

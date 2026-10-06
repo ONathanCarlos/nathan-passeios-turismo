@@ -7,7 +7,7 @@ interface Props {
   lang: Lang;
 }
 
-const FALLBACK_WA = "5522998216796";
+const FALLBACK_WA = "5522932662509";
 
 const MESSAGES: Record<Lang, string> = {
   pt: "Olá! Vim pelo site e gostaria de informações sobre os passeios.",

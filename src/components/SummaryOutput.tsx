@@ -16,7 +16,7 @@ interface Props {
   onSend?: () => void;
 }
 
-const WA_NUMBER = "5522998216796";
+const WA_NUMBER = "5522932662509";
 
 const HEADER: Record<Lang, { ready: string; instr: string; review: string; send: string; back: string; tour: string }> = {
   pt: { ready: "Reserva Pronta!", instr: "Revise abaixo os dados da sua reserva antes de enviar pelo WhatsApp.", review: "Revise antes de enviar", send: "Confirmar e enviar para WhatsApp", back: "Voltar ao Passeio", tour: "Passeio" },

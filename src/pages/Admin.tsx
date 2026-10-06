@@ -22,7 +22,7 @@ const Admin = () => {
   const blocked = adminBlockedByQr();
 
   useEffect(() => {
-    document.title = "Admin · Nathan Turismo";
+    document.title = "Admin · Ônix Turismo Búzios";
   }, []);
 
   const submit = async () => {
