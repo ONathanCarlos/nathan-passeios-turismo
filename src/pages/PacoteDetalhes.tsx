@@ -68,7 +68,7 @@ const PacoteDetalhes = () => {
   const [bookingOpen, setBookingOpen] = useState(wantsBook);
 
   useEffect(() => {
-    if (pacote) document.title = `${pacote.nome_pt} · Nathan Turismo`;
+    if (pacote) document.title = `${pacote.nome_pt} · Ônix Turismo Búzios`;
   }, [pacote]);
 
   const imgOf = (k: string) =>
@@ -260,7 +260,7 @@ const PacoteDetalhes = () => {
         </div>
 
         <footer className="text-center mt-14 text-xs text-muted-foreground/70">
-          © Nathan {t.brandSubtitle} · {t.footerRegion}
+          © {t.brand} · {t.footerRegion}
         </footer>
       </div>
       <WhatsAppFab lang={lang} />

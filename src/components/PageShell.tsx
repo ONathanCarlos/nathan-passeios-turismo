@@ -56,7 +56,7 @@ export const PageShell = ({ title, lang, onLangChange, onBack, children, backgro
               {title}
             </span>
           </h1>
-          <p className="text-foreground/95 mb-8 text-sm font-medium drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">{t.brand}</p>
+          <p className="text-foreground mb-8 text-sm font-medium drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">{t.brand}</p>
           {children}
         </div>
       </div>
