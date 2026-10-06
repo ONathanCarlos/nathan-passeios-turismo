@@ -232,7 +232,7 @@ const Index = () => {
               className="bg-gradient-to-r from-turquoise via-turquoise-glow to-turquoise bg-clip-text text-transparent"
               style={{ filter: "drop-shadow(0 3px 12px rgba(0,0,0,0.85))" }}
             >
-              Nathan
+              Ônix
             </span>
           </h1>
           <p className="float-soft text-turquoise-glow text-base sm:text-lg font-medium mb-5">{t.brandSubtitle}</p>
