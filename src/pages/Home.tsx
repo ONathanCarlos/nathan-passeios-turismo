@@ -140,7 +140,6 @@ const Home = () => {
             </div>
             <div className="leading-tight">
               <div className="text-sm font-bold text-foreground">Ônix Turismo Búzios</div>
-              <div className="text-[11px] text-muted-foreground">{t.brandSubtitle}</div>
             </div>
           </div>
           <LanguageSwitcher lang={lang} onChange={setLang} />

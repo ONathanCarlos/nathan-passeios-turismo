@@ -63,6 +63,12 @@ const Index = () => {
   useEffect(() => subscribeQrPromo(() => setQr(loadQrPromo())), []);
   const { data: cmsTours } = useTours(true);
 
+  // Always open the tours page at the top (ignore scroll kept from the previous page)
+  useEffect(() => {
+    if ("scrollRestoration" in window.history) window.history.scrollRestoration = "manual";
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, []);
+
   // Browser/Android back-button support via history API
   useEffect(() => {
     if (!window.history.state || !window.history.state.screen) {
