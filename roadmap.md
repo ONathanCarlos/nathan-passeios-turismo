@@ -1,8 +1,8 @@
 # Roadmap
 
-- [ ] Conferir e ajustar identidade Ônix, logo, contraste e WhatsApp em celular e desktop sem publicar.
-- [ ] Importar logo e favicon da branch GitHub preview/onix-turismo-buzios.
-- [ ] Excluir a branch preview/onix-turismo-buzios somente após recuperar e validar os assets; bloqueado por falta do endereço/acesso ao repositório.
+- [x] Conferir e ajustar identidade Ônix, logo, contraste e WhatsApp em celular e desktop sem publicar.
+- [x] Importar logo e favicon da branch GitHub preview/onix-turismo-buzios.
+- [ ] Excluir a branch preview/onix-turismo-buzios após sincronizar o principal; alteração no GitHub não autorizada nesta sessão.
 
 - [x] Adicionar “Pedir avaliação” às reservas concluídas no Admin.
 - [x] Gerar/usar automaticamente o link seguro vinculado à reserva.
