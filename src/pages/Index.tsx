@@ -24,7 +24,6 @@ import { CampaignPromoModal } from "@/components/CampaignPromoModal";
 import { loadQrPromo, urlHasPromoParam, subscribeQrPromo } from "@/lib/qrPromo";
 import { useTours, pickLang } from "@/lib/cms";
 
-import onyxLogo from "@/assets/onyx-turismo-buzios-logo.jpg.asset.json";
 import arraialImg from "@/assets/arraial-do-cabo.jpg";
 import escunaImg from "@/assets/escuna.jpg";
 import buggyImg from "@/assets/buggy.jpg";
@@ -187,13 +186,13 @@ const Index = () => {
     {!admin && <SpanishLangModal lang={lang} />}
     {!admin && <CampaignPromoModal lang={lang} />}
     {!admin && <PromoBanner lang={lang} />}
-    <PageTransition key="menu"><main className={`relative min-h-screen px-4 ${admin ? "pt-6" : "pt-16 sm:pt-20"} py-6 sm:py-10 overflow-hidden`}>
+    <PageTransition key="menu"><main className={`relative min-h-screen px-4 ${admin ? "pt-4" : "pt-14 sm:pt-16"} pb-6 sm:pb-10 overflow-hidden`}>
       {/* Fundo estático ondulatório: gradiente azul-turquesa → azul escuro */}
       <div aria-hidden="true" className="ocean-static-bg pointer-events-none fixed inset-0 z-0" />
 
       <div className="relative z-10 mx-auto max-w-6xl">
         {/* Top bar */}
-        <div className="brand-topbar flex items-center justify-between mb-8 gap-2">
+        <div className="brand-topbar flex items-center justify-between mb-4 gap-2">
           <Link
             to="/"
             onClick={(event) => {
@@ -206,40 +205,8 @@ const Index = () => {
             <ArrowLeft className="h-3.5 w-3.5" />
             {({ pt: "Voltar", es: "Volver", en: "Back", fr: "Retour", it: "Indietro" } as Record<Lang,string>)[lang]}
           </Link>
-          <div className="flex items-center gap-3">
-            <div className="relative w-11 h-11 rounded-full overflow-hidden border border-turquoise/40 shadow-[0_0_12px_hsl(var(--turquoise)/0.4)]">
-              <img src={onyxLogo.url} alt="Ônix Turismo Búzios" className="w-full h-full object-contain" />
-            </div>
-            <div className="leading-tight">
-              <div className="text-sm font-bold text-foreground">Ônix Turismo Búzios</div>
-              <div className="text-[11px] text-muted-foreground">{t.brandSubtitle}</div>
-            </div>
-          </div>
           <LanguageSwitcher lang={lang} onChange={setLang} />
         </div>
-
-        {/* Hero */}
-        <header className="text-center mb-12 animate-in fade-in slide-in-from-top-3 duration-700">
-          <div className="relative inline-flex items-center justify-center mb-6">
-            <div className="absolute inset-0 -m-3 rounded-full bg-turquoise/20 blur-2xl" aria-hidden />
-            <div className="relative w-32 h-32 rounded-full border-2 border-turquoise/40 p-1 bg-night/50 backdrop-blur-sm">
-              <img src={onyxLogo.url} alt="Ônix Turismo Búzios" className="w-full h-full rounded-full object-contain" />
-              <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-400 border-2 border-night shadow-[0_0_10px_rgba(16,185,129,0.7)]" />
-            </div>
-          </div>
-          <h1 className="text-5xl sm:text-6xl font-bold mb-2 leading-tight">
-            <span
-              className="bg-gradient-to-r from-turquoise via-turquoise-glow to-turquoise bg-clip-text text-transparent"
-              style={{ filter: "drop-shadow(0 3px 12px rgba(0,0,0,0.85))" }}
-            >
-              Ônix
-            </span>
-          </h1>
-          <p className="float-soft text-turquoise-glow text-base sm:text-lg font-medium mb-5">{t.brandSubtitle}</p>
-          <p className="float-soft text-sm sm:text-base text-foreground/80 leading-relaxed max-w-xl mx-auto px-2" style={{ animationDelay: "1.2s" }}>
-            {t.welcome}
-          </p>
-        </header>
 
         {/* Tours */}
         <section id="tours">

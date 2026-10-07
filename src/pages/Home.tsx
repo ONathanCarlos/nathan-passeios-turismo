@@ -8,7 +8,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { DepoimentosSection } from "@/components/DepoimentosSection";
 import { useTours } from "@/lib/cms";
-import { ChevronRight, Sparkles, Star, ShieldCheck, Globe2 } from "lucide-react";
+import { ChevronRight, Sparkles } from "lucide-react";
 import { isQrActive, urlHasPromoParam, subscribeQrPromo } from "@/lib/qrPromo";
 import { loadPromo } from "@/lib/promo";
 import { QrPromoBoot } from "@/components/QrPromo";
@@ -38,11 +38,6 @@ const FALLBACK: Record<string, string> = {
 };
 
 const COPY: Record<Lang, {
-  headline: string;
-  subhead: string;
-  trustRating: string;
-  trustSecure: string;
-  trustLangs: string;
   avulsosTitle: string;
   avulsosDesc: string;
   pacotesTitle: string;
@@ -51,11 +46,6 @@ const COPY: Record<Lang, {
   promoHint: string;
 }> = {
   pt: {
-    headline: "Explore Búzios do seu jeito.",
-    subhead: "Experiências incríveis, passeios inesquecíveis e os melhores combos da região.",
-    trustRating: "4.9 · centenas de viagens",
-    trustSecure: "Reserva segura",
-    trustLangs: "Atendimento em 5 idiomas",
     avulsosTitle: "Passeios Avulsos",
     avulsosDesc: "Escolha um passeio individual: Escuna, Buggy, Arraial do Cabo, Mergulho e mais.",
     pacotesTitle: "Pacotes de Passeios",
@@ -64,11 +54,6 @@ const COPY: Record<Lang, {
     promoHint: "Aplique seu desconto aqui! Válido apenas nos Passeios Avulsos.",
   },
   es: {
-    headline: "Explora Búzios a tu manera.",
-    subhead: "Experiencias increíbles, paseos inolvidables y los mejores combos de la región.",
-    trustRating: "4.9 · cientos de viajes",
-    trustSecure: "Reserva segura",
-    trustLangs: "Atención en 5 idiomas",
     avulsosTitle: "Paseos individuales",
     avulsosDesc: "Elige un paseo individual: Goleta, Buggy, Arraial do Cabo, Buceo y más.",
     pacotesTitle: "Paquetes de paseos",
@@ -77,11 +62,6 @@ const COPY: Record<Lang, {
     promoHint: "¡Aplica tu descuento aquí! Válido solo en los Paseos individuales.",
   },
   en: {
-    headline: "Explore Búzios your way.",
-    subhead: "Amazing experiences, unforgettable tours and the best combos in the region.",
-    trustRating: "4.9 · hundreds of trips",
-    trustSecure: "Secure booking",
-    trustLangs: "Service in 5 languages",
     avulsosTitle: "Individual Tours",
     avulsosDesc: "Pick a single tour: Schooner, Buggy, Arraial do Cabo, Diving and more.",
     pacotesTitle: "Tour Packages",
@@ -90,11 +70,6 @@ const COPY: Record<Lang, {
     promoHint: "Apply your discount here! Valid only on Individual Tours.",
   },
   fr: {
-    headline: "Explorez Búzios à votre façon.",
-    subhead: "Expériences incroyables, excursions inoubliables et les meilleurs combos de la région.",
-    trustRating: "4.9 · des centaines de voyages",
-    trustSecure: "Réservation sécurisée",
-    trustLangs: "Service en 5 langues",
     avulsosTitle: "Excursions individuelles",
     avulsosDesc: "Choisissez une excursion : Goélette, Buggy, Arraial do Cabo, Plongée et plus.",
     pacotesTitle: "Forfaits d'excursions",
@@ -103,11 +78,6 @@ const COPY: Record<Lang, {
     promoHint: "Appliquez votre réduction ici ! Valable uniquement sur les Excursions individuelles.",
   },
   it: {
-    headline: "Esplora Búzios a modo tuo.",
-    subhead: "Esperienze incredibili, tour indimenticabili e i migliori combo della regione.",
-    trustRating: "4.9 · centinaia di viaggi",
-    trustSecure: "Prenotazione sicura",
-    trustLangs: "Servizio in 5 lingue",
     avulsosTitle: "Tour singoli",
     avulsosDesc: "Scegli un tour singolo: Goletta, Buggy, Arraial do Cabo, Immersione e altro.",
     pacotesTitle: "Pacchetti tour",
@@ -176,29 +146,27 @@ const Home = () => {
           <LanguageSwitcher lang={lang} onChange={setLang} />
         </div>
 
-        {/* Hero emocional */}
-        <header className="text-center mb-8 animate-in fade-in slide-in-from-top-3 duration-700">
-          <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight mb-3">
-            <span className="bg-gradient-to-r from-turquoise via-turquoise-glow to-turquoise-glow bg-clip-text text-transparent drop-shadow-[0_3px_12px_rgba(0,0,0,0.85)]">
-              {C.headline}
+        {/* Institutional header */}
+        <header className="text-center mb-12 animate-in fade-in slide-in-from-top-3 duration-700">
+          <div className="relative inline-flex items-center justify-center mb-8">
+            <div className="absolute inset-0 -m-3 rounded-full bg-turquoise/20 blur-2xl" aria-hidden />
+            <div className="relative w-32 h-32 rounded-full border-2 border-turquoise/40 p-1 bg-night/50 backdrop-blur-sm">
+              <img src={onyxLogo.url} alt="Ônix Turismo Búzios" className="w-full h-full rounded-full object-contain" />
+              <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-400 border-2 border-night shadow-[0_0_10px_rgba(16,185,129,0.7)]" />
+            </div>
+          </div>
+          <h1 className="text-5xl sm:text-6xl font-bold mb-2 leading-tight">
+            <span
+              className="inline-block pt-2 pb-1 bg-gradient-to-r from-turquoise via-turquoise-glow to-turquoise bg-clip-text text-transparent"
+              style={{ filter: "drop-shadow(0 3px 12px rgba(0,0,0,0.85))" }}
+            >
+              Ônix
             </span>
           </h1>
-          <p className="text-foreground/85 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
-            {C.subhead}
+          <p className="float-soft text-turquoise-glow text-base sm:text-lg font-medium mb-5">{t.brandSubtitle}</p>
+          <p className="float-soft text-sm sm:text-base text-foreground/80 leading-relaxed max-w-xl mx-auto px-2" style={{ animationDelay: "1.2s" }}>
+            {t.welcome}
           </p>
-
-          {/* Trust strip */}
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] sm:text-xs text-foreground/80">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-500/10 px-2.5 py-1">
-              <Star className="w-3 h-3 fill-amber-300 text-amber-300" /> {C.trustRating}
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-1">
-              <ShieldCheck className="w-3 h-3 text-emerald-300" /> {C.trustSecure}
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-turquoise/30 bg-turquoise/10 px-2.5 py-1">
-              <Globe2 className="w-3 h-3 text-turquoise-glow" /> {C.trustLangs}
-            </span>
-          </div>
         </header>
 
         {/* Promo hint banner */}
