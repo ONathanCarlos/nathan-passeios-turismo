@@ -1,7 +1,7 @@
 // ============================================================
 // Nova Home: duas grandes opções — Passeios Avulsos x Pacotes
 // ============================================================
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lang, dict, loadLang, saveLang } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
