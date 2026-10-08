@@ -68,25 +68,36 @@ export const QrPromoBoot = ({ lang }: Props) => {
   const activeLang: Lang = lang || loadLang();
   const t = T[activeLang];
 
-  useEffect(() => {
+    useEffect(() => {
     const parsed = parseQrFromUrl();
+
+    // QR válido acessado em outra rota: redireciona para a Home,
+    // preservando a query string e o hash originais.
+    if (parsed && window.location.pathname !== "/") {
+      window.location.replace(
+        `/${window.location.search}${window.location.hash}`
+      );
+      return;
+    }
+
     if (parsed) {
       const next: QrPromo = {
         percent: parsed.percent,
         campaign: parsed.campaign,
         activatedAt: new Date().toISOString(),
       };
+
       saveQrPromo(next);
       clearPromo();
       setPromo(next);
+
       if (!hasSeenCampaign(parsed.campaign)) {
         setOpen(true);
         markSeenCampaign(parsed.campaign);
       }
     }
-    // Importante: NÃO limpar o desconto ao navegar para URLs sem ?promo=.
-    // Uma vez ativado (QR ou evento), o desconto deve persistir e ser
-    // aplicado sempre nos passeios avulsos durante a sessão do cliente.
+
+    // Não limpar o desconto ao navegar para URLs sem ?promo=.
     return subscribeQrPromo(() => setPromo(loadQrPromo()));
   }, []);
 
