@@ -262,7 +262,7 @@ const Index = () => {
                     ) : null;
                   })()}
                   {COUPON_ELIGIBLE.has(opt.key) && (
-                    <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-md bg-amber-400/95 px-2 py-0.5 text-[10px] font-extrabold text-night uppercase tracking-wider shadow-lg coupon-blink">
+                    <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-md bg-amber-400/95 px-2 py-0.5 text-[10px] font-extrabold text-night uppercase tracking-wider shadow-lg">
                       <Tag className="w-3 h-3" /> Cupom de desconto aplicável!!
                     </span>
                   )}

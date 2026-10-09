@@ -94,7 +94,6 @@ const Home = () => {
   const t = dict[lang];
   const C = COPY[lang];
   const { data: cmsTours } = useTours(true);
-  const avulsosRef = useRef<HTMLButtonElement | null>(null);
   const admin = useIsAdmin();
 
   // Promo state
@@ -110,15 +109,6 @@ const Home = () => {
   }, [promoTick, lang]);
 
   useEffect(() => { document.title = "Ônix Turismo Búzios · Búzios"; }, []);
-
-  // Scroll suave até "Passeios Avulsos" quando promo está ativa
-  useEffect(() => {
-    if (!promoActive) return;
-    const tm = setTimeout(() => {
-      avulsosRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 700);
-    return () => clearTimeout(tm);
-  }, [promoActive]);
 
   const imgOf = (key: string) =>
     cmsTours?.find((x) => x.key === key)?.imagem_url || FALLBACK[key] || "";
@@ -181,7 +171,6 @@ const Home = () => {
         {/* Two big choices */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <BigChoice
-            ref={avulsosRef}
             quadrants={avulsosImgs}
             title={C.avulsosTitle}
             desc={C.avulsosDesc}
@@ -224,11 +213,7 @@ const BigChoice = forwardRef<HTMLButtonElement, BigChoiceProps>(function BigChoi
     ref={ref}
     type="button"
     onClick={onClick}
-    className={`group glass-card rounded-3xl overflow-hidden text-left transition-all duration-300 hover:-translate-y-1 ${
-      highlight
-        ? "border-amber-400/70 shadow-[0_0_28px_hsl(45_95%_60%/0.45)] ring-2 ring-amber-300/60 animate-pulse"
-        : "hover:border-turquoise/60 hover:turquoise-glow"
-    }`}
+    className="group glass-card rounded-3xl overflow-hidden text-left transition-all duration-300 hover:-translate-y-1 hover:border-turquoise/60 hover:turquoise-glow"
   >
     <div className="relative aspect-square w-full overflow-hidden bg-night">
       <div className="grid grid-cols-2 grid-rows-2 gap-0.5 w-full h-full">
