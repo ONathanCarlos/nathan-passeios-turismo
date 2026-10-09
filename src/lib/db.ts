@@ -256,6 +256,10 @@ export async function createReviewReservationFromLead(leadId: string, tourKey: "
       email: lead.email || undefined,
       idioma_reserva: "pt",
       destino,
+      data_viagem: new Date().toISOString().slice(0, 10),
+      passageiros: 1,
+      valor_original: 0,
+      valor_com_desconto: 0,
     }, "concluida");
     if (!id) return { ok: false, error: "create_failed" };
     return { ok: true, id, existing: false };
