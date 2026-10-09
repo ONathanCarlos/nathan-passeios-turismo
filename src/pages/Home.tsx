@@ -90,38 +90,35 @@ const COPY: Record<Lang, {
 const Home = () => {
   const nav = useNavigate();
   const [lang, setLangState] = useState<Lang>(() => loadLang());
-  const setLang = (l: Lang) => {
-    saveLang(l);
-    setLangState(l);
-  };
+  const setLang = (l: Lang) => { saveLang(l); setLangState(l); };
   const t = dict[lang];
   const C = COPY[lang];
   const { data: cmsTours } = useTours(true);
+  const avulsosRef = useRef<HTMLButtonElement | null>(null);
   const admin = useIsAdmin();
 
   // Promo state
   const [promoTick, setPromoTick] = useState(0);
   useEffect(() => subscribeQrPromo(() => setPromoTick((n) => n + 1)), []);
-
   const promoActive = useMemo(() => {
     if (typeof window === "undefined") return false;
     const sp = new URLSearchParams(window.location.search);
     const hasPromoParam = sp.has("promo");
     const hasLangEs = (sp.get("lang") || "").toLowerCase().startsWith("es");
-
-    return (
-      hasPromoParam ||
-      hasLangEs ||
-      isQrActive() ||
-      urlHasPromoParam() ||
-      !!loadPromo()
-    );
+    return hasPromoParam || hasLangEs || isQrActive() || urlHasPromoParam() || !!loadPromo();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [promoTick, lang]);
 
+  useEffect(() => { document.title = "Ônix Turismo Búzios · Búzios"; }, []);
+
+  // Scroll suave até "Passeios Avulsos" quando promo está ativa
   useEffect(() => {
-    document.title = "Ônix Turismo Búzios · Búzios";
-  }, []);
+    if (!promoActive) return;
+    const tm = setTimeout(() => {
+      avulsosRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 700);
+    return () => clearTimeout(tm);
+  }, [promoActive]);
 
   const imgOf = (key: string) =>
     cmsTours?.find((x) => x.key === key)?.imagem_url || FALLBACK[key] || "";
@@ -133,54 +130,30 @@ const Home = () => {
     <main className="relative min-h-screen px-4 pt-10 pb-16 overflow-hidden">
       {!admin && <QrPromoBoot lang={lang} />}
       {!admin && <CampaignPromoModal lang={lang} />}
-
-      <div
-        aria-hidden
-        className="ocean-static-bg pointer-events-none fixed inset-0 z-0"
-      />
-
+      <div aria-hidden className="ocean-static-bg pointer-events-none fixed inset-0 z-0" />
       <div className="relative z-10 mx-auto max-w-3xl">
         {/* Topbar */}
         <div className="brand-topbar flex items-center justify-between mb-10">
           <div className="flex items-center gap-3">
             <div className="relative w-11 h-11 rounded-full overflow-hidden border border-turquoise/40 shadow-[0_0_12px_hsl(var(--turquoise)/0.4)]">
-              <img
-                src={onyxLogo.url}
-                alt="Ônix Turismo Búzios"
-                loading="eager"
-                decoding="async"
-                className="w-full h-full object-contain"
-              />
+              <img src={onyxLogo.url} alt="Ônix Turismo Búzios" loading="eager" decoding="async" className="w-full h-full object-contain" />
             </div>
-
             <div className="leading-tight">
-              <div className="text-sm font-bold text-foreground">
-                Ônix Turismo Búzios
-              </div>
+              <div className="text-sm font-bold text-foreground">Ônix Turismo Búzios</div>
             </div>
           </div>
-
           <LanguageSwitcher lang={lang} onChange={setLang} />
         </div>
 
         {/* Institutional header */}
         <header className="text-center mb-12 animate-in fade-in slide-in-from-top-3 duration-700">
           <div className="relative inline-flex items-center justify-center mb-8">
-            <div
-              className="absolute inset-0 -m-3 rounded-full bg-turquoise/20 blur-2xl"
-              aria-hidden
-            />
-
+            <div className="absolute inset-0 -m-3 rounded-full bg-turquoise/20 blur-2xl" aria-hidden />
             <div className="relative w-32 h-32 rounded-full border-2 border-turquoise/40 p-1 bg-night/50 backdrop-blur-sm">
-              <img
-                src={onyxLogo.url}
-                alt="Ônix Turismo Búzios"
-                className="w-full h-full rounded-full object-contain"
-              />
+              <img src={onyxLogo.url} alt="Ônix Turismo Búzios" className="w-full h-full rounded-full object-contain" />
               <span className="absolute bottom-1 right-1 w-4 h-4 rounded-full bg-emerald-400 border-2 border-night shadow-[0_0_10px_rgba(16,185,129,0.7)]" />
             </div>
           </div>
-
           <h1 className="text-5xl sm:text-6xl font-bold mb-2 leading-tight">
             <span
               className="inline-block pt-2 pb-1 bg-gradient-to-r from-turquoise via-turquoise-glow to-turquoise bg-clip-text text-transparent"
@@ -189,22 +162,15 @@ const Home = () => {
               Ônix
             </span>
           </h1>
-
-          <p className="float-soft text-turquoise-glow text-base sm:text-lg font-medium mb-5">
-            {t.brandSubtitle}
-          </p>
-
-          <p
-            className="float-soft text-sm sm:text-base text-foreground/80 leading-relaxed max-w-xl mx-auto px-2"
-            style={{ animationDelay: "1.2s" }}
-          >
+          <p className="float-soft text-turquoise-glow text-base sm:text-lg font-medium mb-5">{t.brandSubtitle}</p>
+          <p className="float-soft text-sm sm:text-base text-foreground/80 leading-relaxed max-w-xl mx-auto px-2" style={{ animationDelay: "1.2s" }}>
             {t.welcome}
           </p>
         </header>
 
-        {/* Promo hint banner — sem animação */}
+        {/* Promo hint banner */}
         {promoActive && (
-          <div className="mb-5 mx-auto max-w-xl rounded-2xl border border-amber-400/50 bg-gradient-to-r from-amber-500/15 via-amber-400/10 to-turquoise/15 px-4 py-3 flex items-center gap-3 shadow-[0_0_24px_hsl(var(--turquoise)/0.25)]">
+          <div className="mb-5 mx-auto max-w-xl rounded-2xl border border-amber-400/50 bg-gradient-to-r from-amber-500/15 via-amber-400/10 to-turquoise/15 px-4 py-3 flex items-center gap-3 shadow-[0_0_24px_hsl(var(--turquoise)/0.25)] animate-in fade-in slide-in-from-top-2 duration-500">
             <Sparkles className="h-5 w-5 text-amber-300 shrink-0" />
             <p className="text-xs sm:text-sm font-semibold text-amber-100 leading-snug">
               {C.promoHint}
@@ -215,12 +181,14 @@ const Home = () => {
         {/* Two big choices */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <BigChoice
+            ref={avulsosRef}
             quadrants={avulsosImgs}
             title={C.avulsosTitle}
             desc={C.avulsosDesc}
             onClick={() => runNavigationTransition(() => nav("/passeios"))}
+            highlight={promoActive}
+            highlightLabel={promoActive ? C.promoHint : undefined}
           />
-
           <BigChoice
             quadrants={pacotesImgs}
             title={C.pacotesTitle}
@@ -236,74 +204,74 @@ const Home = () => {
           © {t.brand} · {t.footerRegion}
         </footer>
       </div>
-
       <WhatsAppFab lang={lang} />
     </main>
   );
 };
 
+import { forwardRef } from "react";
+
 interface BigChoiceProps {
-  quadrants: string[];
-  title: string;
-  desc: string;
-  onClick: () => void;
-  badge?: string;
+  quadrants: string[]; title: string; desc: string; onClick: () => void;
+  badge?: string; highlight?: boolean; highlightLabel?: string;
 }
 
-const BigChoice = ({
-  quadrants,
-  title,
-  desc,
-  onClick,
-  badge,
-}: BigChoiceProps) => {
+const BigChoice = forwardRef<HTMLButtonElement, BigChoiceProps>(function BigChoice(
+  { quadrants, title, desc, onClick, badge, highlight, highlightLabel }, ref,
+) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="group glass-card rounded-3xl overflow-hidden text-left transition-all duration-300 hover:-translate-y-1 hover:border-turquoise/60 hover:turquoise-glow"
-    >
-      <div className="relative aspect-square w-full overflow-hidden bg-night">
-        <div className="grid grid-cols-2 grid-rows-2 gap-0.5 w-full h-full">
-          {quadrants.slice(0, 4).map((src, i) => (
-            <div
-              key={i}
-              className="relative w-full h-full overflow-hidden bg-night/60"
-            >
-              {src ? (
-                <img
-                  src={src}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              ) : null}
-            </div>
-          ))}
-        </div>
-
-        <div className="absolute inset-0 bg-gradient-to-t from-night/90 via-night/20 to-transparent pointer-events-none" />
+  <button
+    ref={ref}
+    type="button"
+    onClick={onClick}
+    className={`group glass-card rounded-3xl overflow-hidden text-left transition-all duration-300 hover:-translate-y-1 ${
+      highlight
+        ? "border-amber-400/70 shadow-[0_0_28px_hsl(45_95%_60%/0.45)] ring-2 ring-amber-300/60 animate-pulse"
+        : "hover:border-turquoise/60 hover:turquoise-glow"
+    }`}
+  >
+    <div className="relative aspect-square w-full overflow-hidden bg-night">
+      <div className="grid grid-cols-2 grid-rows-2 gap-0.5 w-full h-full">
+        {quadrants.slice(0, 4).map((src, i) => (
+          <div key={i} className="relative w-full h-full overflow-hidden bg-night/60">
+            {src ? (
+              <img
+                src={src}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+            ) : null}
+          </div>
+        ))}
       </div>
-
-      <div className="p-5">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-xl font-bold text-foreground">{title}</h2>
-          <ChevronRight className="w-5 h-5 text-turquoise-glow shrink-0 transition-transform group-hover:translate-x-0.5" />
+      <div className="absolute inset-0 bg-gradient-to-t from-night/90 via-night/20 to-transparent pointer-events-none" />
+      {highlight && (
+        <div className="absolute top-2 right-2 px-2 py-1 rounded-full bg-amber-400 text-night text-[10px] font-extrabold uppercase tracking-wider shadow-lg">
+          ✦ Desconto aqui
         </div>
-
-        <p className="mt-2 text-sm text-muted-foreground leading-snug">
-          {desc}
+      )}
+    </div>
+    <div className="p-5">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-xl font-bold text-foreground">{title}</h2>
+        <ChevronRight className="w-5 h-5 text-turquoise-glow shrink-0 transition-transform group-hover:translate-x-0.5" />
+      </div>
+      <p className="mt-2 text-sm text-muted-foreground leading-snug">{desc}</p>
+      {highlight && highlightLabel && (
+        <p className="mt-3 text-[11px] sm:text-xs font-semibold text-amber-200 italic">
+          ✦ {highlightLabel}
         </p>
-
-        {badge && (
-          <p className="mt-3 text-[11px] sm:text-xs font-semibold text-amber-200/90 italic">
-            ✦ {badge}
-          </p>
-        )}
-      </div>
-    </button>
+      )}
+      {!highlight && badge && (
+        <p className="mt-3 text-[11px] sm:text-xs font-semibold text-amber-200/90 italic">
+          ✦ {badge}
+        </p>
+      )}
+    </div>
+  </button>
   );
-};
+});
 
 export default Home;
