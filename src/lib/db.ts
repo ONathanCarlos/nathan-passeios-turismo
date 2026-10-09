@@ -235,6 +235,20 @@ export async function updateReservaStatus(
   }
 }
 
+/** Admin: cria uma reserva concluída para um lead previamente identificado. */
+export async function createReviewReservationFromLead(leadId: string, tourKey: "escuna") {
+  try {
+    const res = await callAdmin<{ ok: boolean; id?: string; existing?: boolean; error?: string }>(
+      "create_review_reservation_from_lead",
+      { lead_id: leadId, tour_key: tourKey },
+    );
+    if (!res.ok || !res.id) return { ok: false, error: res.error || "create_failed" };
+    return { ok: true, id: res.id, existing: res.existing === true };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "create_failed" };
+  }
+}
+
 /** Admin: lista reservas (via edge function autenticada). */
 export async function fetchReservas(limit = 200): Promise<Reserva[]> {
   try {
