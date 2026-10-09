@@ -251,24 +251,22 @@ const TourRow = ({ t }: { t: CmsTour }) => {
           <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">📸 Galeria de fotos</Label>
           <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2">
             <div className="space-y-1">
-              <div className="relative aspect-[4/3] rounded-md overflow-hidden border border-turquoise/30 bg-night/50">
+              <label className="relative block aspect-[4/3] cursor-pointer overflow-hidden rounded-md border border-turquoise/30 bg-night/50 hover:border-turquoise/70">
                 {draft.imagem_url ? <img src={draft.imagem_url} alt="Capa" className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-[9px] text-muted-foreground">sem capa</div>}
-              </div>
-              <label className="cursor-pointer block text-center text-[10px] text-turquoise-glow hover:underline">Foto 1 — Capa
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f, "imagem_url"); }} />
               </label>
+              <div className="text-center text-[10px] text-turquoise-glow">Foto 1 — Capa</div>
               {draft.imagem_url && <button type="button" onClick={() => removeMedia(draft.imagem_url, "imagem_url")} className="w-full text-[10px] text-rose-300 hover:underline">Remover</button>}
             </div>
             {[0, 1, 2].map((slot) => {
               const url = draft.gallery_imagens?.[slot] || "";
               return (
                 <div key={slot} className="space-y-1">
-                  <div className="relative aspect-[4/3] rounded-md overflow-hidden border border-turquoise/30 bg-night/50">
+                  <label className="relative block aspect-[4/3] cursor-pointer overflow-hidden rounded-md border border-turquoise/30 bg-night/50 hover:border-turquoise/70">
                     {url ? <img src={url} alt={`Foto ${slot + 2}`} className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-[9px] text-muted-foreground">sem foto</div>}
-                  </div>
-                  <label className="cursor-pointer block text-center text-[10px] text-turquoise-glow hover:underline">Foto {slot + 2}
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { const next = [...(draft.gallery_imagens ?? [])]; while (next.length <= slot) next.push(""); setDraft({ ...draft, gallery_imagens: next }); onUpload(f, "imagem_url", slot); } }} />
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f, "imagem_url", slot); }} />
                   </label>
+                  <div className="text-center text-[10px] text-turquoise-glow">Foto {slot + 2}</div>
                   {url && <button type="button" onClick={() => removeMedia(url, "imagem_url", slot)} className="w-full text-[10px] text-rose-300 hover:underline">Remover</button>}
                 </div>
               );
@@ -281,13 +279,12 @@ const TourRow = ({ t }: { t: CmsTour }) => {
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {[{ key: "video_url" as const, label: "Vídeo 1" }, { key: "video_2_url" as const, label: "Vídeo 2" }].map(({ key, label }) => (
               <div key={key} className="flex items-center gap-2 rounded-md border border-turquoise/20 bg-night/30 p-2">
-                <div className="relative w-16 h-12 rounded-md overflow-hidden border border-turquoise/30 bg-night/50">
+                <label className="relative block h-12 w-16 cursor-pointer overflow-hidden rounded-md border border-turquoise/30 bg-night/50 hover:border-turquoise/70">
                   {draft[key] ? <><video src={draft[key] || undefined} muted playsInline preload="metadata" className="w-full h-full object-cover" /><span className="absolute inset-0 flex items-center justify-center text-white/90 text-xs">▶</span></> : <div className="h-full flex items-center justify-center text-[9px] text-muted-foreground">sem vídeo</div>}
-                </div>
+                  <input type="file" accept="video/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f, key); }} />
+                </label>
                 <div className="space-y-1">
-                  <label className="cursor-pointer inline-flex items-center gap-1 text-[10px] text-turquoise-glow hover:underline">{label}
-                    <input type="file" accept="video/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f, key); }} />
-                  </label>
+                  <div className="text-[10px] text-turquoise-glow">{label}</div>
                   {draft[key] && <button type="button" onClick={() => removeMedia(draft[key], key)} className="block text-[10px] text-rose-300 hover:underline">Remover</button>}
                 </div>
               </div>
