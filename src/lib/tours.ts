@@ -26,7 +26,9 @@ export type TourSection = {
 export type TourDetail = {
   key: TourKey;
   image: string;
+  images?: string[];
   video?: string;
+  videos?: string[];
   title: string;
   hook: string;
   rating: number;
@@ -330,7 +332,14 @@ import { getCachedTour } from "./cmsCache";
 export const getTour = (key: TourKey, lang: Lang): TourDetail => {
   const base = _getTour(key, lang);
   const db = getCachedTour(key);
-  return { ...base, video: db?.video_url || undefined };
+  const videos = [db?.video_url, db?.video_2_url].filter((url): url is string => !!url);
+  const images = [db?.imagem_url, ...(db?.gallery_imagens || [])].filter((url): url is string => !!url);
+  return {
+    ...base,
+    images: images.length ? images : [base.image],
+    video: videos[0],
+    videos: videos.length ? videos : undefined,
+  };
 };
 
 const _getTour = (key: TourKey, lang: Lang): TourDetail => {

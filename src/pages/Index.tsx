@@ -23,6 +23,7 @@ import { SpanishLangModal } from "@/components/SpanishLangModal";
 import { CampaignPromoModal } from "@/components/CampaignPromoModal";
 import { loadQrPromo, urlHasPromoParam, subscribeQrPromo } from "@/lib/qrPromo";
 import { useTours, pickLang } from "@/lib/cms";
+import { TourMediaGallery } from "@/components/TourMediaGallery";
 
 import arraialImg from "@/assets/arraial-do-cabo.jpg";
 import escunaImg from "@/assets/escuna.jpg";
@@ -229,12 +230,10 @@ const Index = () => {
                 className="group glass-card rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:border-turquoise/60 hover:-translate-y-1 hover:turquoise-glow animate-in fade-in slide-in-from-bottom-3 fill-mode-both"
               >
                 {/* Image */}
-                <div className="relative aspect-[4/3] overflow-hidden">
-                  <img
-                    src={opt.image}
+                <div className="relative overflow-hidden">
+                  <TourMediaGallery
+                    images={[opt.image, ...(cmsByKey.get(opt.key)?.gallery_imagens ?? [])]}
                     alt={opt.title}
-                    loading="lazy"
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-night/85 via-night/10 to-transparent" />
                   {FEATURED_BADGES[opt.key] && (

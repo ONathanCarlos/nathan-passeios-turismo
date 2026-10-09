@@ -61,17 +61,22 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embed
         <section className={embedded ? "p-4" : "px-4"}>
           <div className="relative w-full overflow-hidden rounded-3xl border border-turquoise/25 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]">
             <div className="aspect-[16/11] w-full bg-night">
-              {tour.video ? (
-                <video
-                  src={tour.video}
-                  poster={tour.image}
-                  controls
-                  playsInline
-                  preload="metadata"
-                  className="w-full h-full object-cover"
-                />
+              {tour.videos?.length ? (
+                <div className={tour.videos.length > 1 ? "grid h-full grid-cols-1 gap-1 sm:grid-cols-2" : "h-full"}>
+                  {tour.videos.slice(0, 2).map((video, index) => (
+                    <video
+                      key={video}
+                      src={video}
+                      poster={index === 0 ? tour.image : undefined}
+                      controls
+                      playsInline
+                      preload="metadata"
+                      className="h-full w-full object-cover"
+                    />
+                  ))}
+                </div>
               ) : (
-                <img src={tour.image} alt={tour.title} className="w-full h-full object-cover" />
+                <img src={tour.images?.[0] || tour.image} alt={tour.title} className="w-full h-full object-cover" />
               )}
             </div>
             <div className="absolute inset-0 bg-gradient-to-t from-night via-night/30 to-transparent pointer-events-none" />
