@@ -322,6 +322,43 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    if (action === "create_review_reservation_from_lead") {
+      const leadId = str(body?.lead_id, 80);
+      const tourKey = str(body?.tour_key, 80);
+      if (!leadId || tourKey !== "escuna") return json({ ok: false, error: "invalid_input" }, 400);
+
+      const [{ data: lead }, { data: tour }] = await Promise.all([
+        supabase.from("leads").select("id,nome,telefone,email").eq("id", leadId).maybeSingle(),
+        supabase.from("tours").select("key,nome_pt").eq("key", tourKey).maybeSingle(),
+      ]);
+      if (!lead || !tour) return json({ ok: false, error: "not_found" }, 404);
+
+      const { data: existing } = await supabase
+        .from("reservas")
+        .select("id,status")
+        .eq("telefone", lead.telefone)
+        .eq("destino", tour.nome_pt)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (existing) return json({ ok: true, id: existing.id, existing: true });
+
+      const { data: created, error } = await supabase
+        .from("reservas")
+        .insert({
+          nome: lead.nome,
+          telefone: lead.telefone,
+          email: lead.email || null,
+          idioma_reserva: "pt",
+          destino: tour.nome_pt,
+          status: "concluida",
+        })
+        .select("id")
+        .maybeSingle();
+      if (error || !created) return json({ ok: false, error: "db_error" }, 500);
+      return json({ ok: true, id: created.id, existing: false });
+    }
+
     // -------------------- CMS (escrita) --------------------
     if (action === "cms_list") {
       const table = str(body?.table, 40);
