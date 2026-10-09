@@ -46,6 +46,8 @@ const TourRow = ({ t }: { t: CmsTour }) => {
   const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const mediaSchemaReady = Object.prototype.hasOwnProperty.call(draft, "gallery_imagens")
+    && Object.prototype.hasOwnProperty.call(draft, "video_2_url");
 
   const update = <K extends keyof CmsTour>(key: K, value: CmsTour[K]) =>
     setDraft((prev) => ({ ...prev, [key]: value }));
@@ -57,6 +59,10 @@ const TourRow = ({ t }: { t: CmsTour }) => {
     setTimeout(() => setSaved(false), 2500);
   };
   const onUpload = async (file: File, kind: "imagem_url" | "video_url" | "video_2_url", galleryIndex?: number) => {
+    if (!mediaSchemaReady && (galleryIndex !== undefined || kind === "video_2_url")) {
+      toast.error("Fotos extras e Vídeo 2 estarão disponíveis após a atualização do banco.");
+      return;
+    }
     let uploadedUrl: string | null = null;
     try {
       setUploading(true);
@@ -254,6 +260,7 @@ const TourRow = ({ t }: { t: CmsTour }) => {
       <div className="space-y-3 border-t border-turquoise/20 pt-3">
         <div>
           <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">📸 Galeria de fotos</Label>
+          {!mediaSchemaReady && <p className="mt-1 text-[10px] text-amber-200/80">Compatibilidade temporária: a capa pode ser enviada agora. Fotos 2–4 serão liberadas após a migration do banco.</p>}
           <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2">
             <div className="space-y-1">
               <label className="relative block aspect-[4/3] cursor-pointer overflow-hidden rounded-md border border-turquoise/30 bg-night/50 hover:border-turquoise/70">
@@ -267,11 +274,11 @@ const TourRow = ({ t }: { t: CmsTour }) => {
               const url = draft.gallery_imagens?.[slot] || "";
               return (
                 <div key={slot} className="space-y-1">
-                  <label className="relative block aspect-[4/3] cursor-pointer overflow-hidden rounded-md border border-turquoise/30 bg-night/50 hover:border-turquoise/70">
+                  <label className={`relative block aspect-[4/3] overflow-hidden rounded-md border border-turquoise/30 bg-night/50 ${mediaSchemaReady ? "cursor-pointer hover:border-turquoise/70" : "cursor-not-allowed opacity-60"}`}>
                     {url ? <img src={url} alt={`Foto ${slot + 2}`} className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-[9px] text-muted-foreground">sem foto</div>}
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.currentTarget.value = ""; if (f) onUpload(f, "imagem_url", slot); }} />
+                    <input type="file" accept="image/*" disabled={!mediaSchemaReady} className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.currentTarget.value = ""; if (f) onUpload(f, "imagem_url", slot); }} />
                   </label>
-                  <div className="text-center text-[10px] text-turquoise-glow">Foto {slot + 2}</div>
+                  <div className={`text-center text-[10px] ${mediaSchemaReady ? "text-turquoise-glow" : "text-muted-foreground"}`}>Foto {slot + 2}</div>
                   {url && <button type="button" onClick={() => removeMedia(url, "imagem_url", slot)} className="w-full text-[10px] text-rose-300 hover:underline">Remover</button>}
                 </div>
               );
@@ -281,15 +288,16 @@ const TourRow = ({ t }: { t: CmsTour }) => {
 
         <div>
           <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">🎥 Vídeos</Label>
+          {!mediaSchemaReady && <p className="mt-1 text-[10px] text-amber-200/80">Compatibilidade temporária: Vídeo 1 continua disponível. Vídeo 2 será liberado após a migration do banco.</p>}
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {[{ key: "video_url" as const, label: "Vídeo 1" }, { key: "video_2_url" as const, label: "Vídeo 2" }].map(({ key, label }) => (
               <div key={key} className="flex items-center gap-2 rounded-md border border-turquoise/20 bg-night/30 p-2">
-                <label className="relative block h-12 w-16 cursor-pointer overflow-hidden rounded-md border border-turquoise/30 bg-night/50 hover:border-turquoise/70">
+                <label className={`relative block h-12 w-16 overflow-hidden rounded-md border border-turquoise/30 bg-night/50 ${key === "video_2_url" && !mediaSchemaReady ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:border-turquoise/70"}`}>
                   {draft[key] ? <><video src={draft[key] || undefined} muted playsInline preload="metadata" className="w-full h-full object-cover" /><span className="absolute inset-0 flex items-center justify-center text-white/90 text-xs">▶</span></> : <div className="h-full flex items-center justify-center text-[9px] text-muted-foreground">sem vídeo</div>}
-                  <input type="file" accept="video/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.currentTarget.value = ""; if (f) onUpload(f, key); }} />
+                  <input type="file" accept="video/*" disabled={key === "video_2_url" && !mediaSchemaReady} className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.currentTarget.value = ""; if (f) onUpload(f, key); }} />
                 </label>
                 <div className="space-y-1">
-                  <div className="text-[10px] text-turquoise-glow">{label}</div>
+                  <div className={`text-[10px] ${key === "video_2_url" && !mediaSchemaReady ? "text-muted-foreground" : "text-turquoise-glow"}`}>{label}</div>
                   {draft[key] && <button type="button" onClick={() => removeMedia(draft[key], key)} className="block text-[10px] text-rose-300 hover:underline">Remover</button>}
                 </div>
               </div>
