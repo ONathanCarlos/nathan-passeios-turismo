@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lang, dict, loadLang, saveLang } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { DepoimentosSection } from "@/components/DepoimentosSection";
 import { useTours } from "@/lib/cms";
 import { ChevronRight, Sparkles } from "lucide-react";
@@ -193,7 +192,6 @@ const Home = () => {
           © {t.brand} · {t.footerRegion}
         </footer>
       </div>
-      <WhatsAppFab lang={lang} />
     </main>
   );
 };

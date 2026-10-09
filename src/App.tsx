@@ -18,6 +18,7 @@ const PacoteDetalhes = lazy(() => import("./pages/PacoteDetalhes.tsx"));
 const Avaliacao = lazy(() => import("./pages/Avaliacao.tsx"));
 import NotFound from "./pages/NotFound.tsx";
 import { ScrollToTopFab } from "@/components/ScrollToTopFab";
+import { GlobalFloatingActions } from "@/components/GlobalFloatingActions";
 import { bootCmsCache, subscribeCmsCache } from "@/lib/cmsCache";
 import { initAdminAuth } from "@/lib/adminAuth";
 
@@ -94,6 +95,7 @@ const App = () => (
             </Routes>
           </Suspense>
 
+          <GlobalFloatingActions />
           <ScrollToTopFab />
         </BrowserRouter>
       </CmsCacheBoot>

@@ -7,9 +7,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lang, dict, loadLang, saveLang } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { WhatsAppFab } from "@/components/WhatsAppFab";
-import { AdminFab } from "@/components/AdminPanel";
-import { useIsAdmin } from "@/lib/adminAuth";
 import { usePacotes, pickPacoteLang } from "@/lib/pacotes";
 import { useTours } from "@/lib/cms";
 import { TOUR_PRICES } from "@/lib/prices";
@@ -57,7 +54,6 @@ const PSEUDO_PRICES: Record<string, number> = { almoco: 50 };
 
 const Pacotes = () => {
   const nav = useNavigate();
-  const admin = useIsAdmin();
   const [lang, setLangState] = useState<Lang>(() => loadLang());
   const setLang = (l: Lang) => { saveLang(l); setLangState(l); };
   const t = dict[lang];
@@ -172,8 +168,6 @@ const Pacotes = () => {
           © {t.brand} · {t.footerRegion}
         </footer>
       </div>
-      <WhatsAppFab lang={lang} />
-      {admin && <AdminFab defaultTab="pacotes" />}
     </main>
   );
 };
