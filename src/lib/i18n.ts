@@ -32,6 +32,7 @@ export const loadLang = (): Lang => {
 
 export const saveLang = (l: Lang) => {
   try { localStorage.setItem(LANG_KEY, l); } catch {}
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("nathan:lang-change"));
 };
 
 export const LANG_LABELS: Record<Lang, { name: string; flag: string }> = {

@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/select";
 import { PageShell } from "./PageShell";
 import { SummaryOutput } from "./SummaryOutput";
-import { WhatsAppFab } from "./WhatsAppFab";
 import { PhoneInput, PhoneValue, fullPhone } from "./PhoneInput";
 import { toast } from "sonner";
 import { TourDatePicker } from "./TourDatePicker";
@@ -437,7 +436,6 @@ export const StandardForm = ({
             <SummaryOutput text={output.text} rows={output.rows} tourTitle={title} lang={lang} onReset={onBack} onSend={handleReservationSent} />
           </PageShell>
         </div>
-        <WhatsAppFab lang={lang} />
       </>
     );
   }
@@ -690,7 +688,6 @@ export const StandardForm = ({
         </div>
       </PageShell>
       </div>
-      <WhatsAppFab lang={lang} />
     </>
   );
 };

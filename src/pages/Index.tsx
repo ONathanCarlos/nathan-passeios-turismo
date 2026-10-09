@@ -5,7 +5,6 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 import { StandardForm } from "@/components/StandardForm";
 import { TourDetails } from "@/components/TourDetails";
-import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { TourKey } from "@/lib/tours";
 import { Star, Tag, ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -15,7 +14,6 @@ import { PageTransition } from "@/components/PageTransition";
 import { PromoBanner } from "@/components/PromoBanner";
 import { COUPON_ELIGIBLE, tourPriceLabel, TOUR_PRICES, formatBRL } from "@/lib/prices";
 import { useIsAdmin } from "@/lib/adminAuth";
-import { AdminFab } from "@/components/AdminPanel";
 import { runNavigationTransition } from "@/lib/viewTransition";
 
 import { QrPromoBoot } from "@/components/QrPromo";
@@ -115,8 +113,7 @@ const Index = () => {
             />
           </PageTransition>
         </div>
-        {admin && <AdminFab />}
-      </>
+        </>
     );
   }
 
@@ -140,7 +137,7 @@ const Index = () => {
       return <StandardForm tourKey="lancha" lang={lang} onLangChange={setLang} onBack={back} title={t.optLancha} backgroundImage={lanchaImg} />;
     return null;
   })();
-  if (formNode) return <PageTransition key={screen as string}>{formNode}{admin && <AdminFab />}</PageTransition>;
+  if (formNode) return <PageTransition key={screen as string}>{formNode}</PageTransition>;
 
   type Opt = { key: TourKey; image: string; title: string; desc: string; adultsOnly?: boolean };
   const cmsByKey = new Map((cmsTours || []).map((t) => [t.key, t]));
@@ -331,8 +328,6 @@ const Index = () => {
           © {t.brand} · {t.footerRegion}
         </footer>
       </div>
-      <WhatsAppFab lang={lang} />
-      {admin && <AdminFab />}
     </main></PageTransition>
     </>
   );
