@@ -21,7 +21,7 @@ import {
   useTours, useModais, useConfig, useDepoimentos,
   useUpsertTour, useDeleteTour, useUpsertModal, useDeleteModal,
   useUpsertConfig, useUpsertDepoimento, useDeleteDepoimento,
-  uploadMedia, type CmsTour, type CmsModal, type CmsDepoimento,
+  uploadMedia, deleteMedia, type CmsTour, type CmsModal, type CmsDepoimento,
 } from "@/lib/cms";
 
 // ---------------- Sub: Help Tooltip ----------------
@@ -56,16 +56,32 @@ const TourRow = ({ t }: { t: CmsTour }) => {
     toast.success("Alterações salvas e publicadas");
     setTimeout(() => setSaved(false), 2500);
   };
-  const onUpload = async (file: File, kind: "imagem_url" | "video_url") => {
+  const onUpload = async (file: File, kind: "imagem_url" | "video_url" | "video_2_url", galleryIndex?: number) => {
     try {
       setUploading(true);
-      const url = await uploadMedia(file, kind === "video_url" ? "videos" : "tours");
-      const next = { ...draft, [kind]: url };
+      const url = await uploadMedia(file, kind.includes("video") ? "videos" : "tours");
+      const next = galleryIndex === undefined
+        ? { ...draft, [kind]: url }
+        : (() => {
+            const gallery = [...(draft.gallery_imagens ?? [])];
+            while (gallery.length <= galleryIndex) gallery.push("");
+            gallery[galleryIndex] = url;
+            return { ...draft, gallery_imagens: gallery };
+          })();
       setDraft(next);
       await upsert.mutateAsync(next);
       toast.success("Mídia enviada e publicada");
     } catch (e: any) { toast.error(e?.message || "Erro no upload"); }
     finally { setUploading(false); }
+  };
+  const removeMedia = async (url: string | null | undefined, kind: "imagem_url" | "video_url" | "video_2_url", galleryIndex?: number) => {
+    if (url) await deleteMedia(url);
+    const next = galleryIndex === undefined
+      ? { ...draft, [kind]: null }
+      : { ...draft, gallery_imagens: (draft.gallery_imagens ?? []).map((item, index) => index === galleryIndex ? "" : item) };
+    setDraft(next);
+    await upsert.mutateAsync(next);
+    toast.success("Mídia removida");
   };
 
   return (
@@ -229,53 +245,58 @@ const TourRow = ({ t }: { t: CmsTour }) => {
         </div>
       )}
 
-      {/* Imagem + Vídeo + Ações */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="w-16 h-12 rounded-md overflow-hidden border border-turquoise/30 bg-night/50 shrink-0">
-          {draft.imagem_url ? (
-            <img src={draft.imagem_url} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-[9px] text-muted-foreground">sem img</div>
-          )}
+      {/* Galeria de fotos e vídeos */}
+      <div className="space-y-3 border-t border-turquoise/20 pt-3">
+        <div>
+          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">📸 Galeria de fotos</Label>
+          <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="space-y-1">
+              <div className="relative aspect-[4/3] rounded-md overflow-hidden border border-turquoise/30 bg-night/50">
+                {draft.imagem_url ? <img src={draft.imagem_url} alt="Capa" className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-[9px] text-muted-foreground">sem capa</div>}
+              </div>
+              <label className="cursor-pointer block text-center text-[10px] text-turquoise-glow hover:underline">Foto 1 — Capa
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f, "imagem_url"); }} />
+              </label>
+              {draft.imagem_url && <button type="button" onClick={() => removeMedia(draft.imagem_url, "imagem_url")} className="w-full text-[10px] text-rose-300 hover:underline">Remover</button>}
+            </div>
+            {[0, 1, 2].map((slot) => {
+              const url = draft.gallery_imagens?.[slot] || "";
+              return (
+                <div key={slot} className="space-y-1">
+                  <div className="relative aspect-[4/3] rounded-md overflow-hidden border border-turquoise/30 bg-night/50">
+                    {url ? <img src={url} alt={`Foto ${slot + 2}`} className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-[9px] text-muted-foreground">sem foto</div>}
+                  </div>
+                  <label className="cursor-pointer block text-center text-[10px] text-turquoise-glow hover:underline">Foto {slot + 2}
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { const next = [...(draft.gallery_imagens ?? [])]; while (next.length <= slot) next.push(""); setDraft({ ...draft, gallery_imagens: next }); onUpload(f, "imagem_url", slot); } }} />
+                  </label>
+                  {url && <button type="button" onClick={() => removeMedia(url, "imagem_url", slot)} className="w-full text-[10px] text-rose-300 hover:underline">Remover</button>}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        <div className="w-16 h-12 rounded-md overflow-hidden border border-turquoise/30 bg-night/50 shrink-0 relative">
-          {draft.video_url ? (
-            <>
-              <video src={draft.video_url} muted playsInline preload="metadata" className="w-full h-full object-cover" />
-              <span className="absolute inset-0 flex items-center justify-center text-white/90 text-xs">▶</span>
-            </>
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-[9px] text-muted-foreground">sem vídeo</div>
-          )}
+        <div>
+          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">🎥 Vídeos</Label>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {[{ key: "video_url" as const, label: "Vídeo 1" }, { key: "video_2_url" as const, label: "Vídeo 2" }].map(({ key, label }) => (
+              <div key={key} className="flex items-center gap-2 rounded-md border border-turquoise/20 bg-night/30 p-2">
+                <div className="relative w-16 h-12 rounded-md overflow-hidden border border-turquoise/30 bg-night/50">
+                  {draft[key] ? <><video src={draft[key] || undefined} muted playsInline preload="metadata" className="w-full h-full object-cover" /><span className="absolute inset-0 flex items-center justify-center text-white/90 text-xs">▶</span></> : <div className="h-full flex items-center justify-center text-[9px] text-muted-foreground">sem vídeo</div>}
+                </div>
+                <div className="space-y-1">
+                  <label className="cursor-pointer inline-flex items-center gap-1 text-[10px] text-turquoise-glow hover:underline">{label}
+                    <input type="file" accept="video/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f, key); }} />
+                  </label>
+                  {draft[key] && <button type="button" onClick={() => removeMedia(draft[key], key)} className="block text-[10px] text-rose-300 hover:underline">Remover</button>}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
+      </div>
 
-        <label className="cursor-pointer inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-md bg-turquoise/15 border border-turquoise/40 hover:bg-turquoise/25 transition-colors">
-          {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
-          Imagem (capa)
-          <input type="file" accept="image/*" className="hidden"
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f, "imagem_url"); }} />
-        </label>
-
-        <label className="cursor-pointer inline-flex items-center gap-1.5 text-xs px-3 py-2 rounded-md bg-turquoise/15 border border-turquoise/40 hover:bg-turquoise/25 transition-colors">
-          <Upload className="h-3 w-3" /> Vídeo (página de detalhes)
-          <input type="file" accept="video/*" className="hidden"
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f, "video_url"); }} />
-        </label>
-
-        {draft.video_url && (
-          <Button size="sm" variant="ghost" className="text-rose-300 hover:text-rose-200 text-xs"
-            onClick={async () => {
-              const next = { ...draft, video_url: null };
-              setDraft(next);
-              await upsert.mutateAsync(next);
-              toast.success("Vídeo removido");
-            }}>
-            <Trash2 className="h-3 w-3 mr-1" /> Remover vídeo
-          </Button>
-        )}
-
-        <Button size="sm" onClick={save} disabled={upsert.isPending}
+      <Button size="sm" onClick={save} disabled={upsert.isPending}
           className={`transition-colors ${saved ? "bg-emerald-500 text-white hover:bg-emerald-600" : "bg-turquoise text-night hover:bg-turquoise/80"}`}>
           {saved ? <CheckCircle2 className="h-3 w-3 mr-1" /> : <Save className="h-3 w-3 mr-1" />}
           {saved ? "Publicado" : "Salvar"}
@@ -291,7 +312,6 @@ const TourRow = ({ t }: { t: CmsTour }) => {
           <code className="text-turquoise-glow/80">{draft.key}</code>
           <HelpTooltip>Identificador interno — não altere manualmente.</HelpTooltip>
         </div>
-      </div>
     </div>
   );
 };
@@ -995,4 +1015,3 @@ const ConfigRow = ({ chave, label, placeholder, current, onSave }: {
     </div>
   );
 };
-
