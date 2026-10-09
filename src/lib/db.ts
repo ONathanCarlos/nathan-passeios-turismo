@@ -235,39 +235,6 @@ export async function updateReservaStatus(
   }
 }
 
-/** Admin: cria uma reserva concluída para um lead previamente identificado. */
-export async function createReviewReservationFromLead(leadId: string, tourKey: "escuna") {
-  try {
-    const leads = await fetchLeads(300);
-    const lead = leads.find((item) => item.id === leadId);
-    if (!lead) return { ok: false, error: "lead_not_found" };
-
-    const destino = "Passeio de Escuna em Búzios";
-    const reservas = await fetchReservas(300);
-    const phone = onlyDigits(lead.telefone);
-    const existing = reservas.find((item) =>
-      onlyDigits(item.telefone) === phone && item.destino === destino,
-    );
-    if (existing) return { ok: true, id: existing.id, existing: true };
-
-    const id = await createReservaInDb({
-      nome: lead.nome,
-      telefone: lead.telefone,
-      email: lead.email || undefined,
-      idioma_reserva: "pt",
-      destino,
-      data_viagem: new Date().toISOString().slice(0, 10),
-      passageiros: 1,
-      valor_original: 0,
-      valor_com_desconto: 0,
-    }, "concluida");
-    if (!id) return { ok: false, error: "create_failed" };
-    return { ok: true, id, existing: false };
-  } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "create_failed" };
-  }
-}
-
 /** Admin: lista reservas (via edge function autenticada). */
 export async function fetchReservas(limit = 200): Promise<Reserva[]> {
   try {
@@ -302,6 +269,7 @@ export type ReviewPublicationStatus = "pendente" | "publicada" | "oculta";
 
 export interface AdminReview {
   id: string;
+  reserva_id: string;
   cliente_nome: string;
   passeio_nome: string;
   nota_atendimento: number;
