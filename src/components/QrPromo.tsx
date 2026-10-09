@@ -3,47 +3,29 @@
 // ============================================================
 import { useEffect, useState } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import { Sparkles } from "lucide-react";
 import {
-  parseQrFromUrl,
-  loadQrPromo,
-  saveQrPromo,
-  hasSeenCampaign,
-  markSeenCampaign,
-  subscribeQrPromo,
-  QrPromo,
+  parseQrFromUrl, loadQrPromo, saveQrPromo,
+  hasSeenCampaign, markSeenCampaign,
+  subscribeQrPromo, QrPromo,
 } from "@/lib/qrPromo";
 import { clearPromo } from "@/lib/promo";
 import { Lang, loadLang } from "@/lib/i18n";
 
-interface Props {
-  lang?: Lang;
-}
+interface Props { lang?: Lang }
 
-const T: Record<
-  Lang,
-  {
-    title: string;
-    desc: string;
-    activated: string;
-    applied: string;
-    reward: (n: number) => string;
-    cta: string;
-  }
-> = {
+const T: Record<Lang, {
+  title: string; desc: string; activated: string;
+  applied: string; reward: (n: number) => string; cta: string;
+}> = {
   pt: {
     title: "Opa... você por aqui? 🎉",
     desc: "Vimos que você chegou escaneando nosso QR Code.",
     activated: "Desconto ativado",
     applied: "Aplicado automaticamente na sua reserva",
-    reward: (n) =>
-      `Como recompensa, seu desconto de ${n}% OFF foi ativado automaticamente. Seu valor promocional já está aplicado na sua reserva.`,
+    reward: (n) => `Como recompensa, seu desconto de ${n}% OFF foi ativado automaticamente. Seu valor promocional já está aplicado na sua reserva.`,
     cta: "Continuar",
   },
   es: {
@@ -51,8 +33,7 @@ const T: Record<
     desc: "Vimos que llegaste escaneando nuestro QR Code.",
     activated: "Descuento activado",
     applied: "Aplicado automáticamente en tu reserva",
-    reward: (n) =>
-      `Como recompensa, tu descuento de ${n}% OFF fue activado automáticamente. Tu valor promocional ya está aplicado en tu reserva.`,
+    reward: (n) => `Como recompensa, tu descuento de ${n}% OFF fue activado automáticamente. Tu valor promocional ya está aplicado en tu reserva.`,
     cta: "Continuar",
   },
   en: {
@@ -60,8 +41,7 @@ const T: Record<
     desc: "We noticed you arrived by scanning our QR Code.",
     activated: "Discount activated",
     applied: "Automatically applied to your booking",
-    reward: (n) =>
-      `As a reward, your ${n}% OFF discount has been activated automatically. The promo price already applies to your booking.`,
+    reward: (n) => `As a reward, your ${n}% OFF discount has been activated automatically. The promo price already applies to your booking.`,
     cta: "Continue",
   },
   fr: {
@@ -69,8 +49,7 @@ const T: Record<
     desc: "Nous avons vu que vous êtes arrivé en scannant notre QR Code.",
     activated: "Réduction activée",
     applied: "Appliquée automatiquement à votre réservation",
-    reward: (n) =>
-      `En récompense, votre réduction de ${n}% OFF a été activée automatiquement. Le prix promotionnel s'applique déjà à votre réservation.`,
+    reward: (n) => `En récompense, votre réduction de ${n}% OFF a été activée automatiquement. Le prix promotionnel s'applique déjà à votre réservation.`,
     cta: "Continuer",
   },
   it: {
@@ -78,8 +57,7 @@ const T: Record<
     desc: "Abbiamo visto che sei arrivato scansionando il nostro QR Code.",
     activated: "Sconto attivato",
     applied: "Applicato automaticamente alla tua prenotazione",
-    reward: (n) =>
-      `Come ricompensa, il tuo sconto del ${n}% OFF è stato attivato automaticamente. Il prezzo promozionale è già applicato alla tua prenotazione.`,
+    reward: (n) => `Come ricompensa, il tuo sconto del ${n}% OFF è stato attivato automaticamente. Il prezzo promozionale è già applicato alla tua prenotazione.`,
     cta: "Continua",
   },
 };
@@ -90,7 +68,7 @@ export const QrPromoBoot = ({ lang }: Props) => {
   const activeLang: Lang = lang || loadLang();
   const t = T[activeLang];
 
-  useEffect(() => {
+    useEffect(() => {
     const parsed = parseQrFromUrl();
 
     // QR válido acessado em outra rota: redireciona para a Home,
@@ -113,17 +91,14 @@ export const QrPromoBoot = ({ lang }: Props) => {
       clearPromo();
       setPromo(next);
 
-      // Abre o modal somente se a campanha ainda não foi confirmada.
       if (!hasSeenCampaign(parsed.campaign)) {
         setOpen(true);
+        markSeenCampaign(parsed.campaign);
       }
     }
 
-    // Mantém o estado sincronizado sem apagar o desconto
-    // durante a navegação entre as páginas.
-    return subscribeQrPromo(() => {
-      setPromo(loadQrPromo());
-    });
+    // Não limpar o desconto ao navegar para URLs sem ?promo=.
+    return subscribeQrPromo(() => setPromo(loadQrPromo()));
   }, []);
 
   if (!promo) return null;
@@ -146,11 +121,9 @@ export const QrPromoBoot = ({ lang }: Props) => {
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
               {t.activated}
             </div>
-
             <div className="text-5xl font-extrabold bg-gradient-to-r from-amber-300 to-turquoise-glow bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] py-1">
               {promo.percent}% OFF
             </div>
-
             <div className="text-xs text-emerald-300 font-semibold mt-1">
               {t.applied}
             </div>
@@ -166,15 +139,10 @@ export const QrPromoBoot = ({ lang }: Props) => {
               try {
                 if (promo) {
                   markSeenCampaign(promo.campaign);
-                  localStorage.setItem(
-                    "nathan_qr_promo_confirmed_v1",
-                    promo.campaign
-                  );
+                  localStorage.setItem("nathan_qr_promo_confirmed_v1", promo.campaign);
                 }
               } catch {}
-
               setOpen(false);
-
               setTimeout(() => {
                 try {
                   window.location.reload();
