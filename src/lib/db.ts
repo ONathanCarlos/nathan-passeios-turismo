@@ -238,12 +238,27 @@ export async function updateReservaStatus(
 /** Admin: cria uma reserva concluída para um lead previamente identificado. */
 export async function createReviewReservationFromLead(leadId: string, tourKey: "escuna") {
   try {
-    const res = await callAdmin<{ ok: boolean; id?: string; existing?: boolean; error?: string }>(
-      "create_review_reservation_from_lead",
-      { lead_id: leadId, tour_key: tourKey },
+    const leads = await fetchLeads(300);
+    const lead = leads.find((item) => item.id === leadId);
+    if (!lead) return { ok: false, error: "lead_not_found" };
+
+    const destino = "Passeio de Escuna em Búzios";
+    const reservas = await fetchReservas(300);
+    const phone = onlyDigits(lead.telefone);
+    const existing = reservas.find((item) =>
+      onlyDigits(item.telefone) === phone && item.destino === destino,
     );
-    if (!res.ok || !res.id) return { ok: false, error: res.error || "create_failed" };
-    return { ok: true, id: res.id, existing: res.existing === true };
+    if (existing) return { ok: true, id: existing.id, existing: true };
+
+    const id = await createReservaInDb({
+      nome: lead.nome,
+      telefone: lead.telefone,
+      email: lead.email || undefined,
+      idioma_reserva: "pt",
+      destino,
+    }, "concluida");
+    if (!id) return { ok: false, error: "create_failed" };
+    return { ok: true, id, existing: false };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : "create_failed" };
   }
