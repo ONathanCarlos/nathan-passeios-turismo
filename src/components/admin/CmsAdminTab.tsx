@@ -57,9 +57,11 @@ const TourRow = ({ t }: { t: CmsTour }) => {
     setTimeout(() => setSaved(false), 2500);
   };
   const onUpload = async (file: File, kind: "imagem_url" | "video_url" | "video_2_url", galleryIndex?: number) => {
+    let uploadedUrl: string | null = null;
     try {
       setUploading(true);
       const url = await uploadMedia(file, kind.includes("video") ? "videos" : "tours");
+      uploadedUrl = url;
       const next = galleryIndex === undefined
         ? { ...draft, [kind]: url }
         : (() => {
@@ -71,7 +73,10 @@ const TourRow = ({ t }: { t: CmsTour }) => {
       setDraft(next);
       await upsert.mutateAsync(next);
       toast.success("Mídia enviada e publicada");
-    } catch (e: any) { toast.error(e?.message || "Erro no upload"); }
+    } catch (e: any) {
+      if (uploadedUrl) await deleteMedia(uploadedUrl).catch(() => undefined);
+      toast.error(e?.message || "Não foi possível salvar a mídia. Tente novamente.");
+    }
     finally { setUploading(false); }
   };
   const removeMedia = async (url: string | null | undefined, kind: "imagem_url" | "video_url" | "video_2_url", galleryIndex?: number) => {
@@ -253,7 +258,7 @@ const TourRow = ({ t }: { t: CmsTour }) => {
             <div className="space-y-1">
               <label className="relative block aspect-[4/3] cursor-pointer overflow-hidden rounded-md border border-turquoise/30 bg-night/50 hover:border-turquoise/70">
                 {draft.imagem_url ? <img src={draft.imagem_url} alt="Capa" className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-[9px] text-muted-foreground">sem capa</div>}
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f, "imagem_url"); }} />
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.currentTarget.value = ""; if (f) onUpload(f, "imagem_url"); }} />
               </label>
               <div className="text-center text-[10px] text-turquoise-glow">Foto 1 — Capa</div>
               {draft.imagem_url && <button type="button" onClick={() => removeMedia(draft.imagem_url, "imagem_url")} className="w-full text-[10px] text-rose-300 hover:underline">Remover</button>}
@@ -264,7 +269,7 @@ const TourRow = ({ t }: { t: CmsTour }) => {
                 <div key={slot} className="space-y-1">
                   <label className="relative block aspect-[4/3] cursor-pointer overflow-hidden rounded-md border border-turquoise/30 bg-night/50 hover:border-turquoise/70">
                     {url ? <img src={url} alt={`Foto ${slot + 2}`} className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-[9px] text-muted-foreground">sem foto</div>}
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f, "imagem_url", slot); }} />
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.currentTarget.value = ""; if (f) onUpload(f, "imagem_url", slot); }} />
                   </label>
                   <div className="text-center text-[10px] text-turquoise-glow">Foto {slot + 2}</div>
                   {url && <button type="button" onClick={() => removeMedia(url, "imagem_url", slot)} className="w-full text-[10px] text-rose-300 hover:underline">Remover</button>}
@@ -281,7 +286,7 @@ const TourRow = ({ t }: { t: CmsTour }) => {
               <div key={key} className="flex items-center gap-2 rounded-md border border-turquoise/20 bg-night/30 p-2">
                 <label className="relative block h-12 w-16 cursor-pointer overflow-hidden rounded-md border border-turquoise/30 bg-night/50 hover:border-turquoise/70">
                   {draft[key] ? <><video src={draft[key] || undefined} muted playsInline preload="metadata" className="w-full h-full object-cover" /><span className="absolute inset-0 flex items-center justify-center text-white/90 text-xs">▶</span></> : <div className="h-full flex items-center justify-center text-[9px] text-muted-foreground">sem vídeo</div>}
-                  <input type="file" accept="video/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) onUpload(f, key); }} />
+                  <input type="file" accept="video/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.currentTarget.value = ""; if (f) onUpload(f, key); }} />
                 </label>
                 <div className="space-y-1">
                   <div className="text-[10px] text-turquoise-glow">{label}</div>
