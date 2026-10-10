@@ -18,6 +18,7 @@ import { loadQrPromo, urlIsExactRoot } from "@/lib/qrPromo";
 
 import { TourKey, getTour } from "@/lib/tours";
 import { TOUR_PRICES, formatBRL, tourPriceLabel, COUPON_ELIGIBLE } from "@/lib/prices";
+import { subscribeCmsCache } from "@/lib/cmsCache";
 import {
   isExpired, isTester, isAdminMode, loadPromo, markCouponUsed, PromoData,
   validateSpecialCoupon, markSpecialUsed, SpecificCoupon, hasHolidayActiveToday,
@@ -89,6 +90,9 @@ export const StandardForm = ({
   const [appliedSpecial, setAppliedSpecial] = useState<SpecificCoupon | null>(null);
   const [manualCode, setManualCode] = useState("");
   const [couponPromptOpen, setCouponPromptOpen] = useState(false);
+  // O preço do passeio chega do CMS de forma assíncrona. Este contador força
+  // o useMemo abaixo a reler TOUR_PRICES quando o cache for atualizado.
+  const [cmsPriceVersion, setCmsPriceVersion] = useState(0);
   const couponsAllowed = urlIsExactRoot() && !loadQrPromo();
   // Cupons NUNCA se aplicam a pacotes promocionais.
   const eligible = !isPackage && (tourKey ? COUPON_ELIGIBLE.has(tourKey) : false) && couponsAllowed;
@@ -96,6 +100,8 @@ export const StandardForm = ({
   const ineligibleMsg = lang === "pt" ? "Cupom indisponível para este passeio."
     : lang === "es" ? "Cupón no disponible para este paseo."
     : "Coupon not available for this tour.";
+
+  useEffect(() => subscribeCmsCache(() => setCmsPriceVersion((version) => version + 1)), []);
 
   // Cupom efetivo (especial sobrescreve padrão)
   const effectiveCoupon = appliedSpecial
@@ -200,7 +206,7 @@ export const StandardForm = ({
     const discount = effectiveCoupon ? (original * effectiveCoupon.percent) / 100 : 0;
     const final = original - discount;
     return { original, discount, final, meta, qrPercent: qr?.percent ?? 0, qrApplied: !!qr, baseOriginal };
-  }, [tourKey, pax, hasKids, ages, adultsOnly, effectiveCoupon, isPackage, packagePrice]);
+  }, [tourKey, pax, hasKids, ages, adultsOnly, effectiveCoupon, isPackage, packagePrice, cmsPriceVersion]);
 
   const kidsN = Math.min(8, Math.max(0, parseInt(kidsCount) || 0));
 
