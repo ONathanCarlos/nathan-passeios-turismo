@@ -12,6 +12,7 @@ import {
   type ReviewPublicationStatus,
 } from "@/lib/db";
 import { buildReviewWhatsAppMessage, buildShortReviewUrl } from "@/lib/reviewInvite";
+import { useIsAdmin } from "@/lib/adminAuth";
 
 type Filter = "pendente" | "todas";
 
@@ -22,6 +23,7 @@ const statusLabel: Record<ReviewPublicationStatus, string> = {
 };
 
 export const ReviewsSection = () => {
+  const isAdmin = useIsAdmin();
   const [rows, setRows] = useState<AdminReview[]>([]);
   const [reservas, setReservas] = useState<Reserva[]>([]);
   const [loading, setLoading] = useState(false);
@@ -41,8 +43,9 @@ export const ReviewsSection = () => {
   };
 
   useEffect(() => {
+    if (!isAdmin) return;
     load();
-  }, []);
+  }, [isAdmin]);
 
   const visibleRows = useMemo(
     () => filter === "todas" ? rows : rows.filter((review) => review.status_publicacao === "pendente"),
