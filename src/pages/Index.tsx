@@ -7,7 +7,7 @@ import { StandardForm } from "@/components/StandardForm";
 import { TourDetails } from "@/components/TourDetails";
 import { TourKey } from "@/lib/tours";
 import { Star, Tag, ArrowLeft } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { TourBadge, UrgencyTag } from "@/components/TourBadge";
 import { DepoimentosSection } from "@/components/DepoimentosSection";
 import { PageTransition } from "@/components/PageTransition";
@@ -50,11 +50,16 @@ const deserialize = (s: string): Screen => {
   return s as FormScreen;
 };
 
+const isTourKey = (value: string | undefined): value is TourKey =>
+  !!value && ["escuna", "arraial", "buggy", "cabofrio", "jardineira", "catamara", "mergulho", "lancha"].includes(value);
+
 const Index = () => {
   const routeNavigate = useNavigate();
+  const { tourKey: routeTourKey } = useParams<{ tourKey?: string }>();
+  const routeDetailKey = isTourKey(routeTourKey) ? routeTourKey : null;
   const [lang, setLangState] = useState<Lang>(() => loadLang());
   const setLang = (l: Lang) => { saveLang(l); setLangState(l); };
-  const [screen, setScreen] = useState<Screen>("menu");
+  const [screen, setScreen] = useState<Screen>(() => routeDetailKey ? { details: routeDetailKey } : "menu");
   const t = dict[lang];
   // Modo admin tem prioridade absoluta: oculta banners promocionais e modal QR.
   const admin = useIsAdmin();
@@ -83,6 +88,10 @@ const Index = () => {
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
+  useEffect(() => {
+    setScreen(routeDetailKey ? { details: routeDetailKey } : "menu");
+  }, [routeDetailKey]);
+
   const navigate = (next: Screen) => {
     window.history.pushState({ screen: serialize(next) }, "");
     runNavigationTransition(() => setScreen(next));
@@ -90,8 +99,14 @@ const Index = () => {
     requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: "auto" }));
   };
 
-  const back = () => window.history.back();
-  const openDetails = (key: TourKey) => navigate({ details: key });
+  const back = () => {
+    if (typeof screen === "object" && "details" in screen) {
+      routeNavigate("/passeios");
+      return;
+    }
+    window.history.back();
+  };
+  const openDetails = (key: TourKey) => routeNavigate(`/passeios/${key}`);
   const openForm = (key: TourKey) => navigate(`form-${key}` as FormScreen);
 
   // Details screen
