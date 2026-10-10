@@ -15,9 +15,11 @@ const EVT = "nathan-qr-promo-change";
 
 export const parseQrFromUrl = (): { percent: number; campaign: string } | null => {
   if (typeof window === "undefined") return null;
-  const raw = new URLSearchParams(window.location.search).get("promo");
+  const params = new URLSearchParams(window.location.search);
+  const pathMatch = /^\/qr(\d{1,2})$/i.exec(window.location.pathname);
+  const raw = params.get("promo") ?? params.get("qr") ?? pathMatch?.[1] ?? null;
   if (!raw) return null;
-  const m = /^qr(\d{1,2})$/i.exec(raw.trim());
+  const m = pathMatch ? pathMatch : /^qr?(\d{1,2})$/i.exec(raw.trim());
   if (!m) return null;
   const pct = parseInt(m[1], 10);
   if (!pct || pct < 1 || pct > 90) return null;
@@ -26,7 +28,8 @@ export const parseQrFromUrl = (): { percent: number; campaign: string } | null =
 
 export const urlHasPromoParam = (): boolean => {
   if (typeof window === "undefined") return false;
-  return new URLSearchParams(window.location.search).has("promo");
+  const params = new URLSearchParams(window.location.search);
+  return params.has("promo") || params.has("qr") || /^\/qr\d{1,2}$/i.test(window.location.pathname);
 };
 
 /** Verdadeiro só quando URL é exatamente "/" — sem query, hash ou rota extra. */

@@ -21,6 +21,7 @@ import { ScrollToTopFab } from "@/components/ScrollToTopFab";
 import { GlobalFloatingActions } from "@/components/GlobalFloatingActions";
 import { bootCmsCache, subscribeCmsCache } from "@/lib/cmsCache";
 import { initAdminAuth } from "@/lib/adminAuth";
+import { parseQrFromUrl } from "@/lib/qrPromo";
 
 const queryClient = new QueryClient();
 
@@ -33,18 +34,15 @@ const QrPromoRouteGuard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const value = params.get("promo") ?? "";
-    const match = /^qr(\d{1,2})$/i.exec(value);
-    const percent = match ? Number(match[1]) : 0;
-
-    const validPromo = percent >= 1 && percent <= 90;
+    const parsed = parseQrFromUrl();
+    const validPromo = !!parsed;
 
     if (validPromo && location.pathname !== "/") {
+      const search = `?promo=${parsed!.campaign}`;
       navigate(
         {
           pathname: "/",
-          search: location.search,
+          search,
           hash: location.hash,
         },
         { replace: true },
@@ -85,6 +83,7 @@ const App = () => (
           <Suspense fallback={null}>
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/qr:percent" element={<Home />} />
               <Route path="/passeios" element={<Index />} />
               <Route path="/passeios/:tourKey" element={<Index />} />
               <Route path="/pacotes" element={<Pacotes />} />
