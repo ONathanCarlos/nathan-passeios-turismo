@@ -103,6 +103,13 @@ export const StandardForm = ({
 
   useEffect(() => subscribeCmsCache(() => setCmsPriceVersion((version) => version + 1)), []);
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("nathan:booking-output", { detail: { hidden: !!output } }));
+    return () => {
+      window.dispatchEvent(new CustomEvent("nathan:booking-output", { detail: { hidden: false } }));
+    };
+  }, [output]);
+
   // Cupom efetivo (especial sobrescreve padrão)
   const effectiveCoupon = appliedSpecial
     ? { code: appliedSpecial.code, percent: appliedSpecial.percent }
