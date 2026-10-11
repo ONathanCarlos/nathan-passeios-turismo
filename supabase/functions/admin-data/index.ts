@@ -262,6 +262,55 @@ Deno.serve(async (req) => {
       return json({ ok: true, reservation_id: reserva.id, short_code: shortCode });
     }
 
+    if (action === "create_manual_review_link") {
+      const leadId = str(body?.lead_id, 60);
+      const destino = str(body?.destino, 200).trim();
+      if (!leadId || !destino) return json({ ok: false, error: "invalid_input" }, 400);
+      const { data: lead } = await supabase
+        .from("leads")
+        .select("id,nome,telefone,email")
+        .eq("id", leadId)
+        .maybeSingle();
+      if (!lead) return json({ ok: false, error: "lead_not_found" }, 404);
+
+      const passeioKeys = await resolveReservationTourKeys(destino);
+      if (passeioKeys.length === 0) return json({ ok: false, error: "no_reviewable_tours" });
+      const { data: reserva, error: reservationError } = await supabase
+        .from("reservas")
+        .insert({
+          nome: lead.nome,
+          telefone: lead.telefone,
+          email: lead.email,
+          destino,
+          status: "concluida",
+        })
+        .select("id")
+        .maybeSingle();
+      if (reservationError || !reserva) return json({ ok: false, error: "reservation_create_failed" }, 500);
+
+      const reviewToken = await reservationReviewToken(reserva.id);
+      const { data: invite, error: inviteError } = await supabase
+        .from("convites_avaliacao")
+        .insert({
+          reserva_id: reserva.id,
+          token_hash: await sha256(reviewToken),
+          passeio_keys: passeioKeys,
+        })
+        .select("id")
+        .maybeSingle();
+      if (inviteError || !invite) {
+        await supabase.from("reservas").delete().eq("id", reserva.id);
+        return json({ ok: false, error: "invite_create_failed" }, 500);
+      }
+      const shortCode = await assignShortCode(invite.id);
+      if (!shortCode) {
+        await supabase.from("convites_avaliacao").delete().eq("id", invite.id);
+        await supabase.from("reservas").delete().eq("id", reserva.id);
+        return json({ ok: false, error: "short_link_create_failed" }, 500);
+      }
+      return json({ ok: true, reservation_id: reserva.id, short_code: shortCode });
+    }
+
     if (action === "get_reserva_review_link") {
       const reservaId = str(body?.id, 60);
       if (!reservaId) return json({ ok: false, error: "invalid_input" }, 400);

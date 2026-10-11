@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { Check, MessageCircle, MessageSquareQuote, RefreshCw, X } from "lucide-react";
+import { Check, Copy, Link2, MessageCircle, MessageSquareQuote, RefreshCw, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   fetchReservas,
   fetchReviews,
+  fetchLeads,
+  createManualReviewLink,
   getReservaReviewLink,
   updateReviewStatus,
   type AdminReview,
@@ -12,6 +15,7 @@ import {
   type ReviewPublicationStatus,
 } from "@/lib/db";
 import { buildReviewWhatsAppMessage, buildShortReviewUrl } from "@/lib/reviewInvite";
+import { useTours } from "@/lib/cms";
 import { useIsAdmin } from "@/lib/adminAuth";
 
 type Filter = "pendente" | "todas";
@@ -26,17 +30,23 @@ export const ReviewsSection = () => {
   const isAdmin = useIsAdmin();
   const [rows, setRows] = useState<AdminReview[]>([]);
   const [reservas, setReservas] = useState<Reserva[]>([]);
+  const [leads, setLeads] = useState<{ id: string; nome: string; telefone: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [reviewPendingId, setReviewPendingId] = useState<string | null>(null);
+  const [manualLeadId, setManualLeadId] = useState<string | null>(null);
+  const [manualTour, setManualTour] = useState<Record<string, string>>({});
+  const [manualLink, setManualLink] = useState<{ leadId: string; url: string } | null>(null);
+  const tours = useTours(false);
   const [filter, setFilter] = useState<Filter>("pendente");
 
   const load = async () => {
     setLoading(true);
     try {
-      const [reviews, reservations] = await Promise.all([fetchReviews(300), fetchReservas(300)]);
+      const [reviews, reservations, leadRows] = await Promise.all([fetchReviews(300), fetchReservas(300), fetchLeads(300)]);
       setRows(reviews);
       setReservas(reservations);
+      setLeads(leadRows.map((lead) => ({ id: lead.id, nome: lead.nome, telefone: lead.telefone })));
     } finally {
       setLoading(false);
     }
@@ -91,6 +101,25 @@ export const ReviewsSection = () => {
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
   };
 
+  const generateManual = async (lead: { id: string; nome: string }) => {
+    const destino = manualTour[lead.id];
+    if (!destino) {
+      toast.error("Selecione o passeio antes de gerar o link.");
+      return;
+    }
+    setManualLeadId(lead.id);
+    const result = await createManualReviewLink(lead.id, destino);
+    setManualLeadId(null);
+    if ("error" in result) {
+      toast.error(result.error === "no_reviewable_tours" ? "Esse passeio não está disponível para avaliação." : "Não foi possível gerar o link.");
+      return;
+    }
+    const url = buildShortReviewUrl(result.shortCode);
+    setManualLink({ leadId: lead.id, url });
+    try { await navigator.clipboard.writeText(url); } catch { /* cópia manual continua disponível */ }
+    toast.success("Novo link gerado e copiado. Cada clique cria outro link individual.");
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -125,6 +154,32 @@ export const ReviewsSection = () => {
                   {reviewPendingId === reservation.id ? <RefreshCw className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <MessageCircle className="mr-1.5 h-3.5 w-3.5" />}
                   Pedir avaliação
                 </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="space-y-3">
+        <div>
+          <h4 className="text-xs font-bold uppercase tracking-wide text-turquoise-glow">Gerar link manual</h4>
+          <p className="text-[11px] text-muted-foreground">Escolha um cliente e o passeio. Cada clique cria um link novo, individual e de uso único para você copiar e enviar manualmente.</p>
+        </div>
+        {leads.length === 0 ? (
+          <div className="glass-card rounded-lg px-4 py-5 text-center text-xs text-muted-foreground">Nenhum lead disponível.</div>
+        ) : (
+          <div className="space-y-2">
+            {leads.map((lead) => (
+              <div key={lead.id} className="glass-card rounded-lg p-3 flex flex-wrap items-center gap-2">
+                <div className="min-w-32 flex-1"><p className="text-sm font-bold text-foreground">{lead.nome}</p><p className="text-[11px] text-muted-foreground">{lead.telefone}</p></div>
+                <Select value={manualTour[lead.id] || ""} onValueChange={(value) => setManualTour((current) => ({ ...current, [lead.id]: value }))}>
+                  <SelectTrigger className="h-8 w-40 text-[11px]"><SelectValue placeholder="Escolha o passeio" /></SelectTrigger>
+                  <SelectContent>{(tours.data || []).filter((tour) => tour.ativo !== false).map((tour) => <SelectItem key={tour.nome_pt} value={tour.nome_pt}>{tour.nome_pt}</SelectItem>)}</SelectContent>
+                </Select>
+                <Button type="button" size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => generateManual(lead)} disabled={manualLeadId === lead.id}>
+                  {manualLeadId === lead.id ? <RefreshCw className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Link2 className="mr-1 h-3.5 w-3.5" />} Gerar novo link
+                </Button>
+                {manualLink?.leadId === lead.id && <Button type="button" size="sm" variant="ghost" className="h-8 text-[11px]" onClick={() => navigator.clipboard.writeText(manualLink.url)}><Copy className="mr-1 h-3.5 w-3.5" /> Copiar</Button>}
               </div>
             ))}
           </div>
