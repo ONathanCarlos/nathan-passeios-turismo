@@ -286,7 +286,10 @@ Deno.serve(async (req) => {
         })
         .select("id")
         .maybeSingle();
-      if (reservationError || !reserva) return json({ ok: false, error: "reservation_create_failed" }, 500);
+      if (reservationError || !reserva) {
+        console.error("create_manual_review_link reservation insert failed", reservationError);
+        return json({ ok: false, error: reservationError?.code ? `reservation_create_failed:${reservationError.code}` : "reservation_create_failed" }, 500);
+      }
 
       const reviewToken = await reservationReviewToken(reserva.id);
       const { data: invite, error: inviteError } = await supabase
@@ -299,8 +302,9 @@ Deno.serve(async (req) => {
         .select("id")
         .maybeSingle();
       if (inviteError || !invite) {
+        console.error("create_manual_review_link invite insert failed", inviteError);
         await supabase.from("reservas").delete().eq("id", reserva.id);
-        return json({ ok: false, error: "invite_create_failed" }, 500);
+        return json({ ok: false, error: inviteError?.code ? `invite_create_failed:${inviteError.code}` : "invite_create_failed" }, 500);
       }
       const shortCode = await assignShortCode(invite.id);
       if (!shortCode) {
