@@ -296,18 +296,33 @@ export async function createManualReviewLink(
   passeioKey: string,
 ): Promise<ReservaReviewLinkResult> {
   try {
-    // Usa somente ações já existentes no backend publicado: cada clique cria
-    // uma nova reserva técnica e, portanto, um convite novo.
-    const reservationId = await createReservaInDb({
-      nome,
-      telefone,
-      destino: passeioKey || destino,
-      passageiros: null,
-    }, "concluida");
-    if (!reservationId) return { ok: false, error: "reservation_create_failed" };
-    return await getReservaReviewLink(reservationId);
+    // A ação administrativa cria a reserva técnica, o convite e o código curto
+    // em uma única operação. Assim o erro real do banco não é mascarado como
+    // uma falha genérica de criação de reserva no cliente.
+    const res = await callAdmin<{ ok: boolean; short_code?: string; error?: string }>(
+      "create_manual_review_link",
+      { lead_id: leadId, destino, passeio_key: passeioKey },
+    );
+    if (res.ok && res.short_code) return { ok: true, shortCode: res.short_code };
+    return { ok: false, error: res.error || "invite_create_failed" };
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "invite_create_failed" };
+    const message = error instanceof Error ? error.message : "invite_create_failed";
+    // Compatibilidade com um admin-data antigo que ainda não conheça a ação.
+    if (message === "unknown_action") {
+      try {
+        const reservationId = await createReservaInDb({
+          nome,
+          telefone,
+          destino: passeioKey || destino,
+          passageiros: null,
+        }, "concluida");
+        if (!reservationId) return { ok: false, error: "reservation_create_failed" };
+        return await getReservaReviewLink(reservationId);
+      } catch (fallbackError) {
+        return { ok: false, error: fallbackError instanceof Error ? fallbackError.message : "reservation_create_failed" };
+      }
+    }
+    return { ok: false, error: message };
   }
 }
 
