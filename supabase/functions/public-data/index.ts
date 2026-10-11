@@ -237,18 +237,22 @@ Deno.serve(async (req) => {
       if (!nome || !telefone || !destino) return json({ ok: false, error: "invalid_input" }, 400);
       const status = body?.status === "concluida" ? "concluida" : "pendente";
       const dataViagem = str(body?.data_viagem, 20) || null;
-      const { data: recentReservations } = await supabase
-        .from("reservas")
-        .select("id,status,data_viagem,created_at")
-        .eq("nome", nome)
-        .eq("telefone", telefone)
-        .eq("destino", destino)
-        .order("created_at", { ascending: false })
-        .limit(3);
-      const duplicate = (recentReservations || []).find((item) =>
-        item.data_viagem === dataViagem && Date.now() - new Date(item.created_at).getTime() < 10 * 60 * 1000
-      );
-      if (duplicate) return json({ ok: true, id: duplicate.id, deduplicated: true });
+      // A deduplicação protege as tentativas automáticas pendentes do site.
+      // Convites manuais concluídos precisam ser novos a cada clique.
+      if (status === "pendente") {
+        const { data: recentReservations } = await supabase
+          .from("reservas")
+          .select("id,status,data_viagem,created_at")
+          .eq("nome", nome)
+          .eq("telefone", telefone)
+          .eq("destino", destino)
+          .order("created_at", { ascending: false })
+          .limit(3);
+        const duplicate = (recentReservations || []).find((item) =>
+          item.data_viagem === dataViagem && Date.now() - new Date(item.created_at).getTime() < 10 * 60 * 1000
+        );
+        if (duplicate) return json({ ok: true, id: duplicate.id, deduplicated: true });
+      }
       const { data, error } = await supabase
         .from("reservas")
         .insert({
