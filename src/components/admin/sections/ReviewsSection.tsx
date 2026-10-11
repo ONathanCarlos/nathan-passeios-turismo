@@ -1,17 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { Check, Copy, Link2, MessageCircle, MessageSquareQuote, RefreshCw, X } from "lucide-react";
+import { Check, Copy, Link2, MessageSquareQuote, RefreshCw, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  fetchReservas,
   fetchReviews,
   fetchLeads,
   createManualReviewLink,
-  getReservaReviewLink,
   updateReviewStatus,
   type AdminReview,
-  type Reserva,
   type ReviewPublicationStatus,
 } from "@/lib/db";
 import { buildReviewWhatsAppMessage, buildShortReviewUrl } from "@/lib/reviewInvite";
@@ -29,11 +26,9 @@ const statusLabel: Record<ReviewPublicationStatus, string> = {
 export const ReviewsSection = () => {
   const isAdmin = useIsAdmin();
   const [rows, setRows] = useState<AdminReview[]>([]);
-  const [reservas, setReservas] = useState<Reserva[]>([]);
   const [leads, setLeads] = useState<{ id: string; nome: string; telefone: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
-  const [reviewPendingId, setReviewPendingId] = useState<string | null>(null);
   const [manualLeadId, setManualLeadId] = useState<string | null>(null);
   const [manualTour, setManualTour] = useState<Record<string, string>>({});
   const [manualLink, setManualLink] = useState<{ leadId: string; url: string } | null>(null);
@@ -43,9 +38,8 @@ export const ReviewsSection = () => {
   const load = async () => {
     setLoading(true);
     try {
-      const [reviews, reservations, leadRows] = await Promise.all([fetchReviews(300), fetchReservas(300), fetchLeads(300)]);
+      const [reviews, leadRows] = await Promise.all([fetchReviews(300), fetchLeads(300)]);
       setRows(reviews);
-      setReservas(reservations);
       setLeads(leadRows.map((lead) => ({ id: lead.id, nome: lead.nome, telefone: lead.telefone })));
     } finally {
       setLoading(false);
@@ -62,11 +56,6 @@ export const ReviewsSection = () => {
     [filter, rows],
   );
 
-  const pendingReservations = useMemo(() => {
-    const reviewed = new Set(rows.map((review) => review.reserva_id));
-    return reservas.filter((reservation) => ["pendente", "concluida"].includes(reservation.status) && !reviewed.has(reservation.id));
-  }, [reservas, rows]);
-
   const moderate = async (review: AdminReview, status: Exclude<ReviewPublicationStatus, "pendente">) => {
     setPendingId(review.id);
     const ok = await updateReviewStatus(review.id, status);
@@ -79,26 +68,6 @@ export const ReviewsSection = () => {
       ? { ...item, status_publicacao: status, status_admin: "visualizada" }
       : item));
     toast.success(status === "publicada" ? "Avaliação aprovada e publicada." : "Avaliação rejeitada e mantida oculta.");
-  };
-
-  const requestReview = async (reservation: Reserva) => {
-    setReviewPendingId(reservation.id);
-    const result = await getReservaReviewLink(reservation.id);
-    setReviewPendingId(null);
-    if ("error" in result) {
-      const messages: Record<string, string> = {
-        already_submitted: "Este cliente já enviou a avaliação.",
-        reservation_not_reviewable: "Esta reserva não está disponível para avaliação.",
-        no_reviewable_tours: "Não foi encontrado um passeio válido nesta reserva.",
-        short_link_create_failed: "Não foi possível gerar o link curto. Tente novamente.",
-      };
-      toast.error(messages[result.error] || "Não foi possível gerar o link de avaliação.");
-      return;
-    }
-    const reviewUrl = buildShortReviewUrl(result.shortCode);
-    const message = buildReviewWhatsAppMessage(reviewUrl, reservation.nome, reservation.idioma_reserva || "pt");
-    const phone = (reservation.telefone || "").replace(/\D/g, "");
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
   };
 
   const generateManual = async (lead: { id: string; nome: string }) => {
@@ -137,28 +106,6 @@ export const ReviewsSection = () => {
           </Button>
         </div>
       </div>
-
-      <section className="space-y-2">
-        <h4 className="text-xs font-bold uppercase tracking-wide text-turquoise-glow">Clientes aguardando avaliação ({pendingReservations.length})</h4>
-        {pendingReservations.length === 0 ? (
-          <div className="glass-card rounded-lg px-4 py-5 text-center text-xs text-muted-foreground">Nenhuma reserva concluída aguardando avaliação.</div>
-        ) : (
-          <div className="space-y-2">
-            {pendingReservations.map((reservation) => (
-              <div key={reservation.id} className="glass-card rounded-lg p-3 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-bold text-foreground">{reservation.nome}</p>
-                  <p className="text-[11px] text-turquoise-glow">{reservation.destino} · {reservation.status === "concluida" ? "Concluída" : "Aguardando confirmação"}</p>
-                </div>
-                <Button type="button" size="sm" variant="outline" className="border-turquoise/40 text-[11px] text-turquoise hover:bg-turquoise/10" onClick={() => requestReview(reservation)} disabled={reviewPendingId === reservation.id}>
-                  {reviewPendingId === reservation.id ? <RefreshCw className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <MessageCircle className="mr-1.5 h-3.5 w-3.5" />}
-                  Pedir avaliação
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
 
       <section className="space-y-3">
         <div>
