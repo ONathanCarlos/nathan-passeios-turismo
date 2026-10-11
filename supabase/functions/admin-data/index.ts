@@ -75,6 +75,9 @@ const CONFLICT: Record<string, string> = {
 };
 
 const onlyDigits = (s: string) => (s || "").replace(/\D/g, "");
+const normalizeName = (value: unknown) => String(value || "")
+  .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+  .toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
 const reservationReviewToken = async (reservaId: string) => {
   const secret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -129,8 +132,13 @@ const resolveReservationTourKeys = async (destino: string): Promise<string[]> =>
     .from("tours")
     .select("key,nome_pt,nome_en,nome_es,nome_fr,nome_it");
   const tourRows = tours || [];
+  const normalizedDestino = normalizeName(destino);
   const directTour = tourRows.find((tour) =>
-    [tour.nome_pt, tour.nome_en, tour.nome_es, tour.nome_fr, tour.nome_it].some((name) => name === destino)
+    [tour.key, tour.nome_pt, tour.nome_en, tour.nome_es, tour.nome_fr, tour.nome_it]
+      .some((name) => normalizeName(name) === normalizedDestino)
+  ) || tourRows.find((tour) =>
+    [tour.key, tour.nome_pt, tour.nome_en, tour.nome_es, tour.nome_fr, tour.nome_it]
+      .some((name) => normalizedDestino.includes(normalizeName(name)) || normalizeName(name).includes(normalizedDestino))
   );
   if (directTour) return [directTour.key];
 
@@ -138,7 +146,8 @@ const resolveReservationTourKeys = async (destino: string): Promise<string[]> =>
     .from("pacotes")
     .select("tour_keys,nome_pt,nome_en,nome_es,nome_fr,nome_it");
   const packageRow = (packages || []).find((item) =>
-    [item.nome_pt, item.nome_en, item.nome_es, item.nome_fr, item.nome_it].some((name) => name === destino)
+    [item.nome_pt, item.nome_en, item.nome_es, item.nome_fr, item.nome_it]
+      .some((name) => normalizeName(name) === normalizedDestino || normalizedDestino.includes(normalizeName(name)))
   );
   if (!packageRow) return [];
 
@@ -212,7 +221,9 @@ Deno.serve(async (req) => {
         .eq("id", reservaId)
         .maybeSingle();
       if (!reserva) return json({ ok: false, error: "reservation_not_found" });
-      if (reserva.status !== "concluida") return json({ ok: false, error: "reservation_not_completed" });
+      if (!['pendente', 'concluida'].includes(reserva.status)) {
+        return json({ ok: false, error: "reservation_not_reviewable" });
+      }
 
       const { data: existingInvite } = await supabase
         .from("convites_avaliacao")

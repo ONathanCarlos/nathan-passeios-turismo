@@ -54,7 +54,7 @@ export const ReviewsSection = () => {
 
   const pendingReservations = useMemo(() => {
     const reviewed = new Set(rows.map((review) => review.reserva_id));
-    return reservas.filter((reservation) => reservation.status === "concluida" && !reviewed.has(reservation.id));
+    return reservas.filter((reservation) => ["pendente", "concluida"].includes(reservation.status) && !reviewed.has(reservation.id));
   }, [reservas, rows]);
 
   const moderate = async (review: AdminReview, status: Exclude<ReviewPublicationStatus, "pendente">) => {
@@ -78,7 +78,7 @@ export const ReviewsSection = () => {
     if ("error" in result) {
       const messages: Record<string, string> = {
         already_submitted: "Este cliente já enviou a avaliação.",
-        reservation_not_completed: "A reserva ainda não está concluída.",
+        reservation_not_reviewable: "Esta reserva não está disponível para avaliação.",
         no_reviewable_tours: "Não foi encontrado um passeio válido nesta reserva.",
         short_link_create_failed: "Não foi possível gerar o link curto. Tente novamente.",
       };
@@ -96,7 +96,7 @@ export const ReviewsSection = () => {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-sm font-bold text-foreground">Avaliações</h3>
-          <p className="text-[11px] text-muted-foreground">Reservas concluídas aparecem abaixo para solicitar avaliação; novas avaliações permanecem ocultas até aprovação.</p>
+          <p className="text-[11px] text-muted-foreground">Toda reserva registrada pelo site aparece abaixo para solicitar avaliação; novas avaliações permanecem ocultas até aprovação.</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex rounded-md border border-turquoise/30 p-0.5">
@@ -119,7 +119,7 @@ export const ReviewsSection = () => {
               <div key={reservation.id} className="glass-card rounded-lg p-3 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-bold text-foreground">{reservation.nome}</p>
-                  <p className="text-[11px] text-turquoise-glow">{reservation.destino}</p>
+                  <p className="text-[11px] text-turquoise-glow">{reservation.destino} · {reservation.status === "concluida" ? "Concluída" : "Aguardando confirmação"}</p>
                 </div>
                 <Button type="button" size="sm" variant="outline" className="border-turquoise/40 text-[11px] text-turquoise hover:bg-turquoise/10" onClick={() => requestReview(reservation)} disabled={reviewPendingId === reservation.id}>
                   {reviewPendingId === reservation.id ? <RefreshCw className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <MessageCircle className="mr-1.5 h-3.5 w-3.5" />}
