@@ -80,7 +80,15 @@ export const ReviewsSection = () => {
     const result = await createManualReviewLink(lead.id, destino);
     setManualLeadId(null);
     if ("error" in result) {
-      toast.error(result.error === "no_reviewable_tours" ? "Esse passeio não está disponível para avaliação." : "Não foi possível gerar o link.");
+      const messages: Record<string, string> = {
+        no_reviewable_tours: "Esse passeio não foi encontrado no cadastro do CMS.",
+        lead_not_found: "Esse lead não foi encontrado no banco.",
+        reservation_create_failed: "Falha ao criar a reserva manual.",
+        invite_create_failed: "Falha ao criar o convite de avaliação.",
+        short_link_create_failed: "Falha ao criar o código do link.",
+      };
+      const baseError = result.error.split(":")[0];
+      toast.error(`${messages[baseError] || "Não foi possível gerar o link."} (${result.error})`);
       return;
     }
     const url = buildShortReviewUrl(result.shortCode);

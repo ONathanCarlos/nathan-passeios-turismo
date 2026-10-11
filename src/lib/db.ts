@@ -24,7 +24,18 @@ async function callAdmin<T = any>(action: string, payload: Record<string, unknow
   const { data, error } = await supabase.functions.invoke("admin-data", {
     body: { action, token, ...payload },
   });
-  if (error) throw error;
+  if (error) {
+    const context = (error as any).context;
+    if (context && typeof context.json === "function") {
+      try {
+        const detail = await context.json();
+        if (detail?.error) throw new Error(String(detail.error));
+      } catch (detailError) {
+        if (detailError instanceof Error && detailError.message !== error.message) throw detailError;
+      }
+    }
+    throw error;
+  }
   if (data?.ok === false) throw new Error(data?.error || "admin_error");
   return data as T;
 }
