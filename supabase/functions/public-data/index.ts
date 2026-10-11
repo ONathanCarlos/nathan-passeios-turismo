@@ -236,6 +236,19 @@ Deno.serve(async (req) => {
       const idiomaReserva = str(body?.idioma_reserva, 10) || null;
       if (!nome || !telefone || !destino) return json({ ok: false, error: "invalid_input" }, 400);
       const status = body?.status === "concluida" ? "concluida" : "pendente";
+      const dataViagem = str(body?.data_viagem, 20) || null;
+      const { data: recentReservations } = await supabase
+        .from("reservas")
+        .select("id,status,data_viagem,created_at")
+        .eq("nome", nome)
+        .eq("telefone", telefone)
+        .eq("destino", destino)
+        .order("created_at", { ascending: false })
+        .limit(3);
+      const duplicate = (recentReservations || []).find((item) =>
+        item.data_viagem === dataViagem && Date.now() - new Date(item.created_at).getTime() < 10 * 60 * 1000
+      );
+      if (duplicate) return json({ ok: true, id: duplicate.id, deduplicated: true });
       const { data, error } = await supabase
         .from("reservas")
         .insert({
@@ -244,7 +257,7 @@ Deno.serve(async (req) => {
           email: str(body?.email, 200) || null,
           idioma_reserva: idiomaReserva,
           destino,
-          data_viagem: str(body?.data_viagem, 20) || null,
+          data_viagem: dataViagem,
           passageiros: Number.isFinite(Number(body?.passageiros)) ? Number(body?.passageiros) : null,
           cupom_aplicado: str(body?.cupom_aplicado, 60) || null,
           valor_original: body?.valor_original != null ? Number(body.valor_original) : null,

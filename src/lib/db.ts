@@ -264,6 +264,19 @@ export async function getReservaReviewLink(id: string): Promise<ReservaReviewLin
   }
 }
 
+export async function recoverLeadForReview(leadId: string, destino: string): Promise<ReservaReviewLinkResult> {
+  try {
+    const res = await callAdmin<{ ok: boolean; short_code?: string; error?: string }>(
+      "recover_lead_for_review",
+      { lead_id: leadId, destino },
+    );
+    if (res.ok && res.short_code) return { ok: true, shortCode: res.short_code };
+    return { ok: false, error: res.error || "invite_create_failed" };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "invite_create_failed" };
+  }
+}
+
 // ---------------- AVALIAÇÕES (ADMIN) ----------------
 export type ReviewPublicationStatus = "pendente" | "publicada" | "oculta";
 

@@ -84,6 +84,7 @@ export const StandardForm = ({
   const [payment, setPayment] = useState<Payment | "">("");
   const [output, setOutput] = useState<{ text: string; rows: { label: string; value: string }[] } | null>(null);
   const [reservaId, setReservaId] = useState<string | null>(null);
+  const [savingReservation, setSavingReservation] = useState(false);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [shake, setShake] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState<PromoData | null>(null);
@@ -250,7 +251,7 @@ export const StandardForm = ({
   const paymentLabel = (p: Payment) =>
     ({ cash: t.cash, debit: t.debit, credit: t.credit, pix: t.pix }[p]);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     const newErrors: Record<string, boolean> = {};
     if (!name) newErrors.name = true;
     if (requireCpf && !cpf) newErrors.cpf = true;
@@ -362,26 +363,36 @@ export const StandardForm = ({
       "",
       "Reserva feita pelo site - https://www.nathanturismo.com.br",
     );
-    setOutput({ text: lines.join("\n"), rows });
-
-    // ---- Persistência imediata como PENDENTE ----
-    // Garante que reservas abandonadas (sem clique no WhatsApp) fiquem registradas.
+    // A reserva precisa existir antes da tela final: sem ID confirmado não
+    // mostramos o botão do WhatsApp nem deixamos o cliente acreditar que foi salvo.
     const waPersist = fullPhone(phone);
     syncLead({ nome: name, telefone: waPersist, origem: tourKey ? `reserva:${tourKey}` : "reserva" });
-    createReservaInDb(
-      {
-        nome: name,
-        telefone: waPersist,
-        idioma_reserva: lang,
-        destino: title,
-        data_viagem: date ? date.toISOString().slice(0, 10) : null,
-        passageiros: parseInt(pax) || null,
-        cupom_aplicado: effectiveCoupon?.code ?? null,
-        valor_original: priceInfo?.original ?? null,
-        valor_com_desconto: priceInfo ? priceInfo.final : null,
-      },
-      "pendente",
-    ).then((id) => setReservaId(id));
+    setSavingReservation(true);
+    let savedId: string | null = null;
+    const reservationData = {
+      nome: name,
+      telefone: waPersist,
+      idioma_reserva: lang,
+      destino: title,
+      data_viagem: date ? date.toISOString().slice(0, 10) : null,
+      passageiros: parseInt(pax) || null,
+      cupom_aplicado: effectiveCoupon?.code ?? null,
+      valor_original: priceInfo?.original ?? null,
+      valor_com_desconto: priceInfo ? priceInfo.final : null,
+    };
+    for (let attempt = 0; attempt < 3 && !savedId; attempt += 1) {
+      savedId = await createReservaInDb(reservationData, "pendente");
+      if (!savedId && attempt < 2) await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
+    }
+    setSavingReservation(false);
+    if (!savedId) {
+      toast.error(lang === "pt"
+        ? "Não conseguimos salvar sua reserva. Verifique sua conexão e tente novamente."
+        : "We could not save your reservation. Check your connection and try again.");
+      return;
+    }
+    setReservaId(savedId);
+    setOutput({ text: lines.join("\n"), rows });
   };
 
   const handleReservationSent = async () => {
@@ -391,40 +402,9 @@ export const StandardForm = ({
     const cupomAplicado = effectiveCoupon?.code ?? null;
     // Atualiza reserva criada no momento do resumo para CONCLUÍDA.
     // Se não houver id (ex.: insert anterior falhou), cria nova já como concluída.
-    if (reservaId) {
-      const ok = await completeReserva(reservaId);
-      if (!ok) {
-        await createReservaInDb(
-          {
-            nome: name,
-            telefone: wa,
-            idioma_reserva: lang,
-            destino: title,
-            data_viagem: date ? date.toISOString().slice(0, 10) : null,
-            passageiros: parseInt(pax) || null,
-            cupom_aplicado: cupomAplicado,
-            valor_original: priceInfo?.original ?? null,
-            valor_com_desconto: priceInfo ? priceInfo.final : null,
-          },
-          "concluida",
-        );
-      }
-    } else {
-      await createReservaInDb(
-        {
-          nome: name,
-          telefone: wa,
-          idioma_reserva: lang,
-          destino: title,
-          data_viagem: date ? date.toISOString().slice(0, 10) : null,
-          passageiros: parseInt(pax) || null,
-          cupom_aplicado: cupomAplicado,
-          valor_original: priceInfo?.original ?? null,
-          valor_com_desconto: priceInfo ? priceInfo.final : null,
-        },
-        "concluida",
-      );
-    }
+    // A reserva já foi confirmada antes da tela final. Se a transição falhar,
+    // ela continua pendente e permanece elegível para avaliação, sem duplicar registro.
+    if (reservaId) await completeReserva(reservaId);
     if (cupomAplicado) markCouponUsedInDb(cupomAplicado);
   };
 
@@ -692,10 +672,11 @@ export const StandardForm = ({
           <button
             type="button"
             onClick={handleGenerate}
-            className="rgb-border w-full block"
+            disabled={savingReservation}
+            className="rgb-border w-full block disabled:cursor-wait disabled:opacity-70"
           >
             <span className="flex items-center justify-center w-full h-[calc(3.5rem-4px)] rounded-[0.65rem] bg-gradient-to-r from-turquoise to-turquoise-glow text-night font-bold text-base">
-              {t.generate}
+              {savingReservation ? "Salvando reserva…" : t.generate}
             </span>
           </button>
         </div>
