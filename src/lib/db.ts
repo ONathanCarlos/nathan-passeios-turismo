@@ -288,14 +288,24 @@ export async function recoverLeadForReview(leadId: string, destino: string): Pro
   }
 }
 
-export async function createManualReviewLink(leadId: string, destino: string, passeioKey: string): Promise<ReservaReviewLinkResult> {
+export async function createManualReviewLink(
+  leadId: string,
+  nome: string,
+  telefone: string,
+  destino: string,
+  passeioKey: string,
+): Promise<ReservaReviewLinkResult> {
   try {
-    const res = await callAdmin<{ ok: boolean; short_code?: string; error?: string }>(
-      "create_manual_review_link",
-      { lead_id: leadId, destino, passeio_key: passeioKey },
-    );
-    if (res.ok && res.short_code) return { ok: true, shortCode: res.short_code };
-    return { ok: false, error: res.error || "invite_create_failed" };
+    // Usa somente ações já existentes no backend publicado: cada clique cria
+    // uma nova reserva técnica e, portanto, um convite novo.
+    const reservationId = await createReservaInDb({
+      nome,
+      telefone,
+      destino: passeioKey || destino,
+      passageiros: null,
+    }, "concluida");
+    if (!reservationId) return { ok: false, error: "reservation_create_failed" };
+    return await getReservaReviewLink(reservationId);
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : "invite_create_failed" };
   }
