@@ -265,7 +265,8 @@ Deno.serve(async (req) => {
     if (action === "create_manual_review_link") {
       const leadId = str(body?.lead_id, 60);
       const destino = str(body?.destino, 200).trim();
-      if (!leadId || !destino) return json({ ok: false, error: "invalid_input" }, 400);
+      const passeioKey = str(body?.passeio_key, 100).trim();
+      if (!leadId || !destino || !passeioKey) return json({ ok: false, error: "invalid_input" }, 400);
       const { data: lead } = await supabase
         .from("leads")
         .select("id,nome,telefone,email")
@@ -273,8 +274,24 @@ Deno.serve(async (req) => {
         .maybeSingle();
       if (!lead) return json({ ok: false, error: "lead_not_found" }, 404);
 
-      const passeioKeys = await resolveReservationTourKeys(destino);
-      if (passeioKeys.length === 0) return json({ ok: false, error: "no_reviewable_tours" });
+      // O administrador confirma a identidade do cliente. Não exigimos uma
+      // reserva prévia: o lead é suficiente para criar um convite manual.
+      const { data: priorReservations } = await supabase
+        .from("reservas")
+        .select("id")
+        .eq("telefone", lead.telefone)
+        .limit(100);
+      const priorIds = (priorReservations || []).map((row) => row.id);
+      if (priorIds.length > 0) {
+        const { data: priorReview } = await supabase
+          .from("avaliacoes")
+          .select("id")
+          .in("reserva_id", priorIds)
+          .eq("passeio_key", passeioKey)
+          .limit(1)
+          .maybeSingle();
+        if (priorReview) return json({ ok: false, error: "already_submitted" });
+      }
       const { data: reserva, error: reservationError } = await supabase
         .from("reservas")
         .insert({
@@ -297,7 +314,7 @@ Deno.serve(async (req) => {
         .insert({
           reserva_id: reserva.id,
           token_hash: await sha256(reviewToken),
-          passeio_keys: passeioKeys,
+          passeio_keys: [passeioKey],
         })
         .select("id")
         .maybeSingle();

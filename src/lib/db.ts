@@ -288,11 +288,11 @@ export async function recoverLeadForReview(leadId: string, destino: string): Pro
   }
 }
 
-export async function createManualReviewLink(leadId: string, destino: string): Promise<ReservaReviewLinkResult> {
+export async function createManualReviewLink(leadId: string, destino: string, passeioKey: string): Promise<ReservaReviewLinkResult> {
   try {
     const res = await callAdmin<{ ok: boolean; short_code?: string; error?: string }>(
       "create_manual_review_link",
-      { lead_id: leadId, destino },
+      { lead_id: leadId, destino, passeio_key: passeioKey },
     );
     if (res.ok && res.short_code) return { ok: true, shortCode: res.short_code };
     return { ok: false, error: res.error || "invite_create_failed" };

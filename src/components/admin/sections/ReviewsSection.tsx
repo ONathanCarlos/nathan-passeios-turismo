@@ -71,18 +71,20 @@ export const ReviewsSection = () => {
   };
 
   const generateManual = async (lead: { id: string; nome: string }) => {
-    const destino = manualTour[lead.id];
-    if (!destino) {
+    const passeioKey = manualTour[lead.id];
+    const selectedTour = (tours.data || []).find((tour) => tour.key === passeioKey);
+    if (!selectedTour) {
       toast.error("Selecione o passeio antes de gerar o link.");
       return;
     }
     setManualLeadId(lead.id);
-    const result = await createManualReviewLink(lead.id, destino);
+    const result = await createManualReviewLink(lead.id, selectedTour.nome_pt, selectedTour.key);
     setManualLeadId(null);
     if ("error" in result) {
       const messages: Record<string, string> = {
         no_reviewable_tours: "Esse passeio não foi encontrado no cadastro do CMS.",
         lead_not_found: "Esse lead não foi encontrado no banco.",
+        already_submitted: "Esse cliente já avaliou este passeio.",
         reservation_create_failed: "Falha ao criar a reserva manual.",
         invite_create_failed: "Falha ao criar o convite de avaliação.",
         short_link_create_failed: "Falha ao criar o código do link.",
@@ -129,7 +131,7 @@ export const ReviewsSection = () => {
                 <div className="min-w-32 flex-1"><p className="text-sm font-bold text-foreground">{lead.nome}</p><p className="text-[11px] text-muted-foreground">{lead.telefone}</p></div>
                 <Select value={manualTour[lead.id] || ""} onValueChange={(value) => setManualTour((current) => ({ ...current, [lead.id]: value }))}>
                   <SelectTrigger className="h-8 w-40 text-[11px]"><SelectValue placeholder="Escolha o passeio" /></SelectTrigger>
-                  <SelectContent>{(tours.data || []).filter((tour) => tour.ativo !== false).map((tour) => <SelectItem key={tour.nome_pt} value={tour.nome_pt}>{tour.nome_pt}</SelectItem>)}</SelectContent>
+                  <SelectContent>{(tours.data || []).filter((tour) => tour.ativo !== false).map((tour) => <SelectItem key={tour.key} value={tour.key}>{tour.nome_pt}</SelectItem>)}</SelectContent>
                 </Select>
                 <Button type="button" size="sm" variant="outline" className="h-8 text-[11px]" onClick={() => generateManual(lead)} disabled={manualLeadId === lead.id}>
                   {manualLeadId === lead.id ? <RefreshCw className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Link2 className="mr-1 h-3.5 w-3.5" />} Gerar novo link
