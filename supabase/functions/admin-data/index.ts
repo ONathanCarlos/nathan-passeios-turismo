@@ -212,6 +212,56 @@ Deno.serve(async (req) => {
       return json({ ok: true, review: data });
     }
 
+    if (action === "recover_lead_for_review") {
+      const leadId = str(body?.lead_id, 60);
+      const destino = str(body?.destino, 200).trim();
+      if (!leadId || !destino) return json({ ok: false, error: "invalid_input" }, 400);
+      const { data: lead } = await supabase
+        .from("leads")
+        .select("id,nome,telefone,email")
+        .eq("id", leadId)
+        .maybeSingle();
+      if (!lead) return json({ ok: false, error: "lead_not_found" }, 404);
+
+      const passeioKeys = await resolveReservationTourKeys(destino);
+      if (passeioKeys.length === 0) return json({ ok: false, error: "no_reviewable_tours" });
+      const { data: existing } = await supabase
+        .from("reservas")
+        .select("id")
+        .eq("telefone", lead.telefone)
+        .eq("destino", destino)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const reserva = existing || (await supabase
+        .from("reservas")
+        .insert({ nome: lead.nome, telefone: lead.telefone, email: lead.email, destino, status: "concluida" })
+        .select("id")
+        .maybeSingle()).data;
+      if (!reserva) return json({ ok: false, error: "reservation_create_failed" }, 500);
+
+      const { data: currentInvite } = await supabase
+        .from("convites_avaliacao")
+        .select("id,codigo_curto,usado_em")
+        .eq("reserva_id", reserva.id)
+        .maybeSingle();
+      if (currentInvite?.usado_em) return json({ ok: false, error: "already_submitted" });
+      const reviewToken = await reservationReviewToken(reserva.id);
+      const { data: invite, error: inviteError } = await supabase
+        .from("convites_avaliacao")
+        .upsert({
+          reserva_id: reserva.id,
+          token_hash: await sha256(reviewToken),
+          passeio_keys: passeioKeys,
+        }, { onConflict: "reserva_id" })
+        .select("id,codigo_curto,usado_em")
+        .maybeSingle();
+      if (inviteError || !invite) return json({ ok: false, error: "invite_create_failed" }, 500);
+      const shortCode = invite.codigo_curto || await assignShortCode(invite.id);
+      if (!shortCode) return json({ ok: false, error: "short_link_create_failed" }, 500);
+      return json({ ok: true, reservation_id: reserva.id, short_code: shortCode });
+    }
+
     if (action === "get_reserva_review_link") {
       const reservaId = str(body?.id, 60);
       if (!reservaId) return json({ ok: false, error: "invalid_input" }, 400);
