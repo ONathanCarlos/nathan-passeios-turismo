@@ -78,7 +78,7 @@ export const ReviewsSection = () => {
       return;
     }
     setManualLeadId(lead.id);
-    const result = await createManualReviewLink(lead.id, selectedTour.nome_pt, selectedTour.key);
+    const result = await createManualReviewLink(lead.id, lead.nome, lead.telefone, selectedTour.nome_pt, selectedTour.key);
     setManualLeadId(null);
     if ("error" in result) {
       const messages: Record<string, string> = {
