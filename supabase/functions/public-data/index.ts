@@ -259,7 +259,6 @@ Deno.serve(async (req) => {
           nome,
           telefone,
           email: str(body?.email, 200) || null,
-          idioma_reserva: idiomaReserva,
           destino,
           data_viagem: dataViagem,
           passageiros: Number.isFinite(Number(body?.passageiros)) ? Number(body?.passageiros) : null,
