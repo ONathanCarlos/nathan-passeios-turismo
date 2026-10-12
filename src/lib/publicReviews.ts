@@ -7,6 +7,9 @@ export type PublicReview = {
   passeio_key: string;
 };
 
+export const isDisplayableReview = (review: Pick<PublicReview, "nota">): boolean =>
+  Number.isFinite(Number(review.nota)) && Number(review.nota) >= 4;
+
 type PublicReviewsResponse = {
   ok: boolean;
   reviews?: PublicReview[];
@@ -22,5 +25,5 @@ export const getPublicReviews = async (passeioKey: string): Promise<PublicReview
 
   const response = data as PublicReviewsResponse;
   if (!response?.ok) return [];
-  return response.reviews || [];
+  return (response.reviews || []).filter(isDisplayableReview);
 };

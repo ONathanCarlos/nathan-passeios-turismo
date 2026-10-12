@@ -61,14 +61,12 @@ export const SummaryOutput = ({ text, lang, onReset, rows, tourTitle, onSend }: 
         rel="noopener noreferrer"
         onClick={() => {
           onSend?.();
-          // Encerrar promoção QR ao concluir reserva e recarregar em estado limpo
+          // Encerrar promoção QR após o clique; manter o resumo visível enquanto
+          // a chamada auxiliar de elegibilidade termina em segundo plano.
           try {
             localStorage.removeItem("nathan_qr_promo_v1");
             localStorage.removeItem("nathan_qr_seen_v1");
           } catch {}
-          setTimeout(() => {
-            window.location.replace("/");
-          }, 600);
         }}
         className="w-full rounded-xl bg-[hsl(var(--whatsapp))] text-[hsl(var(--whatsapp-foreground))] font-bold text-sm sm:text-base min-h-14 py-3 px-4 flex items-center justify-center gap-2 text-center hover:bg-[hsl(var(--whatsapp-hover))]"
       >

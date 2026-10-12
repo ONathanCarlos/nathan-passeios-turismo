@@ -22,14 +22,9 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
     status,
   });
-
 const str = (v: unknown, max = 500): string =>
   typeof v === "string" ? v.slice(0, max) : "";
-const normalizeName = (value: unknown) => String(value || "")
-  .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-  .toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
-const REVIEWABLE_PSEUDO_KEYS = new Set(["almoco"]);
 const rating = (v: unknown): number | null => {
   const value = Number(v);
   return Number.isFinite(value) && value >= 1 && value <= 5 && Number.isInteger(value * 2)
@@ -43,90 +38,34 @@ const sha256 = async (value: string) => {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 };
 
-const randomShortCode = () => {
-  const bytes = crypto.getRandomValues(new Uint8Array(12));
-  const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-  return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join("");
-};
-
-const reservationReviewToken = async (reservaId: string) => {
-  const secret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(`review-link:${secret}`),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(reservaId));
-  return Array.from(new Uint8Array(signature), (byte) => byte.toString(16).padStart(2, "0")).join("");
-};
-
-const resolveReservationTours = async (destino: string) => {
-  const { data: tours } = await supabase
-    .from("tours")
-    .select("key,nome_pt,nome_en,nome_es,nome_fr,nome_it");
-  const tourRows = tours || [];
-  const normalizedDestino = normalizeName(destino);
-  const directTour = tourRows.find((tour) =>
-    [tour.key, tour.nome_pt, tour.nome_en, tour.nome_es, tour.nome_fr, tour.nome_it]
-      .some((name) => normalizeName(name) === normalizedDestino)
-  ) || tourRows.find((tour) =>
-    [tour.key, tour.nome_pt, tour.nome_en, tour.nome_es, tour.nome_fr, tour.nome_it]
-      .some((name) => normalizedDestino.includes(normalizeName(name)) || normalizeName(name).includes(normalizedDestino))
-  );
-  if (directTour) return [{ key: directTour.key, nome: directTour.nome_pt }];
-
-  const { data: packages } = await supabase
-    .from("pacotes")
-    .select("tour_keys,nome_pt,nome_en,nome_es,nome_fr,nome_it");
-  const packageRow = (packages || []).find((item) =>
-    [item.nome_pt, item.nome_en, item.nome_es, item.nome_fr, item.nome_it]
-      .some((name) => normalizeName(name) === normalizedDestino || normalizedDestino.includes(normalizeName(name)))
-  );
-  if (!packageRow) return [];
-
-  const uniqueKeys = Array.from(new Set((packageRow.tour_keys || []) as string[]))
-    .filter((key) => !REVIEWABLE_PSEUDO_KEYS.has(key));
-  return uniqueKeys.flatMap((key) => {
-    const tour = tourRows.find((item) => item.key === key);
-    return tour ? [{ key, nome: tour.nome_pt }] : [];
-  });
-};
-
-const createReviewInvite = async (reservaId: string, destino: string) => {
-  const allowedTours = await resolveReservationTours(destino);
-  if (allowedTours.length === 0) return { token: null, error: null };
-  const reviewToken = await reservationReviewToken(reservaId);
-  for (let attempt = 0; attempt < 5; attempt += 1) {
-    const { error } = await supabase.from("convites_avaliacao").insert({
-      reserva_id: reservaId,
-      token_hash: await sha256(reviewToken),
-      passeio_keys: allowedTours.map((tour) => tour.key),
-      codigo_curto: randomShortCode(),
-    });
-    if (!error || error.code === "23505" && error.message.includes("reserva_id")) {
-      return { token: reviewToken, error };
+const resolveReviewTourKeys = async (destinationType: string, destinationKey: string): Promise<string[]> => {
+  if (!destinationKey) return [];
+  if (destinationType === "tour") {
+    const { data, error } = await supabase.from("tours").select("key").eq("key", destinationKey).maybeSingle();
+    if (error) {
+      console.error("review_tour_resolution_failed", { code: error.code });
+      return [];
     }
-    if (error.code !== "23505") return { token: null, error };
+    return data?.key ? [data.key] : [];
   }
-  return { token: null, error: { code: "short_code_collision" } };
-};
+  if (destinationType !== "package") return [];
 
-// A avaliação é complementar; nunca deve atrasar nem invalidar uma reserva.
-const scheduleReservationReviewInvite = (reservaId: string, destino: string) => {
-  EdgeRuntime.waitUntil((async () => {
-    try {
-      const invite = await createReviewInvite(reservaId, destino);
-      if (invite.error && invite.error.code !== "23505") {
-        console.error("reservation_review_invite_failed", {
-          code: invite.error.code,
-        });
-      }
-    } catch (error) {
-      console.error("reservation_review_invite_failed", error);
-    }
-  })());
+  const { data: packageRow, error: packageError } = await supabase
+    .from("pacotes").select("tour_keys").eq("key", destinationKey).maybeSingle();
+  if (packageError || !packageRow) {
+    if (packageError) console.error("review_package_resolution_failed", { code: packageError.code });
+    return [];
+  }
+  const requestedKeys = Array.from(new Set((packageRow.tour_keys || []) as string[]))
+    .filter((key) => key !== "almoco");
+  if (requestedKeys.length === 0) return [];
+  const { data: tours, error: toursError } = await supabase.from("tours").select("key").in("key", requestedKeys);
+  if (toursError) {
+    console.error("review_package_tour_validation_failed", { code: toursError.code });
+    return [];
+  }
+  const validKeys = new Set((tours || []).map((tour) => tour.key));
+  return requestedKeys.filter((key) => validKeys.has(key));
 };
 
 const findReviewInvite = async (token: string, shortCode: string) => {
@@ -251,26 +190,23 @@ Deno.serve(async (req) => {
       const destino = str(body?.destino, 200);
       const idiomaReserva = str(body?.idioma_reserva, 10) || null;
       if (!nome || !telefone || !destino) return json({ ok: false, error: "invalid_input" }, 400);
-      const status = body?.status === "concluida" ? "concluida" : "pendente";
+      // A reserva nasce sempre pendente. Só complete_reserva registra o clique real no WhatsApp.
+      const status = "pendente";
       const dataViagem = str(body?.data_viagem, 20) || null;
-      // A deduplicação protege as tentativas automáticas pendentes do site.
-      // Convites manuais concluídos precisam ser novos a cada clique.
-      if (status === "pendente") {
-        const { data: recentReservations } = await supabase
-          .from("reservas")
-          .select("id,status,data_viagem,created_at")
-          .eq("nome", nome)
-          .eq("telefone", telefone)
-          .eq("destino", destino)
-          .order("created_at", { ascending: false })
-          .limit(3);
-        const duplicate = (recentReservations || []).find((item) =>
-          item.data_viagem === dataViagem && Date.now() - new Date(item.created_at).getTime() < 10 * 60 * 1000
-        );
-        if (duplicate) {
-          scheduleReservationReviewInvite(duplicate.id, destino);
-          return json({ ok: true, id: duplicate.id, deduplicated: true });
-        }
+      // Deduplica somente tentativas repetidas de salvar o mesmo resumo; nunca cria convites aqui.
+      const { data: recentReservations } = await supabase
+        .from("reservas")
+        .select("id,status,data_viagem,created_at")
+        .eq("nome", nome)
+        .eq("telefone", telefone)
+        .eq("destino", destino)
+        .order("created_at", { ascending: false })
+        .limit(3);
+      const duplicate = (recentReservations || []).find((item) =>
+        item.data_viagem === dataViagem && Date.now() - new Date(item.created_at).getTime() < 10 * 60 * 1000
+      );
+      if (duplicate) {
+        return json({ ok: true, id: duplicate.id, deduplicated: true });
       }
       const { data, error } = await supabase
         .from("reservas")
@@ -278,6 +214,7 @@ Deno.serve(async (req) => {
           nome,
           telefone,
           email: str(body?.email, 200) || null,
+          idioma_reserva: idiomaReserva,
           destino,
           data_viagem: dataViagem,
           passageiros: Number.isFinite(Number(body?.passageiros)) ? Number(body?.passageiros) : null,
@@ -286,30 +223,45 @@ Deno.serve(async (req) => {
           valor_com_desconto: body?.valor_com_desconto != null ? Number(body.valor_com_desconto) : null,
           status,
         })
-        .select("id,destino")
+        .select("id")
         .maybeSingle();
       if (error) return json({ ok: false, error: "db_error" }, 500);
       if (!data) return json({ ok: true, id: null });
-      scheduleReservationReviewInvite(data.id, data.destino);
       return json({ ok: true, id: data.id });
     }
 
-    // Marca uma reserva PENDENTE como concluída (transição única e segura).
+    // O clique no WhatsApp é um evento auxiliar; falhas aqui não desfazem a reserva salva.
     if (action === "complete_reserva") {
       const id = str(body?.id, 60);
       if (!id) return json({ ok: false, error: "invalid_input" }, 400);
-      const { data: reserva, error } = await supabase
+      const { data: reserva, error: statusError } = await supabase
         .from("reservas")
         .update({ status: "concluida" })
         .eq("id", id)
-        .eq("status", "pendente")
-        .select("id,destino")
+        .select("id")
         .maybeSingle();
-      if (error) return json({ ok: false, error: "db_error" }, 500);
-      if (!reserva) return json({ ok: true });
+      if (statusError || !reserva) {
+        console.error("reservation_whatsapp_status_update_failed", { code: statusError?.code || "not_found" });
+        return json({ ok: true, review_ready: false });
+      }
 
-      scheduleReservationReviewInvite(reserva.id, reserva.destino);
-      return json({ ok: true });
+      const destinationType = body?.destination_type === "package" || body?.destination_type === "tour"
+        ? body.destination_type as string
+        : "";
+      const destinationKey = str(body?.destination_key, 100).trim();
+      const reviewTourKeys = await resolveReviewTourKeys(destinationType, destinationKey);
+      const { error: eligibilityError } = await supabase
+        .from("reservas")
+        .update({
+          whatsapp_solicitado_em: new Date().toISOString(),
+          review_tour_keys: reviewTourKeys,
+        })
+        .eq("id", id);
+      if (eligibilityError) {
+        console.error("reservation_review_eligibility_update_failed", { code: eligibilityError.code });
+        return json({ ok: true, review_ready: false });
+      }
+      return json({ ok: true, review_ready: reviewTourKeys.length > 0 });
     }
 
     // -------------------- AVALIAÇÕES --------------------
@@ -319,10 +271,11 @@ Deno.serve(async (req) => {
 
       const { data: reviews, error } = await supabase
         .from("avaliacoes")
-        .select("cliente_nome,media_final,avaliacao_passeio,passeio_key")
+        .select("cliente_nome,nota_passeio,avaliacao_passeio,passeio_key")
         .eq("autorizacao_publicacao", true)
         .eq("status_publicacao", "publicada")
         .eq("passeio_key", passeioKey)
+        .gte("nota_passeio", 4)
         .gt("expira_em", new Date().toISOString())
         .not("avaliado_em", "is", null)
         .order("avaliado_em", { ascending: false });
@@ -335,7 +288,7 @@ Deno.serve(async (req) => {
           : "";
         return {
           nome: normalizedName ? normalizedName.split(" ")[0] : "Cliente",
-          nota: Number(review.media_final),
+          nota: Number(review.nota_passeio),
           comentario: review.avaliacao_passeio,
           passeio_key: review.passeio_key,
         };
@@ -407,7 +360,7 @@ Deno.serve(async (req) => {
       }
 
       const [{ data: reserva }, { data: tour }] = await Promise.all([
-        supabase.from("reservas").select("nome,status").eq("id", invite.reserva_id).eq("status", "concluida").maybeSingle(),
+        supabase.from("reservas").select("nome,status").eq("id", invite.reserva_id).in("status", ["pendente", "concluida"]).maybeSingle(),
         supabase.from("tours").select("nome_pt").eq("key", passeioKey).maybeSingle(),
       ]);
       if (!reserva || !tour) return json({ ok: false, error: "invalid_link" });
@@ -436,6 +389,7 @@ Deno.serve(async (req) => {
           avaliado_em: now.toISOString(),
           expira_em: expires.toISOString(),
           media_final: average,
+          status_publicacao: notaPasseio >= 4 ? "publicada" : "pendente",
         })
         .select("id")
         .maybeSingle();
@@ -453,7 +407,3 @@ Deno.serve(async (req) => {
     return json({ ok: false, error: "bad_request" }, 400);
   }
 });
-
-declare const EdgeRuntime: {
-  waitUntil(promise: Promise<unknown>): void;
-};

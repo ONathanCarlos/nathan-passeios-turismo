@@ -58,6 +58,8 @@ interface Props {
   titlePt?: string;
   /** nomes em português dos passeios vinculados ao pacote */
   packageTourNames?: string[];
+  /** chave estável do pacote no CMS, para associar a avaliação aos passeios corretos */
+  packageKey?: string;
 }
 
 const fieldClass =
@@ -66,7 +68,7 @@ const fieldClass =
 export const StandardForm = ({
   lang, onLangChange, onBack, title, backgroundImage,
   adultsOnly = false, requireCpf = false, notice, requirePousada = false, tourKey,
-  packagePrice, titlePt, packageTourNames,
+  packagePrice, titlePt, packageTourNames, packageKey,
 }: Props) => {
   const isPackage = typeof packagePrice === "number";
   const t = dict[lang];
@@ -381,7 +383,7 @@ export const StandardForm = ({
       valor_com_desconto: priceInfo ? priceInfo.final : null,
     };
     for (let attempt = 0; attempt < 3 && !savedId; attempt += 1) {
-      savedId = await createReservaInDb(reservationData, "pendente");
+      savedId = await createReservaInDb(reservationData);
       if (!savedId && attempt < 2) await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
     }
     setSavingReservation(false);
@@ -398,13 +400,15 @@ export const StandardForm = ({
   const handleReservationSent = async () => {
     if (appliedSpecial) markSpecialUsed(appliedSpecial.code, name, fullPhone(phone));
     if (appliedCoupon) markCouponUsed();
-    const wa = fullPhone(phone);
     const cupomAplicado = effectiveCoupon?.code ?? null;
-    // Atualiza reserva criada no momento do resumo para CONCLUÍDA.
-    // Se não houver id (ex.: insert anterior falhou), cria nova já como concluída.
-    // A reserva já foi confirmada antes da tela final. Se a transição falhar,
-    // ela continua pendente e permanece elegível para avaliação, sem duplicar registro.
-    if (reservaId) await completeReserva(reservaId);
+    // Só registra a elegibilidade para avaliação quando o cliente aciona o envio.
+    // Essa chamada auxiliar nunca altera o sucesso da reserva nem impede o WhatsApp.
+    const destinationKey = isPackage ? packageKey : tourKey;
+    if (reservaId) {
+      await completeReserva(reservaId, destinationKey
+        ? { type: isPackage ? "package" : "tour", key: destinationKey }
+        : undefined);
+    }
     if (cupomAplicado) markCouponUsedInDb(cupomAplicado);
   };
 

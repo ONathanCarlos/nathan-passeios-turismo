@@ -513,12 +513,15 @@ export type Database = {
           destino: string
           email: string | null
           id: string
+          idioma_reserva: string | null
           nome: string
           passageiros: number | null
+          review_tour_keys: string[]
           status: string
           telefone: string
           valor_com_desconto: number | null
           valor_original: number | null
+          whatsapp_solicitado_em: string | null
         }
         Insert: {
           created_at?: string
@@ -527,12 +530,15 @@ export type Database = {
           destino: string
           email?: string | null
           id?: string
+          idioma_reserva?: string | null
           nome: string
           passageiros?: number | null
+          review_tour_keys?: string[]
           status?: string
           telefone: string
           valor_com_desconto?: number | null
           valor_original?: number | null
+          whatsapp_solicitado_em?: string | null
         }
         Update: {
           created_at?: string
@@ -541,12 +547,15 @@ export type Database = {
           destino?: string
           email?: string | null
           id?: string
+          idioma_reserva?: string | null
           nome?: string
           passageiros?: number | null
+          review_tour_keys?: string[]
           status?: string
           telefone?: string
           valor_com_desconto?: number | null
           valor_original?: number | null
+          whatsapp_solicitado_em?: string | null
         }
         Relationships: []
       }
