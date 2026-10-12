@@ -188,7 +188,6 @@ Deno.serve(async (req) => {
       const nome = str(body?.nome, 200);
       const telefone = onlyDigits(str(body?.telefone, 40));
       const destino = str(body?.destino, 200);
-      const idiomaReserva = str(body?.idioma_reserva, 10) || null;
       if (!nome || !telefone || !destino) return json({ ok: false, error: "invalid_input" }, 400);
       // A reserva nasce sempre pendente. Só complete_reserva registra o clique real no WhatsApp.
       const status = "pendente";
@@ -214,7 +213,6 @@ Deno.serve(async (req) => {
           nome,
           telefone,
           email: str(body?.email, 200) || null,
-          idioma_reserva: idiomaReserva,
           destino,
           data_viagem: dataViagem,
           passageiros: Number.isFinite(Number(body?.passageiros)) ? Number(body?.passageiros) : null,
@@ -225,7 +223,10 @@ Deno.serve(async (req) => {
         })
         .select("id")
         .maybeSingle();
-      if (error) return json({ ok: false, error: "db_error" }, 500);
+      if (error) {
+        console.error("create_reserva_insert_failed", { code: error.code });
+        return json({ ok: false, error: "db_error" }, 500);
+      }
       if (!data) return json({ ok: true, id: null });
       return json({ ok: true, id: data.id });
     }
