@@ -1,6 +1,3 @@
-// ============================================================
-// Reservas — listagem + alternância de status (Pendente/Concluída)
-// ============================================================
 import { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -13,68 +10,104 @@ import { toast } from "sonner";
 type StatusRow = "pendente" | "concluida";
 
 type Reserva = {
-  id: string; nome: string; telefone: string; email: string | null;
-  destino: string; data_viagem: string | null; passageiros: number | null;
-  cupom_aplicado: string | null; valor_original: number | null;
-  valor_com_desconto: number | null; idioma_reserva: string | null; status: string; created_at: string;
+  id: string;
+  nome: string;
+  telefone: string;
+  email: string | null;
+  destino: string;
+  data_viagem: string | null;
+  passageiros: number | null;
+  cupom_aplicado: string | null;
+  valor_original: number | null;
+  valor_com_desconto: number | null;
+  idioma_reserva: string | null;
+  status: string;
+  created_at: string;
+  whatsapp_solicitado_em?: string | null;
 };
 
-const normalizeStatus = (s: string): StatusRow =>
-  (s || "").toLowerCase() === "concluida" || (s || "").toLowerCase() === "concluído" || (s || "").toLowerCase() === "concluida"
-    ? "concluida"
-    : "pendente";
+const normalizeStatus = (status: string): StatusRow =>
+  ["concluida", "concluído"].includes((status || "").toLowerCase()) ? "concluida" : "pendente";
+
+const reviewErrorMessages: Record<string, string> = {
+  already_submitted: "Este cliente já enviou a avaliação.",
+  reservation_not_sent_to_whatsapp: "O cliente ainda não clicou em enviar a reserva pelo WhatsApp.",
+  no_reviewable_tours: "Não foi encontrado um passeio válido nesta reserva ou pacote.",
+  short_link_create_failed: "Não foi possível validar o link após três tentativas. Clique novamente para tentar de novo.",
+  review_schema_not_ready: "A atualização do banco de avaliações ainda não foi aplicada no Supabase/Lovable.",
+  tour_lookup_failed: "Não foi possível validar os passeios deste pacote. Tente novamente.",
+  invite_create_failed: "Não foi possível criar o convite. Clique novamente para tentar de novo.",
+  invite_lookup_failed: "Não foi possível consultar o convite. Atualize e tente novamente.",
+  invite_update_failed: "Não foi possível corrigir o vínculo dos passeios. Tente novamente.",
+  link_verification_failed: "O link não passou na validação. Gere-o novamente.",
+  unauthorized: "Sua sessão administrativa expirou. Entre novamente.",
+};
 
 export const ReservasSection = () => {
   const [rows, setRows] = useState<Reserva[]>([]);
   const [loading, setLoading] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [reviewPendingId, setReviewPendingId] = useState<string | null>(null);
+  const schemaNotReady = rows.length > 0 && !Object.prototype.hasOwnProperty.call(rows[0], "whatsapp_solicitado_em");
 
   const load = async () => {
     setLoading(true);
-    setRows(await fetchReservas(200));
-    setLoading(false);
-  };
-  useEffect(() => {
-    load();
-  }, []);
-
-  const toggleStatus = async (r: Reserva) => {
-    const next: StatusRow = normalizeStatus(r.status) === "concluida" ? "pendente" : "concluida";
-    setPendingId(r.id);
-    // Atualização otimista
-    setRows((prev) => prev.map((x) => (x.id === r.id ? { ...x, status: next } : x)));
-    const ok = await updateReservaStatus(r.id, next);
-    setPendingId(null);
-    if (!ok) {
-      toast.error("Não foi possível atualizar o status");
-      load();
-    } else {
-      toast.success(next === "concluida" ? "Reserva marcada como concluída" : "Reserva marcada como pendente");
+    try {
+      setRows(await fetchReservas(200));
+    } finally {
+      setLoading(false);
     }
   };
 
-  const requestReview = async (r: Reserva) => {
-    setReviewPendingId(r.id);
-    const result = await getReservaReviewLink(r.id);
+  useEffect(() => {
+    void load();
+  }, []);
+
+  const toggleStatus = async (reservation: Reserva) => {
+    const next: StatusRow = normalizeStatus(reservation.status) === "concluida" ? "pendente" : "concluida";
+    setPendingId(reservation.id);
+    setRows((current) => current.map((row) => row.id === reservation.id ? { ...row, status: next } : row));
+    const ok = await updateReservaStatus(reservation.id, next);
+    setPendingId(null);
+    if (!ok) {
+      toast.error("Não foi possível atualizar o status.");
+      void load();
+    } else {
+      toast.success(next === "concluida" ? "Reserva marcada como concluída." : "Reserva marcada como pendente.");
+    }
+  };
+
+  const requestReview = async (reservation: Reserva) => {
+    // Abrir dentro do gesto do clique evita que o navegador bloqueie o WhatsApp
+    // depois da resposta da Edge Function.
+    const whatsappWindow = window.open("about:blank", "_blank");
+    if (whatsappWindow) whatsappWindow.opener = null;
+    setReviewPendingId(reservation.id);
+    const result = await getReservaReviewLink(reservation.id);
     setReviewPendingId(null);
 
     if ("error" in result) {
-      const messages: Record<string, string> = {
-        already_submitted: "Este cliente já enviou a avaliação.",
-        reservation_not_completed: "Marque a reserva como concluída antes de pedir a avaliação.",
-        no_reviewable_tours: "Não foi encontrado um passeio válido nesta reserva.",
-        short_link_create_failed: "Não foi possível gerar o link curto. Tente novamente.",
-        unauthorized: "Sua sessão administrativa expirou. Entre novamente.",
-      };
-      toast.error(messages[result.error] || "Não foi possível gerar o link de avaliação.");
+      whatsappWindow?.close();
+      toast.error(reviewErrorMessages[result.error] || "Não foi possível gerar o link de avaliação.");
       return;
     }
 
     const reviewUrl = buildShortReviewUrl(result.shortCode);
-    const message = buildReviewWhatsAppMessage(reviewUrl, r.nome, r.idioma_reserva || "pt");
-    const phone = (r.telefone || "").replace(/\D/g, "");
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+    const message = buildReviewWhatsAppMessage(reviewUrl, reservation.nome, reservation.idioma_reserva || "pt");
+    const phone = (reservation.telefone || "").replace(/\D/g, "");
+    const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    if (whatsappWindow) {
+      whatsappWindow.location.href = whatsappUrl;
+      toast.success("Link individual validado e mensagem pronta no WhatsApp.");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(message);
+      toast.success("Link validado; a mensagem foi copiada porque o navegador bloqueou a nova janela.");
+    } catch {
+      toast.error(`Link validado: ${reviewUrl}`);
+    }
   };
 
   return (
@@ -83,14 +116,19 @@ export const ReservasSection = () => {
         <div>
           <h3 className="text-sm font-bold text-foreground">Reservas</h3>
           <p className="text-[11px] text-muted-foreground">
-            Clique no status para alternar entre <strong>Pendente</strong> e <strong>Concluída</strong>.
+            O status é independente da avaliação. O convite fica disponível somente após o cliente clicar em enviar pelo WhatsApp.
           </p>
+          {schemaNotReady && (
+            <p className="mt-1 text-[11px] font-semibold text-amber-200">
+              O banco ainda não recebeu a migration do novo fluxo de avaliações; aplique-a no Supabase/Lovable.
+            </p>
+          )}
         </div>
-        <Button variant="outline" size="sm" className="border-turquoise/40" onClick={load} disabled={loading}>
-          <RefreshCw className={`h-3 w-3 mr-1 ${loading ? "animate-spin" : ""}`} /> Atualizar
+        <Button variant="outline" size="sm" className="border-turquoise/40" onClick={() => void load()} disabled={loading}>
+          <RefreshCw className={`mr-1 h-3 w-3 ${loading ? "animate-spin" : ""}`} /> Atualizar
         </Button>
       </div>
-      <div className="glass-card rounded-xl p-2 overflow-x-auto">
+      <div className="glass-card overflow-x-auto rounded-xl p-2">
         <Table>
           <TableHeader>
             <TableRow>
@@ -107,33 +145,33 @@ export const ReservasSection = () => {
           </TableHeader>
           <TableBody>
             {rows.length === 0 ? (
-              <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-6">
-                <CalendarCheck2 className="h-4 w-4 inline mr-2" /> Nenhuma reserva ainda
+              <TableRow><TableCell colSpan={9} className="py-6 text-center text-muted-foreground">
+                <CalendarCheck2 className="mr-2 inline h-4 w-4" /> Nenhuma reserva ainda
               </TableCell></TableRow>
-            ) : rows.map((r) => {
-              const st = normalizeStatus(r.status);
-              const isDone = st === "concluida";
+            ) : rows.map((reservation) => {
+              const isDone = normalizeStatus(reservation.status) === "concluida";
+              const canRequestReview = Boolean(reservation.whatsapp_solicitado_em);
               return (
-                <TableRow key={r.id}>
-                  <TableCell className="font-medium">{getFirstName(r.nome)}</TableCell>
-                  <TableCell className="font-mono text-xs">{r.telefone}</TableCell>
-                  <TableCell className="text-xs">{r.destino}</TableCell>
-                  <TableCell className="text-xs">{r.data_viagem || "—"}</TableCell>
-                  <TableCell className="text-xs">{r.passageiros ?? "—"}</TableCell>
-                  <TableCell className="font-mono text-xs">{r.cupom_aplicado || "—"}</TableCell>
+                <TableRow key={reservation.id}>
+                  <TableCell className="font-medium">{getFirstName(reservation.nome)}</TableCell>
+                  <TableCell className="font-mono text-xs">{reservation.telefone}</TableCell>
+                  <TableCell className="text-xs">{reservation.destino}</TableCell>
+                  <TableCell className="text-xs">{reservation.data_viagem || "—"}</TableCell>
+                  <TableCell className="text-xs">{reservation.passageiros ?? "—"}</TableCell>
+                  <TableCell className="font-mono text-xs">{reservation.cupom_aplicado || "—"}</TableCell>
                   <TableCell className="text-xs">
-                    {r.valor_com_desconto != null ? `R$ ${r.valor_com_desconto}` : (r.valor_original != null ? `R$ ${r.valor_original}` : "—")}
+                    {reservation.valor_com_desconto != null ? `R$ ${reservation.valor_com_desconto}` : (reservation.valor_original != null ? `R$ ${reservation.valor_original}` : "—")}
                   </TableCell>
                   <TableCell>
                     <button
                       type="button"
-                      onClick={() => toggleStatus(r)}
-                      disabled={pendingId === r.id}
+                      onClick={() => void toggleStatus(reservation)}
+                      disabled={pendingId === reservation.id}
                       title="Clique para alternar status"
-                      className={`inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded transition-colors disabled:opacity-50 ${
+                      className={`inline-flex items-center gap-1 rounded border px-2 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors disabled:opacity-50 ${
                         isDone
-                          ? "bg-emerald-700/30 text-emerald-200 border border-emerald-500/40 hover:bg-emerald-700/40"
-                          : "bg-amber-500/20 text-amber-200 border border-amber-400/40 hover:bg-amber-500/30"
+                          ? "border-emerald-500/40 bg-emerald-700/30 text-emerald-200 hover:bg-emerald-700/40"
+                          : "border-amber-400/40 bg-amber-500/20 text-amber-200 hover:bg-amber-500/30"
                       }`}
                     >
                       {isDone ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
@@ -141,24 +179,22 @@ export const ReservasSection = () => {
                     </button>
                   </TableCell>
                   <TableCell>
-                    {isDone ? (
+                    {canRequestReview ? (
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => requestReview(r)}
-                        disabled={reviewPendingId === r.id}
+                        onClick={() => void requestReview(reservation)}
+                        disabled={reviewPendingId === reservation.id}
                         className="h-8 whitespace-nowrap border-turquoise/40 text-[11px] text-turquoise hover:bg-turquoise/10"
                       >
-                        {reviewPendingId === r.id ? (
-                          <RefreshCw className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <MessageCircle className="mr-1.5 h-3.5 w-3.5" />
-                        )}
+                        {reviewPendingId === reservation.id
+                          ? <RefreshCw className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                          : <MessageCircle className="mr-1.5 h-3.5 w-3.5" />}
                         Pedir avaliação
                       </Button>
                     ) : (
-                      <span className="text-[11px] text-muted-foreground">Conclua primeiro</span>
+                      <span className="text-[11px] text-muted-foreground">Aguardando clique no WhatsApp</span>
                     )}
                   </TableCell>
                 </TableRow>

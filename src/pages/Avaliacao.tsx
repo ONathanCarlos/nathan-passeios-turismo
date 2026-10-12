@@ -119,8 +119,8 @@ const Avaliacao = () => {
             <Summary label="Recomendação" value={`${form.nota_recomendacao.toLocaleString("pt-BR")} / 5`} />
             <Summary label="Média final" value={`${submitted.media_final.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} / 5`} strong />
           </div>
-          <p className="mt-6 rounded-lg border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm font-bold text-amber-200">
-            🎁 Você ganhou 5% de desconto na próxima reserva por ter avaliado sua experiência!
+          <p className="mt-6 rounded-lg border border-turquoise/25 bg-turquoise/5 px-4 py-3 text-sm text-foreground/80">
+            Obrigado por compartilhar sua experiência. Sua avaliação ajuda outros viajantes a escolherem o passeio.
           </p>
         </section>
       </ReviewShell>

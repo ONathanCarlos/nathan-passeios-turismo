@@ -194,11 +194,12 @@ export interface Reserva {
   valor_com_desconto: number | null;
   status: string;
   created_at: string;
+  whatsapp_solicitado_em?: string | null;
+  review_tour_keys?: string[];
 }
 
 export async function createReservaInDb(
   r: NewReserva,
-  status: "pendente" | "concluida" = "pendente",
 ): Promise<string | null> {
   try {
     const res = await callPublic<{ id: string | null }>("create_reserva", {
@@ -212,7 +213,6 @@ export async function createReservaInDb(
       cupom_aplicado: r.cupom_aplicado || null,
       valor_original: r.valor_original ?? null,
       valor_com_desconto: r.valor_com_desconto ?? null,
-      status,
     });
     return res?.id ?? null;
   } catch (e) {
@@ -221,10 +221,16 @@ export async function createReservaInDb(
   }
 }
 
-/** Fluxo público: marca uma reserva PENDENTE como concluída. */
-export async function completeReserva(id: string): Promise<boolean> {
+/** Fluxo público: registra o clique do cliente para abrir o WhatsApp. */
+export type ReviewDestination = { type: "tour" | "package"; key: string };
+
+export async function completeReserva(id: string, destination?: ReviewDestination): Promise<boolean> {
   try {
-    const res = await callPublic<{ ok: boolean }>("complete_reserva", { id });
+    const res = await callPublic<{ ok: boolean }>("complete_reserva", {
+      id,
+      destination_type: destination?.type ?? null,
+      destination_key: destination?.key ?? null,
+    });
     return res?.ok === true;
   } catch (e) {
     console.warn("[db] completeReserva falhou", e);
@@ -272,57 +278,6 @@ export async function getReservaReviewLink(id: string): Promise<ReservaReviewLin
     return { ok: false, error: res.error || "invite_create_failed" };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : "invite_create_failed" };
-  }
-}
-
-export async function recoverLeadForReview(leadId: string, destino: string): Promise<ReservaReviewLinkResult> {
-  try {
-    const res = await callAdmin<{ ok: boolean; short_code?: string; error?: string }>(
-      "recover_lead_for_review",
-      { lead_id: leadId, destino },
-    );
-    if (res.ok && res.short_code) return { ok: true, shortCode: res.short_code };
-    return { ok: false, error: res.error || "invite_create_failed" };
-  } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "invite_create_failed" };
-  }
-}
-
-export async function createManualReviewLink(
-  leadId: string,
-  nome: string,
-  telefone: string,
-  destino: string,
-  passeioKey: string,
-): Promise<ReservaReviewLinkResult> {
-  try {
-    // A ação administrativa cria a reserva técnica, o convite e o código curto
-    // em uma única operação. Assim o erro real do banco não é mascarado como
-    // uma falha genérica de criação de reserva no cliente.
-    const res = await callAdmin<{ ok: boolean; short_code?: string; error?: string }>(
-      "create_manual_review_link",
-      { lead_id: leadId, destino, passeio_key: passeioKey },
-    );
-    if (res.ok && res.short_code) return { ok: true, shortCode: res.short_code };
-    return { ok: false, error: res.error || "invite_create_failed" };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "invite_create_failed";
-    // Compatibilidade com um admin-data antigo que ainda não conheça a ação.
-    if (message === "unknown_action") {
-      try {
-        const reservationId = await createReservaInDb({
-          nome,
-          telefone,
-          destino: passeioKey || destino,
-          passageiros: null,
-        }, "concluida");
-        if (!reservationId) return { ok: false, error: "reservation_create_failed" };
-        return await getReservaReviewLink(reservationId);
-      } catch (fallbackError) {
-        return { ok: false, error: fallbackError instanceof Error ? fallbackError.message : "reservation_create_failed" };
-      }
-    }
-    return { ok: false, error: message };
   }
 }
 

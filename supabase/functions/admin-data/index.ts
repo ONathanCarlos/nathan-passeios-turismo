@@ -75,9 +75,6 @@ const CONFLICT: Record<string, string> = {
 };
 
 const onlyDigits = (s: string) => (s || "").replace(/\D/g, "");
-const normalizeName = (value: unknown) => String(value || "")
-  .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-  .toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
 const reservationReviewToken = async (reservaId: string) => {
   const secret = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -103,57 +100,58 @@ const randomShortCode = () => {
   return Array.from(bytes, (byte) => alphabet[byte % alphabet.length]).join("");
 };
 
-const assignShortCode = async (inviteId: string): Promise<string | null> => {
-  for (let attempt = 0; attempt < 5; attempt += 1) {
-    const shortCode = randomShortCode();
-    const { data, error } = await supabase
-      .from("convites_avaliacao")
-      .update({ codigo_curto: shortCode })
-      .eq("id", inviteId)
-      .is("codigo_curto", null)
-      .select("codigo_curto")
-      .maybeSingle();
-    if (data?.codigo_curto) return data.codigo_curto;
-    if (!error) {
-      const { data: current } = await supabase
-        .from("convites_avaliacao")
-        .select("codigo_curto")
-        .eq("id", inviteId)
-        .maybeSingle();
-      return current?.codigo_curto || null;
-    }
-    if (error.code !== "23505") return null;
-  }
-  return null;
+const sameKeySet = (left: unknown, right: string[]) => {
+  if (!Array.isArray(left) || left.length !== right.length) return false;
+  const leftSet = new Set(left.filter((key): key is string => typeof key === "string"));
+  return leftSet.size === right.length && right.every((key) => leftSet.has(key));
 };
 
-const resolveReservationTourKeys = async (destino: string): Promise<string[]> => {
-  const { data: tours } = await supabase
-    .from("tours")
-    .select("key,nome_pt,nome_en,nome_es,nome_fr,nome_it");
-  const tourRows = tours || [];
-  const normalizedDestino = normalizeName(destino);
-  const directTour = tourRows.find((tour) =>
-    [tour.key, tour.nome_pt, tour.nome_en, tour.nome_es, tour.nome_fr, tour.nome_it]
-      .some((name) => normalizeName(name) === normalizedDestino)
-  ) || tourRows.find((tour) =>
-    [tour.key, tour.nome_pt, tour.nome_en, tour.nome_es, tour.nome_fr, tour.nome_it]
-      .some((name) => normalizedDestino.includes(normalizeName(name)) || normalizeName(name).includes(normalizedDestino))
-  );
-  if (directTour) return [directTour.key];
+const ensureVerifiedShortCode = async (inviteId: string, reservaId: string, tourKeys: string[]) => {
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const { data: invite, error: inviteError } = await supabase
+      .from("convites_avaliacao")
+      .select("id,reserva_id,passeio_keys,codigo_curto,usado_em")
+      .eq("id", inviteId)
+      .maybeSingle();
+    if (inviteError || !invite) continue;
+    if (invite.usado_em) return { shortCode: null, error: "already_submitted" };
+    if (invite.reserva_id !== reservaId || !sameKeySet(invite.passeio_keys, tourKeys)) continue;
 
-  const { data: packages } = await supabase
-    .from("pacotes")
-    .select("tour_keys,nome_pt,nome_en,nome_es,nome_fr,nome_it");
-  const packageRow = (packages || []).find((item) =>
-    [item.nome_pt, item.nome_en, item.nome_es, item.nome_fr, item.nome_it]
-      .some((name) => normalizeName(name) === normalizedDestino || normalizedDestino.includes(normalizeName(name)))
-  );
-  if (!packageRow) return [];
+    if (invite.codigo_curto && /^[A-Za-z0-9]{10,16}$/.test(invite.codigo_curto)) {
+      const { data: currentCode, error: verifyCurrentError } = await supabase
+        .from("convites_avaliacao")
+        .select("id,reserva_id,passeio_keys,usado_em")
+        .eq("codigo_curto", invite.codigo_curto)
+        .maybeSingle();
+      if (!verifyCurrentError && currentCode?.id === inviteId && currentCode.reserva_id === reservaId &&
+          !currentCode.usado_em && sameKeySet(currentCode.passeio_keys, tourKeys)) {
+        return { shortCode: invite.codigo_curto, error: null };
+      }
+    }
 
-  const validKeys = new Set(tourRows.map((tour) => tour.key));
-  return Array.from(new Set((packageRow.tour_keys || []) as string[]))
-    .filter((key) => key !== "almoco" && validKeys.has(key));
+    const shortCode = randomShortCode();
+    const assignment = invite.codigo_curto
+      ? await supabase.from("convites_avaliacao").update({ codigo_curto: shortCode })
+          .eq("id", inviteId).eq("codigo_curto", invite.codigo_curto).select("codigo_curto").maybeSingle()
+      : await supabase.from("convites_avaliacao").update({ codigo_curto: shortCode })
+          .eq("id", inviteId).is("codigo_curto", null).select("codigo_curto").maybeSingle();
+    if (assignment.error) {
+      if (assignment.error.code !== "23505") console.error("review_short_code_assignment_failed", { code: assignment.error.code });
+      continue;
+    }
+    if (!assignment.data?.codigo_curto) continue;
+
+    const { data: verified, error: verifyError } = await supabase
+      .from("convites_avaliacao")
+      .select("id,reserva_id,passeio_keys,usado_em")
+      .eq("codigo_curto", assignment.data.codigo_curto)
+      .maybeSingle();
+    if (!verifyError && verified?.id === inviteId && verified.reserva_id === reservaId &&
+        !verified.usado_em && sameKeySet(verified.passeio_keys, tourKeys)) {
+      return { shortCode: assignment.data.codigo_curto, error: null };
+    }
+  }
+  return { shortCode: null, error: "short_link_create_failed" };
 };
 
 Deno.serve(async (req) => {
@@ -201,6 +199,15 @@ Deno.serve(async (req) => {
       if (!id || !["publicada", "oculta"].includes(statusPublicacao)) {
         return json({ ok: false, error: "invalid_input" }, 400);
       }
+      if (statusPublicacao === "publicada") {
+        const { data: candidate, error: candidateError } = await supabase
+          .from("avaliacoes").select("nota_passeio,autorizacao_publicacao").eq("id", id).maybeSingle();
+        if (candidateError) return json({ ok: false, error: "db_error" }, 500);
+        if (!candidate) return json({ ok: false, error: "review_not_found" }, 404);
+        if (!candidate.autorizacao_publicacao || Number(candidate.nota_passeio) < 4) {
+          return json({ ok: false, error: "rating_below_public_threshold" }, 400);
+        }
+      }
       const { data, error } = await supabase
         .from("avaliacoes")
         .update({ status_publicacao: statusPublicacao, status_admin: "visualizada" })
@@ -212,178 +219,113 @@ Deno.serve(async (req) => {
       return json({ ok: true, review: data });
     }
 
-    if (action === "recover_lead_for_review") {
-      const leadId = str(body?.lead_id, 60);
-      const destino = str(body?.destino, 200).trim();
-      if (!leadId || !destino) return json({ ok: false, error: "invalid_input" }, 400);
-      const { data: lead } = await supabase
-        .from("leads")
-        .select("id,nome,telefone,email")
-        .eq("id", leadId)
-        .maybeSingle();
-      if (!lead) return json({ ok: false, error: "lead_not_found" }, 404);
-
-      const passeioKeys = await resolveReservationTourKeys(destino);
-      if (passeioKeys.length === 0) return json({ ok: false, error: "no_reviewable_tours" });
-      const { data: existing } = await supabase
-        .from("reservas")
-        .select("id")
-        .eq("telefone", lead.telefone)
-        .eq("destino", destino)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      const reserva = existing || (await supabase
-        .from("reservas")
-        .insert({ nome: lead.nome, telefone: lead.telefone, email: lead.email, destino, status: "concluida" })
-        .select("id")
-        .maybeSingle()).data;
-      if (!reserva) return json({ ok: false, error: "reservation_create_failed" }, 500);
-
-      const { data: currentInvite } = await supabase
-        .from("convites_avaliacao")
-        .select("id,codigo_curto,usado_em")
-        .eq("reserva_id", reserva.id)
-        .maybeSingle();
-      if (currentInvite?.usado_em) return json({ ok: false, error: "already_submitted" });
-      const reviewToken = await reservationReviewToken(reserva.id);
-      const { data: invite, error: inviteError } = await supabase
-        .from("convites_avaliacao")
-        .upsert({
-          reserva_id: reserva.id,
-          token_hash: await sha256(reviewToken),
-          passeio_keys: passeioKeys,
-        }, { onConflict: "reserva_id" })
-        .select("id,codigo_curto,usado_em")
-        .maybeSingle();
-      if (inviteError || !invite) return json({ ok: false, error: "invite_create_failed" }, 500);
-      const shortCode = invite.codigo_curto || await assignShortCode(invite.id);
-      if (!shortCode) return json({ ok: false, error: "short_link_create_failed" }, 500);
-      return json({ ok: true, reservation_id: reserva.id, short_code: shortCode });
-    }
-
-    if (action === "create_manual_review_link") {
-      const leadId = str(body?.lead_id, 60);
-      const destino = str(body?.destino, 200).trim();
-      const passeioKey = str(body?.passeio_key, 100).trim();
-      if (!leadId || !destino || !passeioKey) return json({ ok: false, error: "invalid_input" }, 400);
-      const { data: lead } = await supabase
-        .from("leads")
-        .select("id,nome,telefone,email")
-        .eq("id", leadId)
-        .maybeSingle();
-      if (!lead) return json({ ok: false, error: "lead_not_found" }, 404);
-
-      // O administrador confirma a identidade do cliente. Não exigimos uma
-      // reserva prévia: o lead é suficiente para criar um convite manual.
-      const { data: priorReservations } = await supabase
-        .from("reservas")
-        .select("id")
-        .eq("telefone", lead.telefone)
-        .limit(100);
-      const priorIds = (priorReservations || []).map((row) => row.id);
-      if (priorIds.length > 0) {
-        const { data: priorReview } = await supabase
-          .from("avaliacoes")
-          .select("id")
-          .in("reserva_id", priorIds)
-          .eq("passeio_key", passeioKey)
-          .limit(1)
-          .maybeSingle();
-        if (priorReview) return json({ ok: false, error: "already_submitted" });
-      }
-      const { data: reserva, error: reservationError } = await supabase
-        .from("reservas")
-        .insert({
-          nome: lead.nome,
-          telefone: lead.telefone,
-          email: lead.email,
-          destino,
-          status: "concluida",
-        })
-        .select("id")
-        .maybeSingle();
-      if (reservationError || !reserva) {
-        console.error("create_manual_review_link reservation insert failed", reservationError);
-        return json({ ok: false, error: reservationError?.code ? `reservation_create_failed:${reservationError.code}` : "reservation_create_failed" }, 500);
-      }
-
-      const reviewToken = await reservationReviewToken(reserva.id);
-      const { data: invite, error: inviteError } = await supabase
-        .from("convites_avaliacao")
-        .insert({
-          reserva_id: reserva.id,
-          token_hash: await sha256(reviewToken),
-          passeio_keys: [passeioKey],
-        })
-        .select("id")
-        .maybeSingle();
-      if (inviteError || !invite) {
-        console.error("create_manual_review_link invite insert failed", inviteError);
-        await supabase.from("reservas").delete().eq("id", reserva.id);
-        return json({ ok: false, error: inviteError?.code ? `invite_create_failed:${inviteError.code}` : "invite_create_failed" }, 500);
-      }
-      const shortCode = await assignShortCode(invite.id);
-      if (!shortCode) {
-        await supabase.from("convites_avaliacao").delete().eq("id", invite.id);
-        await supabase.from("reservas").delete().eq("id", reserva.id);
-        return json({ ok: false, error: "short_link_create_failed" }, 500);
-      }
-      return json({ ok: true, reservation_id: reserva.id, short_code: shortCode });
-    }
-
     if (action === "get_reserva_review_link") {
       const reservaId = str(body?.id, 60);
       if (!reservaId) return json({ ok: false, error: "invalid_input" }, 400);
-      const { data: reserva } = await supabase
+      const { data: reserva, error: reservationError } = await supabase
         .from("reservas")
-        .select("id,destino,status")
+        .select("id,whatsapp_solicitado_em,review_tour_keys")
         .eq("id", reservaId)
         .maybeSingle();
-      if (!reserva) return json({ ok: false, error: "reservation_not_found" });
-      if (!['pendente', 'concluida'].includes(reserva.status)) {
-        return json({ ok: false, error: "reservation_not_reviewable" });
+      if (reservationError) {
+        console.error("review_link_reservation_lookup_failed", { code: reservationError.code });
+        const missingSchema = reservationError.code === "42703" || reservationError.code === "PGRST204";
+        return json({ ok: false, error: missingSchema ? "review_schema_not_ready" : "db_error" }, 503);
       }
+      if (!reserva) return json({ ok: false, error: "reservation_not_found" });
+      if (!reserva.whatsapp_solicitado_em) return json({ ok: false, error: "reservation_not_sent_to_whatsapp" });
+      const requestedKeys = Array.isArray(reserva.review_tour_keys)
+        ? Array.from(new Set(reserva.review_tour_keys.filter((key: unknown): key is string => typeof key === "string" && key !== "almoco")))
+        : [];
+      if (requestedKeys.length === 0) return json({ ok: false, error: "no_reviewable_tours" });
 
-      const { data: existingInvite } = await supabase
-        .from("convites_avaliacao")
-        .select("id,usado_em,codigo_curto")
-        .eq("reserva_id", reservaId)
-        .maybeSingle();
+      let tourLookup = await supabase.from("tours").select("key").in("key", requestedKeys);
+      for (let attempt = 1; tourLookup.error && attempt < 3; attempt += 1) {
+        console.error("review_link_tour_lookup_retry", { attempt, code: tourLookup.error.code });
+        tourLookup = await supabase.from("tours").select("key").in("key", requestedKeys);
+      }
+      if (tourLookup.error) {
+        console.error("review_link_tour_lookup_failed", { code: tourLookup.error.code });
+        return json({ ok: false, error: "tour_lookup_failed" }, 503);
+      }
+      const validKeys = new Set((tourLookup.data || []).map((tour) => tour.key));
+      const passeioKeys = requestedKeys.filter((key) => validKeys.has(key));
+      if (passeioKeys.length === 0) return json({ ok: false, error: "no_reviewable_tours" });
+
+      let inviteLookup = await supabase.from("convites_avaliacao")
+        .select("id,usado_em,codigo_curto,passeio_keys").eq("reserva_id", reservaId).maybeSingle();
+      for (let attempt = 1; inviteLookup.error && attempt < 3; attempt += 1) {
+        console.error("review_invite_lookup_retry", { attempt, code: inviteLookup.error.code });
+        inviteLookup = await supabase.from("convites_avaliacao")
+          .select("id,usado_em,codigo_curto,passeio_keys").eq("reserva_id", reservaId).maybeSingle();
+      }
+      if (inviteLookup.error) {
+        console.error("review_invite_lookup_failed", { code: inviteLookup.error.code });
+        return json({ ok: false, error: "invite_lookup_failed" }, 503);
+      }
+      const existingInvite = inviteLookup.data;
       if (existingInvite?.usado_em) return json({ ok: false, error: "already_submitted" });
 
       let inviteId = existingInvite?.id || null;
-      let shortCode = existingInvite?.codigo_curto || null;
-      if (!existingInvite) {
-        const passeioKeys = await resolveReservationTourKeys(reserva.destino);
-        if (passeioKeys.length === 0) return json({ ok: false, error: "no_reviewable_tours" });
+      if (!inviteId) {
         const reviewToken = await reservationReviewToken(reservaId);
-        const { data: createdInvite, error: inviteError } = await supabase
-          .from("convites_avaliacao")
-          .insert({
-            reserva_id: reservaId,
-            token_hash: await sha256(reviewToken),
-            passeio_keys: passeioKeys,
-          })
-          .select("id")
-          .maybeSingle();
-        if (inviteError && inviteError.code !== "23505") {
-          return json({ ok: false, error: "invite_create_failed" });
-        }
-        inviteId = createdInvite?.id || null;
-        if (!inviteId) {
-          const { data: concurrentInvite } = await supabase
+        const tokenHash = await sha256(reviewToken);
+        for (let attempt = 1; !inviteId && attempt <= 3; attempt += 1) {
+          const { data: createdInvite, error: inviteError } = await supabase
             .from("convites_avaliacao")
-            .select("id,codigo_curto")
-            .eq("reserva_id", reservaId)
+            .insert({ reserva_id: reservaId, token_hash: tokenHash, passeio_keys: passeioKeys })
+            .select("id")
             .maybeSingle();
+          if (createdInvite?.id) {
+            inviteId = createdInvite.id;
+            break;
+          }
+          if (inviteError && inviteError.code !== "23505") {
+            console.error("review_invite_create_retry", { attempt, code: inviteError.code });
+          }
+          const { data: concurrentInvite, error: concurrentError } = await supabase
+            .from("convites_avaliacao").select("id,usado_em").eq("reserva_id", reservaId).maybeSingle();
+          if (concurrentError) {
+            console.error("review_invite_recovery_retry", { attempt, code: concurrentError.code });
+            continue;
+          }
+          if (concurrentInvite?.usado_em) return json({ ok: false, error: "already_submitted" });
           inviteId = concurrentInvite?.id || null;
-          shortCode = concurrentInvite?.codigo_curto || null;
         }
       }
-      if (!shortCode && inviteId) shortCode = await assignShortCode(inviteId);
-      if (!shortCode) return json({ ok: false, error: "short_link_create_failed" }, 500);
-      return json({ ok: true, short_code: shortCode });
+      if (!inviteId) return json({ ok: false, error: "invite_create_failed" }, 503);
+
+      let currentInviteLookup = await supabase.from("convites_avaliacao")
+        .select("id,usado_em,passeio_keys").eq("id", inviteId).maybeSingle();
+      for (let attempt = 1; currentInviteLookup.error && attempt < 3; attempt += 1) {
+        console.error("review_invite_recheck_retry", { attempt, code: currentInviteLookup.error.code });
+        currentInviteLookup = await supabase.from("convites_avaliacao")
+          .select("id,usado_em,passeio_keys").eq("id", inviteId).maybeSingle();
+      }
+      const currentInvite = currentInviteLookup.data;
+      if (currentInviteLookup.error || !currentInvite) {
+        console.error("review_invite_recheck_failed", { code: currentInviteLookup.error?.code || "not_found" });
+        return json({ ok: false, error: "invite_lookup_failed" }, 503);
+      }
+      if (currentInvite.usado_em) return json({ ok: false, error: "already_submitted" });
+      if (!sameKeySet(currentInvite.passeio_keys, passeioKeys)) {
+        let updateKeysError: { code: string } | null = null;
+        for (let attempt = 1; attempt <= 3; attempt += 1) {
+          const result = await supabase.from("convites_avaliacao")
+            .update({ passeio_keys: passeioKeys }).eq("id", inviteId).is("usado_em", null);
+          updateKeysError = result.error;
+          if (!updateKeysError) break;
+          console.error("review_invite_tour_snapshot_update_retry", { attempt, code: updateKeysError.code });
+        }
+        if (updateKeysError) {
+          console.error("review_invite_tour_snapshot_update_failed", { code: updateKeysError.code });
+          return json({ ok: false, error: "invite_update_failed" }, 503);
+        }
+      }
+
+      const verifiedLink = await ensureVerifiedShortCode(inviteId, reservaId, passeioKeys);
+      if (!verifiedLink.shortCode) return json({ ok: false, error: verifiedLink.error || "short_link_create_failed" }, 503);
+      return json({ ok: true, short_code: verifiedLink.shortCode });
     }
 
     if (action === "pending_reservation_phones") {
