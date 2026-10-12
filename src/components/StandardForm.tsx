@@ -58,8 +58,6 @@ interface Props {
   titlePt?: string;
   /** nomes em português dos passeios vinculados ao pacote */
   packageTourNames?: string[];
-  /** chave estável do pacote no CMS, para associar a avaliação aos passeios corretos */
-  packageKey?: string;
 }
 
 const fieldClass =
@@ -68,7 +66,7 @@ const fieldClass =
 export const StandardForm = ({
   lang, onLangChange, onBack, title, backgroundImage,
   adultsOnly = false, requireCpf = false, notice, requirePousada = false, tourKey,
-  packagePrice, titlePt, packageTourNames, packageKey,
+  packagePrice, titlePt, packageTourNames,
 }: Props) => {
   const isPackage = typeof packagePrice === "number";
   const t = dict[lang];
@@ -400,14 +398,7 @@ export const StandardForm = ({
     if (appliedSpecial) markSpecialUsed(appliedSpecial.code, name, fullPhone(phone));
     if (appliedCoupon) markCouponUsed();
     const cupomAplicado = effectiveCoupon?.code ?? null;
-    // Só registra a elegibilidade para avaliação quando o cliente aciona o envio.
-    // Essa chamada auxiliar nunca altera o sucesso da reserva nem impede o WhatsApp.
-    const destinationKey = isPackage ? packageKey : tourKey;
-    if (reservaId) {
-      await completeReserva(reservaId, destinationKey
-        ? { type: isPackage ? "package" : "tour", key: destinationKey }
-        : undefined);
-    }
+    if (reservaId) await completeReserva(reservaId);
     if (cupomAplicado) markCouponUsedInDb(cupomAplicado);
   };
 

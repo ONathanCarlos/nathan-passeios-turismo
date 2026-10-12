@@ -184,7 +184,6 @@ export interface Reserva {
   nome: string;
   telefone: string;
   email: string | null;
-  idioma_reserva: string | null;
   destino: string;
   data_viagem: string | null;
   passageiros: number | null;
@@ -193,8 +192,6 @@ export interface Reserva {
   valor_com_desconto: number | null;
   status: string;
   created_at: string;
-  whatsapp_solicitado_em?: string | null;
-  review_tour_keys?: string[];
 }
 
 export async function createReservaInDb(
@@ -219,16 +216,10 @@ export async function createReservaInDb(
   }
 }
 
-/** Fluxo público: registra o clique do cliente para abrir o WhatsApp. */
-export type ReviewDestination = { type: "tour" | "package"; key: string };
-
-export async function completeReserva(id: string, destination?: ReviewDestination): Promise<boolean> {
+/** Marca como concluída a reserva enviada ao WhatsApp, sem bloquear o cliente. */
+export async function completeReserva(id: string): Promise<boolean> {
   try {
-    const res = await callPublic<{ ok: boolean }>("complete_reserva", {
-      id,
-      destination_type: destination?.type ?? null,
-      destination_key: destination?.key ?? null,
-    });
+    const res = await callPublic<{ ok: boolean }>("complete_reserva", { id });
     return res?.ok === true;
   } catch (e) {
     console.warn("[db] completeReserva falhou", e);
@@ -258,69 +249,6 @@ export async function fetchReservas(limit = 200): Promise<Reserva[]> {
   } catch (e) {
     console.warn("[db] fetchReservas falhou", e);
     return [];
-  }
-}
-
-export type ReservaReviewLinkResult =
-  | { ok: true; shortCode: string }
-  | { ok: false; error: string };
-
-/** Admin: gera ou recupera o convite seguro de avaliação de uma reserva concluída. */
-export async function getReservaReviewLink(id: string): Promise<ReservaReviewLinkResult> {
-  try {
-    const res = await callAdmin<{ ok: boolean; short_code?: string; error?: string }>(
-      "get_reserva_review_link",
-      { id },
-    );
-    if (res.ok && res.short_code) return { ok: true, shortCode: res.short_code };
-    return { ok: false, error: res.error || "invite_create_failed" };
-  } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : "invite_create_failed" };
-  }
-}
-
-// ---------------- AVALIAÇÕES (ADMIN) ----------------
-export type ReviewPublicationStatus = "pendente" | "publicada" | "oculta";
-
-export interface AdminReview {
-  id: string;
-  reserva_id: string;
-  cliente_nome: string;
-  passeio_nome: string;
-  nota_atendimento: number;
-  nota_plataforma: number;
-  nota_passeio: number;
-  avaliacao_passeio: string;
-  melhoria: string | null;
-  nota_recomendacao: number;
-  observacoes: string | null;
-  avaliado_em: string;
-  expira_em: string;
-  status_admin: "nova" | "visualizada";
-  status_publicacao: ReviewPublicationStatus;
-  media_final: number;
-}
-
-export async function fetchReviews(limit = 300): Promise<AdminReview[]> {
-  try {
-    const res = await callAdmin<{ rows: AdminReview[] }>("list_avaliacoes", { limit });
-    return res.rows || [];
-  } catch (error) {
-    console.warn("[db] fetchReviews falhou", error);
-    return [];
-  }
-}
-
-export async function updateReviewStatus(
-  id: string,
-  status: Exclude<ReviewPublicationStatus, "pendente">,
-): Promise<boolean> {
-  try {
-    await callAdmin("update_review_status", { id, status_publicacao: status });
-    return true;
-  } catch (error) {
-    console.warn("[db] updateReviewStatus falhou", error);
-    return false;
   }
 }
 

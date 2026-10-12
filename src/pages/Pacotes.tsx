@@ -13,7 +13,6 @@ import { TOUR_PRICES } from "@/lib/prices";
 import { PackageCover } from "@/components/PackageCover";
 import { PriceWithDiscount } from "@/components/SavingsBox";
 import { TourBadge, UrgencyTag } from "@/components/TourBadge";
-import { DepoimentosSection } from "@/components/DepoimentosSection";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import type { TourKey } from "@/lib/tours";
 import { runNavigationTransition } from "@/lib/viewTransition";
@@ -161,8 +160,6 @@ const Pacotes = () => {
             );
           })}
         </div>
-
-        <DepoimentosSection lang={lang} />
 
         <footer className="text-center mt-14 text-xs text-muted-foreground/70">
           © {t.brand} · {t.footerRegion}

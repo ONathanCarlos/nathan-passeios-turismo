@@ -31,8 +31,6 @@ export type TourDetail = {
   videos?: string[];
   title: string;
   hook: string;
-  rating: number;
-  reviews: number;
   duration: string;
   location: string;
   capacity: string;
@@ -46,7 +44,6 @@ export type TourDetail = {
 // Section labels (i18n)
 const L: Record<Lang, Record<string, string>> = {
   pt: {
-    rating: "Avaliação",
     duration: "Duração",
     location: "Localização",
     capacity: "Capacidade",
@@ -80,7 +77,6 @@ const L: Record<Lang, Record<string, string>> = {
     fullDay: "Dia completo",
   },
   es: {
-    rating: "Valoración",
     duration: "Duración",
     location: "Ubicación",
     capacity: "Capacidad",
@@ -114,7 +110,6 @@ const L: Record<Lang, Record<string, string>> = {
     fullDay: "Día completo",
   },
   en: {
-    rating: "Rating",
     duration: "Duration",
     location: "Location",
     capacity: "Capacity",
@@ -148,7 +143,6 @@ const L: Record<Lang, Record<string, string>> = {
     fullDay: "Full day",
   },
   fr: {
-    rating: "Note",
     duration: "Durée",
     location: "Emplacement",
     capacity: "Capacité",
@@ -182,7 +176,6 @@ const L: Record<Lang, Record<string, string>> = {
     fullDay: "Journée complète",
   },
   it: {
-    rating: "Valutazione",
     duration: "Durata",
     location: "Località",
     capacity: "Capacità",
@@ -357,7 +350,6 @@ const _getTour = (key: TourKey, lang: Lang): TourDetail => {
     case "escuna":
       return {
         key, image: overrideImg || escunaImg, title: tt.title, hook: tt.hook,
-        rating: 4.8, reviews: 1280,
         duration: "2h30", location: l.locBuzios,
         capacity: `${l.upTo} 60 ${l.persons}`, languages: l.languagesAll,
         sections: [
@@ -374,7 +366,6 @@ const _getTour = (key: TourKey, lang: Lang): TourDetail => {
     case "arraial":
       return {
         key, image: overrideImg || arraialImg, title: tt.title, hook: tt.hook,
-        rating: 4.9, reviews: 2150,
         duration: l.fullDay, location: l.locArraial,
         capacity: `${l.upTo} 50 ${l.persons}`, languages: l.languagesAll,
         sections: [
@@ -389,7 +380,6 @@ const _getTour = (key: TourKey, lang: Lang): TourDetail => {
     case "buggy":
       return {
         key, image: overrideImg || buggyImg, title: tt.title, hook: tt.hook,
-        rating: 4.8, reviews: 640,
         duration: "1h30", location: l.locBuzios,
         capacity: `${l.upTo} 4 ${l.persons}`, languages: l.languagesAll,
         sections: [
@@ -399,7 +389,6 @@ const _getTour = (key: TourKey, lang: Lang): TourDetail => {
     case "cabofrio":
       return {
         key, image: overrideImg || arraialImg, title: tt.title, hook: tt.hook,
-        rating: 4.7, reviews: 410,
         duration: l.fullDay, location: l.locCaboFrio,
         capacity: `${l.upTo} 35 ${l.persons}`, languages: l.languagesAll,
         sections: [
@@ -411,7 +400,6 @@ const _getTour = (key: TourKey, lang: Lang): TourDetail => {
     case "jardineira":
       return {
         key, image: overrideImg || jardineiraImg, title: tt.title, hook: tt.hook,
-        rating: 4.7, reviews: 920,
         duration: "2h", location: l.locBuzios,
         capacity: `35 ${l.persons}`, languages: l.languagesAll,
         sections: [
@@ -422,7 +410,6 @@ const _getTour = (key: TourKey, lang: Lang): TourDetail => {
     case "catamara":
       return {
         key, image: overrideImg || catamaraImg, title: tt.title, hook: tt.hook,
-        rating: 4.9, reviews: 870,
         duration: "2h30", location: l.locBuzios,
         capacity: `${l.upTo} 80 ${l.persons}`, languages: l.languagesAll,
         sections: [
@@ -434,7 +421,6 @@ const _getTour = (key: TourKey, lang: Lang): TourDetail => {
     case "mergulho":
       return {
         key, image: overrideImg || mergulhoImg, title: tt.title, hook: tt.hook,
-        rating: 5.0, reviews: 380,
         duration: "≈ 1h10", location: "João Fernandes — Búzios",
         capacity: `${l.upTo} 6 ${l.persons}`, languages: l.languagesAll,
         adultsOnly: true,
@@ -450,7 +436,6 @@ const _getTour = (key: TourKey, lang: Lang): TourDetail => {
     case "lancha":
       return {
         key, image: overrideImg || lanchaImg, title: tt.title, hook: tt.hook,
-        rating: 5.0, reviews: 220,
         duration: "4h — 8h", location: l.locBuzios,
         capacity: `${l.upTo} 12 ${l.persons}`, languages: l.languagesAll,
         sections: [

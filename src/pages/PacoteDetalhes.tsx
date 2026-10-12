@@ -130,7 +130,6 @@ const PacoteDetalhes = () => {
         backgroundImage={imgs[0] || escunaImg}
         packagePrice={pacote.preco}
         packageTourNames={packageTourNames}
-        packageKey={pacote.key}
       />
     );
   }

@@ -6,10 +6,9 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { StandardForm } from "@/components/StandardForm";
 import { TourDetails } from "@/components/TourDetails";
 import { TourKey } from "@/lib/tours";
-import { Star, Tag, ArrowLeft } from "lucide-react";
+import { Tag, ArrowLeft } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { TourBadge, UrgencyTag } from "@/components/TourBadge";
-import { DepoimentosSection } from "@/components/DepoimentosSection";
 import { PageTransition } from "@/components/PageTransition";
 import { PromoBanner } from "@/components/PromoBanner";
 import { COUPON_ELIGIBLE, tourPriceLabel, TOUR_PRICES, formatBRL } from "@/lib/prices";
@@ -35,10 +34,9 @@ import caboFrioImg from "@/assets/cabo-frio.jpg";
 type FormScreen = `form-${TourKey}`;
 type Screen = "menu" | { details: TourKey } | FormScreen;
 
-const FEATURED_BADGES: Partial<Record<TourKey, "destaque_mais_vendido" | "mais_procurado" | "mais_bem_avaliado">> = {
+const FEATURED_BADGES: Partial<Record<TourKey, "destaque_mais_vendido" | "mais_procurado">> = {
   escuna: "destaque_mais_vendido",
   arraial: "mais_procurado",
-  buggy: "mais_bem_avaliado",
 };
 
 
@@ -260,10 +258,6 @@ const Index = () => {
                       +18
                     </span>
                   )}
-                  <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-md bg-night/70 backdrop-blur px-2 py-0.5 text-xs font-semibold text-foreground border border-turquoise/30">
-                    <Star className="w-3 h-3 fill-amber-300 text-amber-300" />
-                    4.8
-                  </span>
                   {(() => {
                     const c = cmsByKey.get(opt.key);
                     return c?.badge && !FEATURED_BADGES[opt.key] ? (
@@ -336,8 +330,6 @@ const Index = () => {
             ))}
           </div>
         </section>
-
-        <DepoimentosSection lang={lang} />
 
         <footer className="text-center mt-14 text-xs text-muted-foreground/70">
           © {t.brand} · {t.footerRegion}
