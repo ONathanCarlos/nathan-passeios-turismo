@@ -1,7 +1,7 @@
 // ============================================================
 // CMS Unificado — painel administrativo único.
-// 9 abas: Dashboard, Passeios, Conteúdo, Modais, Cupons,
-// Reservas, Leads, Mídia, Configurações.
+// 10 abas: Dashboard, Passeios, Pacotes, Conteúdo, Modais, Cupons,
+// Reservas, Leads, Mídia e Configurações.
 // Toda configuração administrativa do site vive aqui.
 // ============================================================
 import { useEffect, useState } from "react";
@@ -17,7 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import {
   Settings2, Trash2, Upload, Plus, Save, Sparkles, Gift, Eye,
   LayoutDashboard, Compass, FileText, MessageSquare, Ticket,
-  CalendarCheck2, Users, Image as ImageIcon, Settings, RefreshCw, Package, Star,
+  CalendarCheck2, Users, Image as ImageIcon, Settings, RefreshCw, Package,
 } from "lucide-react";
 import { toast } from "sonner";
 import { TourKey } from "@/lib/tours";
@@ -30,12 +30,11 @@ import { isQrActive } from "@/lib/qrPromo";
 import { fetchPendingReservationPhones, subscribeAdminRealtime, type PendingReservationPhone } from "@/lib/db";
 import { useModais, useTours, useUpsertTour, type CmsModal, type CmsTour } from "@/lib/cms";
 import {
-  ToursSection, ModaisSection, ConfigSection, DepoimentosSection, PacotesSection,
+  ToursSection, ModaisSection, ConfigSection, PacotesSection,
 } from "./admin/CmsAdminTab";
 import { DashboardSection } from "./admin/sections/DashboardSection";
 import { ReservasSection } from "./admin/sections/ReservasSection";
 import { LeadsSection } from "./admin/sections/LeadsSection";
-import { ReviewsSection } from "./admin/sections/ReviewsSection";
 
 const TOUR_KEYS: { key: TourKey; label: string }[] = [
   { key: "escuna", label: "Escuna" },
@@ -156,7 +155,6 @@ export const AdminPanel = ({ open, onOpenChange, defaultTab = "dashboard" }: { o
             <TabsTrigger value="modais" className={tabBtn}><MessageSquare className="h-3.5 w-3.5" />Modais</TabsTrigger>
             <TabsTrigger value="coupons" className={tabBtn}><Ticket className="h-3.5 w-3.5" />Cupons</TabsTrigger>
             <TabsTrigger value="reservas" className={tabBtn}><CalendarCheck2 className="h-3.5 w-3.5" />Reservas</TabsTrigger>
-            <TabsTrigger value="reviews" className={tabBtn}><Star className="h-3.5 w-3.5" />Avaliações</TabsTrigger>
             <TabsTrigger value="leads" className={tabBtn}><Users className="h-3.5 w-3.5" />Leads</TabsTrigger>
             <TabsTrigger value="media" className={tabBtn}><ImageIcon className="h-3.5 w-3.5" />Mídia</TabsTrigger>
             <TabsTrigger value="config" className={tabBtn}><Settings className="h-3.5 w-3.5" />Config</TabsTrigger>
@@ -177,13 +175,8 @@ export const AdminPanel = ({ open, onOpenChange, defaultTab = "dashboard" }: { o
             <PacotesSection />
           </TabsContent>
 
-          {/* ---------------- CONTEÚDO (depoimentos + textos institucionais) ---------------- */}
+          {/* ---------------- CONTEÚDO (textos institucionais) ---------------- */}
           <TabsContent value="content" className="mt-4 space-y-6">
-            <section className="space-y-3">
-              <h3 className="text-sm font-bold text-turquoise-glow">Depoimentos</h3>
-              <DepoimentosSection />
-            </section>
-
             <section className="space-y-3">
               <h3 className="text-sm font-bold text-turquoise-glow">Descrições por passeio</h3>
               <div className="glass-card rounded-xl p-3 border-turquoise/30 bg-turquoise/5 text-xs text-turquoise-glow">
@@ -361,11 +354,6 @@ export const AdminPanel = ({ open, onOpenChange, defaultTab = "dashboard" }: { o
           {/* ---------------- RESERVAS ---------------- */}
           <TabsContent value="reservas" className="mt-4">
             <ReservasSection />
-          </TabsContent>
-
-          {/* ---------------- AVALIAÇÕES ---------------- */}
-          <TabsContent value="reviews" className="mt-4">
-            <ReviewsSection />
           </TabsContent>
 
           {/* ---------------- LEADS ---------------- */}

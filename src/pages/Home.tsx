@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lang, dict, loadLang, saveLang } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { DepoimentosSection } from "@/components/DepoimentosSection";
 import { useTours } from "@/lib/cms";
 import { ChevronRight, Sparkles } from "lucide-react";
 import { isQrActive, urlHasPromoParam, subscribeQrPromo } from "@/lib/qrPromo";
@@ -185,8 +184,6 @@ const Home = () => {
             badge={C.pacotesSlogan}
           />
         </div>
-
-        <DepoimentosSection lang={lang} />
 
         <footer className="text-center mt-12 text-xs text-muted-foreground/70">
           © {t.brand} · {t.footerRegion}

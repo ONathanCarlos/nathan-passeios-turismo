@@ -79,20 +79,6 @@ export type CmsModal = {
   ativo: boolean;
 };
 
-export type CmsDepoimento = {
-  id: string;
-  nome: string;
-  texto_pt: string | null;
-  texto_en: string | null;
-  texto_es: string | null;
-  texto_fr: string | null;
-  texto_it: string | null;
-  avatar_url: string | null;
-  nota: number;
-  ativo: boolean;
-  ordem: number;
-};
-
 export type CmsConfig = {
   chave: string;
   valor: string | null;
@@ -159,18 +145,6 @@ export const useModais = () =>
       const { data, error } = await supabase.from("modais").select("*").order("key");
       if (error) throw error;
       return (data || []) as CmsModal[];
-    },
-  });
-
-export const useDepoimentos = (onlyActive = true) =>
-  useQuery({
-    queryKey: ["cms", "depoimentos", onlyActive],
-    queryFn: async () => {
-      let q = supabase.from("depoimentos").select("*").order("ordem");
-      if (onlyActive) q = q.eq("ativo", true);
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data || []) as CmsDepoimento[];
     },
   });
 
@@ -273,26 +247,6 @@ export const useDeleteModal = () => {
   });
 };
 
-export const useUpsertDepoimento = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (d: Partial<CmsDepoimento> & { nome: string }) => {
-      await cmsUpsert("depoimentos", d as any);
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["cms", "depoimentos"] }),
-  });
-};
-
-export const useDeleteDepoimento = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: string) => {
-      await cmsDelete("depoimentos", id);
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["cms", "depoimentos"] }),
-  });
-};
-
 export const useUpsertConfig = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -313,7 +267,7 @@ export const useUpsertConfig = () => {
 // ============================================================
 export async function uploadMedia(
   file: File,
-  folder: "tours" | "home" | "modais" | "depoimentos" | "videos" = "tours"
+  folder: "tours" | "home" | "modais" | "videos" = "tours"
 ): Promise<string> {
   const ext = file.name.split(".").pop() || "bin";
   const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;

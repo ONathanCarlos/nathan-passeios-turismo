@@ -8,7 +8,6 @@ import { TOUR_PRICES, tourPriceLabel, formatBRL } from "@/lib/prices";
 import { loadQrPromo } from "@/lib/qrPromo";
 import { useEffect, useState } from "react";
 import { subscribeQrPromo } from "@/lib/qrPromo";
-import { PublicReviewsSection } from "@/components/PublicReviewsSection";
 
 interface Props {
   tourKey: TourKey;
@@ -93,8 +92,6 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embed
           <p className="float-soft mt-4 text-foreground/90 text-[15px] leading-relaxed italic">
             “{tour.hook}”
           </p>
-
-          <PublicReviewsSection passeioKey={tourKey} lang={lang} className="mt-4" />
 
           {/* Quick cards (Languages removido nessa página) */}
           <div className="mt-4 grid grid-cols-2 gap-3">

@@ -1,7 +1,6 @@
 // ============================================================
-// CMS Admin Tab — gerencia tours, modais, config global,
-// depoimentos e upload de mídia direto no Supabase.
-// Tudo persiste e reflete globalmente após salvar.
+// CMS Admin Tab — gerencia tours, modais, configuração global
+// e upload de mídia direto no Supabase. Tudo persiste após salvar.
 // ============================================================
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -18,10 +17,10 @@ import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  useTours, useModais, useConfig, useDepoimentos,
+  useTours, useModais, useConfig,
   useUpsertTour, useDeleteTour, useUpsertModal, useDeleteModal,
-  useUpsertConfig, useUpsertDepoimento, useDeleteDepoimento,
-  uploadMedia, deleteMedia, type CmsTour, type CmsModal, type CmsDepoimento,
+  useUpsertConfig,
+  uploadMedia, deleteMedia, type CmsTour, type CmsModal,
 } from "@/lib/cms";
 
 // ---------------- Sub: Help Tooltip ----------------
@@ -400,57 +399,6 @@ const ModalRow = ({ m }: { m: CmsModal }) => {
   );
 };
 
-// ---------------- Sub: Depoimento Editor ----------------
-const DepRow = ({ d }: { d: CmsDepoimento }) => {
-  const upsert = useUpsertDepoimento();
-  const del = useDeleteDepoimento();
-  const [s, setS] = useState<CmsDepoimento>(d);
-  const [saved, setSaved] = useState(false);
-  return (
-    <div className="glass-card rounded-xl p-4 space-y-3">
-      <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-        <div className="sm:col-span-7 space-y-1">
-          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Nome do cliente</Label>
-          <Input className="bg-night/70 border-turquoise/40" placeholder="Maria Silva"
-            value={s.nome} onChange={(e) => setS({ ...s, nome: e.target.value })} />
-        </div>
-        <div className="sm:col-span-2 space-y-1">
-          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Nota (1-5)</Label>
-          <Input type="number" min={1} max={5} className="bg-night/70 border-turquoise/40" placeholder="5"
-            value={s.nota} onChange={(e) => setS({ ...s, nota: parseInt(e.target.value) || 5 })} />
-        </div>
-        <div className="sm:col-span-3 space-y-1">
-          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Visível?</Label>
-          <div className="flex items-center gap-2 h-10">
-            <Switch checked={s.ativo} onCheckedChange={(v) => setS({ ...s, ativo: v })} />
-            <span className={`text-xs font-medium ${s.ativo ? "text-emerald-400" : "text-rose-300"}`}>
-              {s.ativo ? "Ativo" : "Inativo"}
-            </span>
-          </div>
-        </div>
-      </div>
-      <div className="space-y-1">
-        <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Texto do depoimento</Label>
-        <Textarea rows={2} placeholder="Texto PT" className="bg-night/70 border-turquoise/30"
-          value={s.texto_pt ?? ""} onChange={(e) => setS({ ...s, texto_pt: e.target.value })} />
-      </div>
-      <div className="flex gap-2">
-        <Button size="sm" className={`transition-colors ${saved ? "bg-emerald-500 text-white hover:bg-emerald-600" : "bg-turquoise text-night hover:bg-turquoise/80"}`}
-          onClick={async () => { await upsert.mutateAsync(s); setSaved(true); toast.success("Alterações salvas e publicadas"); setTimeout(() => setSaved(false), 2500); }}>
-          {saved ? <CheckCircle2 className="h-3 w-3 mr-1" /> : <Save className="h-3 w-3 mr-1" />}
-          {saved ? "Publicado" : "Salvar"}
-        </Button>
-        {s.id && (
-          <Button size="sm" variant="ghost" className="text-rose-300 hover:text-rose-200"
-            onClick={() => { if (confirm("Excluir depoimento?")) del.mutate(s.id); }}>
-            <Trash2 className="h-3 w-3" />
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-};
-
 // ============================================================
 // SECTIONS — exported individually for the unified admin panel
 // ============================================================
@@ -604,51 +552,6 @@ export const ConfigSection = () => {
           onSave={async (v) => { await upsertCfg.mutateAsync({ chave: k, valor: v }); toast.success("Alterações salvas e publicadas"); }} />
       ))}
     </div>
-  );
-};
-
-export const DepoimentosSection = () => {
-  const deps = useDepoimentos(false);
-  const upsertDep = useUpsertDepoimento();
-  const [newDep, setNewDep] = useState({ nome: "", texto_pt: "", nota: 5 });
-  return (
-    <TooltipProvider>
-      <div className="space-y-3">
-        <div className="glass-card rounded-xl p-4 space-y-3 border-turquoise/40">
-          <div className="text-xs font-bold text-turquoise-glow">Adicionar depoimento</div>
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-            <div className="sm:col-span-7 space-y-1">
-              <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Nome do cliente</Label>
-              <Input className="bg-night/70 border-turquoise/40" placeholder="João Pereira"
-                value={newDep.nome} onChange={(e) => setNewDep({ ...newDep, nome: e.target.value })} />
-            </div>
-            <div className="sm:col-span-2 space-y-1">
-              <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Nota (1-5)</Label>
-              <Input type="number" min={1} max={5} className="bg-night/70 border-turquoise/40" placeholder="5"
-                value={newDep.nota} onChange={(e) => setNewDep({ ...newDep, nota: parseInt(e.target.value) || 5 })} />
-            </div>
-          </div>
-          <div className="space-y-1">
-            <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Texto do depoimento</Label>
-            <Textarea rows={2} className="bg-night/70 border-turquoise/30" placeholder="Texto PT"
-              value={newDep.texto_pt} onChange={(e) => setNewDep({ ...newDep, texto_pt: e.target.value })} />
-          </div>
-          <Button size="sm" className="bg-turquoise text-night hover:bg-turquoise/80"
-            disabled={!newDep.nome.trim()}
-            onClick={async () => {
-              await upsertDep.mutateAsync({ nome: newDep.nome, texto_pt: newDep.texto_pt, nota: newDep.nota, ativo: true, ordem: 0 });
-              setNewDep({ nome: "", texto_pt: "", nota: 5 });
-              toast.success("Depoimento adicionado e publicado");
-            }}>
-            <Plus className="h-3 w-3 mr-1" /> Adicionar
-          </Button>
-        </div>
-        {deps.data?.map((d) => <DepRow key={d.id} d={d} />)}
-        {deps.data?.length === 0 && (
-          <p className="text-xs text-muted-foreground text-center py-4">Nenhum depoimento ainda.</p>
-        )}
-      </div>
-    </TooltipProvider>
   );
 };
 
@@ -987,18 +890,16 @@ export const PacotesSection = () => {
 export const CmsAdminTab = () => (
   <TooltipProvider>
     <Tabs defaultValue="tours" className="w-full">
-      <TabsList className="grid grid-cols-5 w-full bg-night/60">
+      <TabsList className="grid grid-cols-4 w-full bg-night/60">
         <TabsTrigger value="tours">Passeios Avulsos</TabsTrigger>
         <TabsTrigger value="pacotes">Pacotes de Passeios</TabsTrigger>
         <TabsTrigger value="modais">Modais</TabsTrigger>
         <TabsTrigger value="config">Config</TabsTrigger>
-        <TabsTrigger value="deps">Depoimentos</TabsTrigger>
       </TabsList>
       <TabsContent value="tours" className="mt-3"><ToursSection /></TabsContent>
       <TabsContent value="pacotes" className="mt-3"><PacotesSection /></TabsContent>
       <TabsContent value="modais" className="mt-3"><ModaisSection /></TabsContent>
       <TabsContent value="config" className="mt-3"><ConfigSection /></TabsContent>
-      <TabsContent value="deps" className="mt-3"><DepoimentosSection /></TabsContent>
     </Tabs>
   </TooltipProvider>
 );

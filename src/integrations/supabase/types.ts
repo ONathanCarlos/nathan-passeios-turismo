@@ -14,90 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      avaliacoes: {
-        Row: {
-          autorizacao_publicacao: boolean
-          autorizado_em: string
-          avaliacao_passeio: string
-          avaliado_em: string
-          cliente_nome: string
-          convite_id: string
-          expira_em: string
-          id: string
-          media_final: number
-          melhoria: string | null
-          nota_atendimento: number
-          nota_passeio: number
-          nota_plataforma: number
-          nota_recomendacao: number
-          observacoes: string | null
-          passeio_key: string
-          passeio_nome: string
-          reserva_id: string
-          status_admin: string
-          status_publicacao: string
-        }
-        Insert: {
-          autorizacao_publicacao: boolean
-          autorizado_em: string
-          avaliacao_passeio: string
-          avaliado_em?: string
-          cliente_nome: string
-          convite_id: string
-          expira_em: string
-          id?: string
-          media_final: number
-          melhoria?: string | null
-          nota_atendimento: number
-          nota_passeio: number
-          nota_plataforma: number
-          nota_recomendacao: number
-          observacoes?: string | null
-          passeio_key: string
-          passeio_nome: string
-          reserva_id: string
-          status_admin?: string
-          status_publicacao?: string
-        }
-        Update: {
-          autorizacao_publicacao?: boolean
-          autorizado_em?: string
-          avaliacao_passeio?: string
-          avaliado_em?: string
-          cliente_nome?: string
-          convite_id?: string
-          expira_em?: string
-          id?: string
-          media_final?: number
-          melhoria?: string | null
-          nota_atendimento?: number
-          nota_passeio?: number
-          nota_plataforma?: number
-          nota_recomendacao?: number
-          observacoes?: string | null
-          passeio_key?: string
-          passeio_nome?: string
-          reserva_id?: string
-          status_admin?: string
-          status_publicacao?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "avaliacoes_convite_id_fkey"
-            columns: ["convite_id"]
-            isOneToOne: true
-            referencedRelation: "convites_avaliacao"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "avaliacoes_reserva_id_fkey"
-            columns: ["reserva_id"]
-            isOneToOne: false
-            referencedRelation: "reservas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       config_global: {
         Row: {
           chave: string
@@ -121,44 +37,6 @@ export type Database = {
           valor_jsonb?: Json | null
         }
         Relationships: []
-      }
-      convites_avaliacao: {
-        Row: {
-          codigo_curto: string | null
-          criado_em: string
-          id: string
-          passeio_keys: string[]
-          reserva_id: string
-          token_hash: string
-          usado_em: string | null
-        }
-        Insert: {
-          codigo_curto?: string | null
-          criado_em?: string
-          id?: string
-          passeio_keys: string[]
-          reserva_id: string
-          token_hash: string
-          usado_em?: string | null
-        }
-        Update: {
-          codigo_curto?: string | null
-          criado_em?: string
-          id?: string
-          passeio_keys?: string[]
-          reserva_id?: string
-          token_hash?: string
-          usado_em?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "convites_avaliacao_reserva_id_fkey"
-            columns: ["reserva_id"]
-            isOneToOne: true
-            referencedRelation: "reservas"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       cupons: {
         Row: {
@@ -196,54 +74,6 @@ export type Database = {
           telefone?: string
           usado?: boolean
           usado_em?: string | null
-        }
-        Relationships: []
-      }
-      depoimentos: {
-        Row: {
-          ativo: boolean
-          avatar_url: string | null
-          created_at: string
-          id: string
-          nome: string
-          nota: number
-          ordem: number
-          texto_en: string | null
-          texto_es: string | null
-          texto_fr: string | null
-          texto_it: string | null
-          texto_pt: string | null
-          updated_at: string
-        }
-        Insert: {
-          ativo?: boolean
-          avatar_url?: string | null
-          created_at?: string
-          id?: string
-          nome: string
-          nota?: number
-          ordem?: number
-          texto_en?: string | null
-          texto_es?: string | null
-          texto_fr?: string | null
-          texto_it?: string | null
-          texto_pt?: string | null
-          updated_at?: string
-        }
-        Update: {
-          ativo?: boolean
-          avatar_url?: string | null
-          created_at?: string
-          id?: string
-          nome?: string
-          nota?: number
-          ordem?: number
-          texto_en?: string | null
-          texto_es?: string | null
-          texto_fr?: string | null
-          texto_it?: string | null
-          texto_pt?: string | null
-          updated_at?: string
         }
         Relationships: []
       }
@@ -513,15 +343,12 @@ export type Database = {
           destino: string
           email: string | null
           id: string
-          idioma_reserva: string | null
           nome: string
           passageiros: number | null
-          review_tour_keys: string[]
           status: string
           telefone: string
           valor_com_desconto: number | null
           valor_original: number | null
-          whatsapp_solicitado_em: string | null
         }
         Insert: {
           created_at?: string
@@ -530,15 +357,12 @@ export type Database = {
           destino: string
           email?: string | null
           id?: string
-          idioma_reserva?: string | null
           nome: string
           passageiros?: number | null
-          review_tour_keys?: string[]
           status?: string
           telefone: string
           valor_com_desconto?: number | null
           valor_original?: number | null
-          whatsapp_solicitado_em?: string | null
         }
         Update: {
           created_at?: string
@@ -547,15 +371,12 @@ export type Database = {
           destino?: string
           email?: string | null
           id?: string
-          idioma_reserva?: string | null
           nome?: string
           passageiros?: number | null
-          review_tour_keys?: string[]
           status?: string
           telefone?: string
           valor_com_desconto?: number | null
           valor_original?: number | null
-          whatsapp_solicitado_em?: string | null
         }
         Relationships: []
       }

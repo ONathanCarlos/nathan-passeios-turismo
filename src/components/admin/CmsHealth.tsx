@@ -11,7 +11,7 @@ import { CheckCircle2, XCircle, RefreshCw, Database, Wifi } from "lucide-react";
 
 type Status = "checking" | "ok" | "error";
 
-const TABLES = ["tours", "modais", "config_global", "home_content", "depoimentos"] as const;
+const TABLES = ["tours", "modais", "config_global", "home_content"] as const;
 
 export const CmsHealth = () => {
   const [conn, setConn] = useState<Status>("checking");
@@ -90,7 +90,7 @@ export const CmsHealth = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {TABLES.map((t) => {
           const c = counts[t];
           const ok = c !== null && c !== undefined;
