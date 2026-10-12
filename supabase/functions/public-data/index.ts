@@ -113,6 +113,22 @@ const createReviewInvite = async (reservaId: string, destino: string) => {
   return { token: null, error: { code: "short_code_collision" } };
 };
 
+// A avaliação é complementar; nunca deve atrasar nem invalidar uma reserva.
+const scheduleReservationReviewInvite = (reservaId: string, destino: string) => {
+  EdgeRuntime.waitUntil((async () => {
+    try {
+      const invite = await createReviewInvite(reservaId, destino);
+      if (invite.error && invite.error.code !== "23505") {
+        console.error("reservation_review_invite_failed", {
+          code: invite.error.code,
+        });
+      }
+    } catch (error) {
+      console.error("reservation_review_invite_failed", error);
+    }
+  })());
+};
+
 const findReviewInvite = async (token: string, shortCode: string) => {
   if (shortCode) {
     if (!/^[A-Za-z0-9]{10,16}$/.test(shortCode)) return null;
@@ -251,7 +267,10 @@ Deno.serve(async (req) => {
         const duplicate = (recentReservations || []).find((item) =>
           item.data_viagem === dataViagem && Date.now() - new Date(item.created_at).getTime() < 10 * 60 * 1000
         );
-        if (duplicate) return json({ ok: true, id: duplicate.id, deduplicated: true });
+        if (duplicate) {
+          scheduleReservationReviewInvite(duplicate.id, destino);
+          return json({ ok: true, id: duplicate.id, deduplicated: true });
+        }
       }
       const { data, error } = await supabase
         .from("reservas")
@@ -271,9 +290,8 @@ Deno.serve(async (req) => {
         .maybeSingle();
       if (error) return json({ ok: false, error: "db_error" }, 500);
       if (!data) return json({ ok: true, id: null });
-      const invite = await createReviewInvite(data.id, data.destino);
-      if (invite.error && invite.error.code !== "23505") return json({ ok: false, error: "review_invite_error" }, 500);
-      return json({ ok: true, id: data.id, review_token: invite.token });
+      scheduleReservationReviewInvite(data.id, data.destino);
+      return json({ ok: true, id: data.id });
     }
 
     // Marca uma reserva PENDENTE como concluída (transição única e segura).
@@ -290,12 +308,8 @@ Deno.serve(async (req) => {
       if (error) return json({ ok: false, error: "db_error" }, 500);
       if (!reserva) return json({ ok: true });
 
-      const invite = await createReviewInvite(reserva.id, reserva.destino);
-      const inviteError = invite.error;
-      if (inviteError && inviteError.code !== "23505") {
-        return json({ ok: false, error: "review_invite_error" }, 500);
-      }
-      return json({ ok: true, review_token: invite.token });
+      scheduleReservationReviewInvite(reserva.id, reserva.destino);
+      return json({ ok: true });
     }
 
     // -------------------- AVALIAÇÕES --------------------
@@ -439,3 +453,7 @@ Deno.serve(async (req) => {
     return json({ ok: false, error: "bad_request" }, 400);
   }
 });
+
+declare const EdgeRuntime: {
+  waitUntil(promise: Promise<unknown>): void;
+};
