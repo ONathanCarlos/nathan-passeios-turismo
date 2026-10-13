@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
       const status = "pendente";
       const dataViagem = str(body?.data_viagem, 20) || null;
       // Deduplica somente tentativas repetidas de salvar o mesmo resumo; nunca cria convites aqui.
-      const { data: recentReservations } = await supabase
+      const { data: recentReservations, error: lookupError } = await supabase
         .from("reservas")
         .select("id,status,data_viagem,created_at")
         .eq("nome", nome)
@@ -139,6 +139,7 @@ Deno.serve(async (req) => {
         .eq("destino", destino)
         .order("created_at", { ascending: false })
         .limit(3);
+      if (lookupError) console.error("create_reserva_lookup_failed", { code: lookupError.code });
       const duplicate = (recentReservations || []).find((item) =>
         item.data_viagem === dataViagem && Date.now() - new Date(item.created_at).getTime() < 10 * 60 * 1000
       );
