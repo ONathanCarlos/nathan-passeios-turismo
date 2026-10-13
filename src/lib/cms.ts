@@ -120,7 +120,12 @@ export const useTours = (onlyActive = true) =>
       if (error) {
         return DEFAULT_TOURS.filter((t) => (onlyActive ? t.ativo : true));
       }
-      return (data || []) as CmsTour[];
+      return (data || []).map((row): CmsTour => ({
+        ...row,
+        gallery_imagens: "gallery_imagens" in row && Array.isArray(row.gallery_imagens)
+          ? row.gallery_imagens.filter((url): url is string => typeof url === "string") : [],
+        video_2_url: "video_2_url" in row && typeof row.video_2_url === "string" ? row.video_2_url : null,
+      }));
     },
   });
 
