@@ -4,7 +4,7 @@
 // "Reservar" abre StandardForm sem tourKey (cupons desabilitados),
 // destino = nome do pacote, preço fixo do pacote.
 // ============================================================
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Lang, dict, loadLang, saveLang } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -16,6 +16,7 @@ import { TourBadge, UrgencyTag } from "@/components/TourBadge";
 import { usePacote, pickPacoteLang } from "@/lib/pacotes";
 import { useTours, pickLang } from "@/lib/cms";
 import { TOUR_PRICES } from "@/lib/prices";
+import { getCmsTourPriceStatus, subscribeCmsCache } from "@/lib/cmsCache";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { getTour, type TourKey } from "@/lib/tours";
 import { runNavigationTransition } from "@/lib/viewTransition";
@@ -56,12 +57,14 @@ const PacoteDetalhes = () => {
   const [params] = useSearchParams();
   const wantsBook = params.get("reservar") === "1";
   const [lang, setLangState] = useState<Lang>(() => loadLang());
+  const [, setCmsPriceVersion] = useState(0);
   const setLang = (l: Lang) => { saveLang(l); setLangState(l); };
   const t = dict[lang];
 
   const { data: pacote, isLoading } = usePacote(key);
   const { data: tours } = useTours(false);
   const [bookingOpen, setBookingOpen] = useState(wantsBook);
+  useEffect(() => subscribeCmsCache(() => setCmsPriceVersion((version) => version + 1)), []);
 
   useEffect(() => {
     if (pacote) document.title = `${pacote.nome_pt} · Ônix Turismo Búzios`;
@@ -72,19 +75,19 @@ const PacoteDetalhes = () => {
 
   const labelOf = (k: string): string => {
     const cms = tours?.find((x) => x.key === k);
-    if (cms) return pickLang(cms as any, "nome", lang) || cms.nome_pt;
+    if (cms) return pickLang(cms, "nome", lang) || cms.nome_pt;
     return PSEUDO_LABELS[k]?.[lang] || k;
   };
 
-  const savingsItems = useMemo(() => {
+  const savingsItems = (() => {
     if (!pacote) return [];
+    if (pacote.tour_keys.some((k) => isRealTour(k) && getCmsTourPriceStatus(k) !== "ready")) return [];
     return pacote.tour_keys.map((k) => {
       const real = TOUR_PRICES[k as TourKey]?.value;
       const price = typeof real === "number" ? real : (PSEUDO_PRICES[k] || 0);
       return { label: labelOf(k), price };
     }).filter((x) => x.price > 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pacote, tours, lang]);
+  })();
 
   if (isLoading) {
     return (

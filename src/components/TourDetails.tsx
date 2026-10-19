@@ -4,10 +4,11 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Button } from "./ui/button";
 import { ArrowLeft, Clock, MapPin, Users, Check, AlertCircle } from "lucide-react";
 import { dict } from "@/lib/i18n";
-import { TOUR_PRICES, tourPriceLabel, formatBRL } from "@/lib/prices";
+import { TOUR_PRICES, tourPriceLabel, tourPriceStatusText, formatBRL } from "@/lib/prices";
 import { loadQrPromo } from "@/lib/qrPromo";
 import { useEffect, useState } from "react";
 import { subscribeQrPromo } from "@/lib/qrPromo";
+import { forceRefreshCms, getCmsTourPriceStatus, subscribeCmsCache } from "@/lib/cmsCache";
 
 interface Props {
   tourKey: TourKey;
@@ -20,7 +21,11 @@ interface Props {
 
 export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embedded = false }: Props) => {
   const [qr, setQr] = useState(() => loadQrPromo());
+  const [, setCmsPriceVersion] = useState(0);
   useEffect(() => subscribeQrPromo(() => setQr(loadQrPromo())), []);
+  useEffect(() => subscribeCmsCache(() => setCmsPriceVersion((version) => version + 1)), []);
+  const priceStatus = getCmsTourPriceStatus(tourKey);
+  const priceReady = priceStatus === "ready";
   const tour = getTour(tourKey, lang);
   const L = sectionLabels(lang);
   const t = dict[lang];
@@ -102,7 +107,7 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embed
 
           {/* Price */}
           <div className="mt-4 glass-card rounded-2xl p-4 text-center">
-            {qr ? (() => {
+            {priceReady ? qr ? (() => {
               const meta = TOUR_PRICES[tourKey];
               const orig = meta.value;
               const disc = orig - (orig * qr.percent) / 100;
@@ -123,8 +128,19 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embed
               <p className="float-soft text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent">
                 {tourPriceLabel(tourKey, lang)}
               </p>
+            ) : (
+              <div className="space-y-2">
+                <p role="status" className="text-sm text-muted-foreground">
+                  {tourPriceStatusText(priceStatus, lang)}
+                </p>
+                {priceStatus === "error" && (
+                  <Button variant="ghost" size="sm" onClick={() => void forceRefreshCms.tours()}>
+                    {lang === "pt" ? "Tentar novamente" : lang === "es" ? "Intentar de nuevo" : lang === "fr" ? "Réessayer" : lang === "it" ? "Riprova" : "Try again"}
+                  </Button>
+                )}
+              </div>
             )}
-            {TOUR_PRICES[tourKey].note && (
+            {priceReady && TOUR_PRICES[tourKey].note && (
               <p className="mt-1 text-xs text-amber-200/80 italic">
                 {TOUR_PRICES[tourKey].note![lang]}
               </p>
@@ -165,7 +181,8 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embed
             <button
               type="button"
               onClick={onBook}
-              className="rgb-border w-full block"
+              disabled={!priceReady}
+              className="rgb-border w-full block disabled:cursor-not-allowed disabled:opacity-50"
               aria-label={L.bookNow}
             >
               <span className="flex items-center justify-center gap-2 rounded-[0.7rem] bg-gradient-to-r from-deep-blue to-night px-6 py-4 text-base font-bold text-foreground tracking-wide hover:from-night hover:to-deep-blue transition-colors">

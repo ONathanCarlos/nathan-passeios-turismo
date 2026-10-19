@@ -17,8 +17,8 @@ import { QrPromoBoot } from "./QrPromo";
 import { loadQrPromo, urlIsExactRoot } from "@/lib/qrPromo";
 
 import { TourKey, getTour } from "@/lib/tours";
-import { TOUR_PRICES, formatBRL, tourPriceLabel, COUPON_ELIGIBLE } from "@/lib/prices";
-import { subscribeCmsCache } from "@/lib/cmsCache";
+import { TOUR_PRICES, formatBRL, tourPriceLabel, tourPriceStatusText, COUPON_ELIGIBLE } from "@/lib/prices";
+import { forceRefreshCms, getCachedTour, getCmsTourPriceStatus, subscribeCmsCache } from "@/lib/cmsCache";
 import {
   isExpired, isTester, isAdminMode, loadPromo, markCouponUsed, PromoData,
   validateSpecialCoupon, markSpecialUsed, SpecificCoupon, hasHolidayActiveToday,
@@ -94,6 +94,8 @@ export const StandardForm = ({
   // O preço do passeio chega do CMS de forma assíncrona. Este contador força
   // o useMemo abaixo a reler TOUR_PRICES quando o cache for atualizado.
   const [cmsPriceVersion, setCmsPriceVersion] = useState(0);
+  const priceStatus = tourKey ? getCmsTourPriceStatus(tourKey) : "ready";
+  const cmsPrice = tourKey ? getCachedTour(tourKey)?.preco : null;
   const couponsAllowed = urlIsExactRoot() && !loadQrPromo();
   // Cupons NUNCA se aplicam a pacotes promocionais.
   const eligible = !isPackage && (tourKey ? COUPON_ELIGIBLE.has(tourKey) : false) && couponsAllowed;
@@ -112,11 +114,11 @@ export const StandardForm = ({
   }, [output]);
 
   // Cupom efetivo (especial sobrescreve padrão)
-  const effectiveCoupon = appliedSpecial
+  const effectiveCoupon = useMemo(() => appliedSpecial
     ? { code: appliedSpecial.code, percent: appliedSpecial.percent }
     : appliedCoupon
     ? { code: appliedCoupon.cupom, percent: appliedCoupon.percentualDesconto }
-    : null;
+    : null, [appliedSpecial, appliedCoupon]);
 
   // Autopreenchimento: nome, whatsapp, email do mini cadastro
   useEffect(() => {
@@ -195,8 +197,8 @@ export const StandardForm = ({
       const original = (packagePrice as number) * paxN;
       return { original, discount: 0, final: original, meta: { value: packagePrice as number }, qrPercent: 0, qrApplied: false, baseOriginal: original };
     }
-    if (!tourKey) return null;
-    const meta = TOUR_PRICES[tourKey];
+    if (!tourKey || priceStatus !== "ready" || typeof cmsPrice !== "number") return null;
+    const meta = { ...TOUR_PRICES[tourKey], value: cmsPrice };
     const paxN = Math.max(1, parseInt(pax) || 1);
     const halfN = (!adultsOnly && hasKids === "yes")
       ? ages.filter((a) => { const n = parseInt(a); return n >= 6 && n <= 10; }).length
@@ -214,7 +216,7 @@ export const StandardForm = ({
     const discount = effectiveCoupon ? (original * effectiveCoupon.percent) / 100 : 0;
     const final = original - discount;
     return { original, discount, final, meta, qrPercent: qr?.percent ?? 0, qrApplied: !!qr, baseOriginal };
-  }, [tourKey, pax, hasKids, ages, adultsOnly, effectiveCoupon, isPackage, packagePrice, cmsPriceVersion]);
+  }, [tourKey, pax, hasKids, ages, adultsOnly, effectiveCoupon, isPackage, packagePrice, priceStatus, cmsPrice]);
 
   const kidsN = Math.min(8, Math.max(0, parseInt(kidsCount) || 0));
 
@@ -252,6 +254,11 @@ export const StandardForm = ({
     ({ cash: t.cash, debit: t.debit, credit: t.credit, pix: t.pix }[p]);
 
   const handleGenerate = async () => {
+    if (tourKey && priceStatus !== "ready") {
+      toast.error(tourPriceStatusText(priceStatus, lang));
+      if (priceStatus === "error") void forceRefreshCms.tours();
+      return;
+    }
     const newErrors: Record<string, boolean> = {};
     if (!name) newErrors.name = true;
     if (requireCpf && !cpf) newErrors.cpf = true;
@@ -480,12 +487,19 @@ export const StandardForm = ({
                   </>
                 ) : (
                   <div className="text-2xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent">
-                    {isPackage && priceInfo
+                      {isPackage && priceInfo
                       ? formatBRL(priceInfo.final)
                       : tourKey
-                        ? tourPriceLabel(tourKey, lang)
+                        ? priceInfo
+                          ? tourPriceLabel(tourKey, lang)
+                          : tourPriceStatusText(priceStatus, lang)
                         : ""}
                   </div>
+                )}
+                {tourKey && priceStatus === "error" && (
+                  <button type="button" className="mt-1 text-xs underline text-muted-foreground" onClick={() => void forceRefreshCms.tours()}>
+                    {lang === "pt" ? "Tentar novamente" : lang === "es" ? "Intentar de nuevo" : lang === "fr" ? "Réessayer" : lang === "it" ? "Riprova" : "Try again"}
+                  </button>
                 )}
                 {isPackage && (
                   <div className="text-[10px] text-amber-200/80 italic mt-1">
@@ -666,7 +680,7 @@ export const StandardForm = ({
           <button
             type="button"
             onClick={handleGenerate}
-            disabled={savingReservation}
+            disabled={savingReservation || (!!tourKey && priceStatus !== "ready")}
             className="rgb-border w-full block disabled:cursor-wait disabled:opacity-70"
           >
             <span className="flex items-center justify-center w-full h-[calc(3.5rem-4px)] rounded-[0.65rem] bg-gradient-to-r from-turquoise to-turquoise-glow text-night font-bold text-base">

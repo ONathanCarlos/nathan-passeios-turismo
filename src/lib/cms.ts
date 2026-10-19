@@ -82,7 +82,7 @@ export type CmsModal = {
 export type CmsConfig = {
   chave: string;
   valor: string | null;
-  valor_jsonb: any;
+  valor_jsonb: unknown;
   descricao: string | null;
 };
 
@@ -99,12 +99,14 @@ const DEFAULT_TOURS: CmsTour[] = [
 ];
 
 // ----- i18n helper: pega o campo no idioma com fallback para PT -----
-export function pickLang<T extends Record<string, any>>(
-  row: T,
+export function pickLang(
+  row: object,
   base: "nome" | "descricao" | "titulo" | "subtitulo" | "cta_texto" | "texto",
   lang: Lang
 ): string {
-  return (row[`${base}_${lang}`] ?? row[`${base}_pt`] ?? "") as string;
+  const fields = row as Record<string, unknown>;
+  const value = fields[`${base}_${lang}`] ?? fields[`${base}_pt`];
+  return typeof value === "string" ? value : "";
 }
 
 // ============================================================
@@ -177,7 +179,7 @@ export const useConfig = () =>
 // `admin-data`, autenticada por token de admin (service role no
 // servidor). O cliente anônimo não pode mais escrever nas tabelas.
 // ============================================================
-async function adminCall<T = any>(action: string, payload: Record<string, unknown> = {}): Promise<T> {
+async function adminCall<T = unknown>(action: string, payload: Record<string, unknown> = {}): Promise<T> {
   const token = getAdminToken();
   const { data, error } = await supabase.functions.invoke("admin-data", {
     body: { action, token, ...payload },
@@ -197,7 +199,7 @@ export const useUpsertTour = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (t: Partial<CmsTour> & { key: string; nome_pt: string }) => {
-      await cmsUpsert("tours", t as any);
+      await cmsUpsert("tours", { ...t });
     },
     onSuccess: async () => {
       qc.invalidateQueries({ queryKey: ["cms", "tours"] });
@@ -220,7 +222,7 @@ export const useUpsertHome = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (h: Partial<CmsHome> & { secao: string }) => {
-      await cmsUpsert("home_content", h as any);
+      await cmsUpsert("home_content", { ...h });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["cms", "home"] }),
   });
@@ -230,7 +232,7 @@ export const useUpsertModal = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (m: Partial<CmsModal> & { key: string }) => {
-      await cmsUpsert("modais", m as any);
+      await cmsUpsert("modais", { ...m });
     },
     onSuccess: async () => {
       qc.invalidateQueries({ queryKey: ["cms", "modais"] });

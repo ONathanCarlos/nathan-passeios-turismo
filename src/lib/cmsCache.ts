@@ -23,7 +23,7 @@ export type ModalCache = {
   key: string;
   percentual: number;
   codigo: string | null;
-  regra: any;
+  regra: unknown;
   titulo_pt: string | null;
   titulo_en: string | null;
   titulo_es: string | null;
@@ -40,6 +40,8 @@ export type ModalCache = {
 const tours: Partial<Record<TourKey, TourCache>> = {};
 const config: Record<string, string> = {};
 const modais: Record<string, ModalCache> = {};
+export type CmsTourPriceStatus = "loading" | "ready" | "error" | "unavailable";
+let toursStatus: "loading" | "ready" | "error" = "loading";
 const listeners = new Set<() => void>();
 
 const emit = () => listeners.forEach((l) => l());
@@ -50,6 +52,13 @@ export const subscribeCmsCache = (cb: () => void) => {
 };
 
 export const getCachedTour = (key: TourKey): TourCache | undefined => tours[key];
+export const getCmsTourPriceStatus = (key: TourKey): CmsTourPriceStatus => {
+  if (toursStatus !== "ready") return toursStatus;
+  const price = tours[key]?.preco;
+  return typeof price === "number" && Number.isFinite(price) && price > 0
+    ? "ready"
+    : "unavailable";
+};
 export const getCachedConfig = (chave: string): string | undefined => config[chave];
 export const getCachedModal = (key: string): ModalCache | undefined => modais[key];
 export const getAllCachedModais = (): ModalCache[] => Object.values(modais);
@@ -80,7 +89,7 @@ async function refreshModais() {
   if (!data) return;
   // clear stale
   for (const k of Object.keys(modais)) delete modais[k];
-  for (const r of data as any[]) {
+  for (const r of data) {
     modais[r.key] = {
       key: r.key,
       percentual: Number(r.percentual) || 0,
@@ -103,27 +112,43 @@ async function refreshModais() {
 }
 
 async function refreshTours() {
-  const { data } = await supabase.from("tours").select("*");
-  if (!data) return;
-  for (const r of data as any[]) {
-    tours[r.key as TourKey] = {
-      preco: r.preco != null ? Number(r.preco) : null,
-      imagem_url: r.imagem_url ?? null,
-      gallery_imagens: Array.isArray(r.gallery_imagens) ? r.gallery_imagens.filter((url: unknown): url is string => typeof url === "string" && !!url).slice(0, 3) : [],
-      video_url: r.video_url ?? null,
-      video_2_url: r.video_2_url ?? null,
-      nome: { pt: r.nome_pt, en: r.nome_en, es: r.nome_es, fr: r.nome_fr, it: r.nome_it },
-      descricao: { pt: r.descricao_pt, en: r.descricao_en, es: r.descricao_es, fr: r.descricao_fr, it: r.descricao_it },
-      ativo: !!r.ativo,
-      ordem: r.ordem ?? 0,
-    };
+  const hadLoadedTours = toursStatus === "ready";
+  if (!hadLoadedTours) {
+    toursStatus = "loading";
+    emit();
   }
-  emit();
+  try {
+    const { data, error } = await supabase.from("tours").select("*");
+    if (error || !data) {
+      if (!hadLoadedTours) toursStatus = "error";
+      emit();
+      return;
+    }
+    for (const key of Object.keys(tours) as TourKey[]) delete tours[key];
+    for (const r of data) {
+      tours[r.key as TourKey] = {
+        preco: r.preco != null ? Number(r.preco) : null,
+        imagem_url: r.imagem_url ?? null,
+        gallery_imagens: Array.isArray(r.gallery_imagens) ? r.gallery_imagens.filter((url: unknown): url is string => typeof url === "string" && !!url).slice(0, 3) : [],
+        video_url: r.video_url ?? null,
+        video_2_url: r.video_2_url ?? null,
+        nome: { pt: r.nome_pt, en: r.nome_en, es: r.nome_es, fr: r.nome_fr, it: r.nome_it },
+        descricao: { pt: r.descricao_pt, en: r.descricao_en, es: r.descricao_es, fr: r.descricao_fr, it: r.descricao_it },
+        ativo: !!r.ativo,
+        ordem: r.ordem ?? 0,
+      };
+    }
+    toursStatus = "ready";
+    emit();
+  } catch {
+    if (!hadLoadedTours) toursStatus = "error";
+    emit();
+  }
 }
 
 async function refreshConfig() {
   const { data } = await supabase.from("config_global").select("chave,valor");
   if (!data) return;
-  for (const r of data as any[]) config[r.chave] = r.valor ?? "";
+  for (const r of data) config[r.chave] = r.valor ?? "";
   emit();
 }
