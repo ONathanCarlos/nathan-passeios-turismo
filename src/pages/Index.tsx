@@ -11,9 +11,10 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { TourBadge, UrgencyTag } from "@/components/TourBadge";
 import { PageTransition } from "@/components/PageTransition";
 import { PromoBanner } from "@/components/PromoBanner";
-import { COUPON_ELIGIBLE, tourPriceLabel, TOUR_PRICES, formatBRL } from "@/lib/prices";
+import { COUPON_ELIGIBLE, tourPriceLabel, tourPriceStatusText, TOUR_PRICES, formatBRL } from "@/lib/prices";
 import { useIsAdmin } from "@/lib/adminAuth";
 import { runNavigationTransition } from "@/lib/viewTransition";
+import { forceRefreshCms, getCmsTourPriceStatus, subscribeCmsCache } from "@/lib/cmsCache";
 
 import { QrPromoBoot } from "@/components/QrPromo";
 import { SpanishLangModal } from "@/components/SpanishLangModal";
@@ -58,11 +59,13 @@ const Index = () => {
   const [lang, setLangState] = useState<Lang>(() => loadLang());
   const setLang = (l: Lang) => { saveLang(l); setLangState(l); };
   const [screen, setScreen] = useState<Screen>(() => routeDetailKey ? { details: routeDetailKey } : "menu");
+  const [, setCmsPriceVersion] = useState(0);
   const t = dict[lang];
   // Modo admin tem prioridade absoluta: oculta banners promocionais e modal QR.
   const admin = useIsAdmin();
   const [qr, setQr] = useState(() => loadQrPromo());
   useEffect(() => subscribeQrPromo(() => setQr(loadQrPromo())), []);
+  useEffect(() => subscribeCmsCache(() => setCmsPriceVersion((version) => version + 1)), []);
   const { data: cmsTours } = useTours(true);
 
   // Always open the tours page at the top (ignore scroll kept from the previous page)
@@ -159,7 +162,7 @@ const Index = () => {
   const od = (k: TourKey, base: string) => {
     const cms = cmsByKey.get(k);
     if (cms) {
-      const v = pickLang(cms as any, "descricao", lang);
+      const v = pickLang(cms, "descricao", lang);
       if (v) return v;
     }
     return base;
@@ -167,7 +170,7 @@ const Index = () => {
   const ot = (k: TourKey, base: string) => {
     const cms = cmsByKey.get(k);
     if (cms) {
-      const v = pickLang(cms as any, "nome", lang);
+      const v = pickLang(cms, "nome", lang);
       if (v) return v;
     }
     return base;
@@ -278,7 +281,7 @@ const Index = () => {
                   <h3 className="text-lg font-bold text-foreground leading-tight">{opt.title}</h3>
                   <p className="mt-1.5 text-sm text-muted-foreground leading-snug flex-1">{opt.desc}</p>
 
-                  {qr ? (() => {
+                  {getCmsTourPriceStatus(opt.key) === "ready" ? qr ? (() => {
                     const meta = TOUR_PRICES[opt.key];
                     const orig = meta.value;
                     const disc = orig - (orig * qr.percent) / 100;
@@ -299,6 +302,15 @@ const Index = () => {
                     <p className="float-soft mt-3 text-2xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
                       {tourPriceLabel(opt.key, lang)}
                     </p>
+                  ) : (
+                    <div className="mt-3 text-sm text-muted-foreground">
+                      <p role="status">{tourPriceStatusText(getCmsTourPriceStatus(opt.key), lang)}</p>
+                      {getCmsTourPriceStatus(opt.key) === "error" && (
+                        <button type="button" className="mt-1 underline" onClick={() => void forceRefreshCms.tours()}>
+                          {lang === "pt" ? "Tentar novamente" : lang === "es" ? "Intentar de nuevo" : lang === "fr" ? "Réessayer" : lang === "it" ? "Riprova" : "Try again"}
+                        </button>
+                      )}
+                    </div>
                   )}
 
                   {(() => {
@@ -317,7 +329,8 @@ const Index = () => {
                     <button
                       type="button"
                       onClick={() => openForm(opt.key)}
-                      className="rgb-border w-full block"
+                      disabled={getCmsTourPriceStatus(opt.key) !== "ready"}
+                      className="rgb-border w-full block disabled:cursor-not-allowed disabled:opacity-50"
                       aria-label={`${t.bookNowBtn} — ${opt.title}`}
                     >
                       <span className="flex items-center justify-center gap-1.5 rounded-[0.65rem] bg-gradient-to-r from-deep-blue to-night px-4 py-2.5 text-sm font-bold text-foreground">

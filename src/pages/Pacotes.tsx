@@ -10,6 +10,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { usePacotes, pickPacoteLang } from "@/lib/pacotes";
 import { useTours } from "@/lib/cms";
 import { TOUR_PRICES } from "@/lib/prices";
+import { getCmsTourPriceStatus, subscribeCmsCache } from "@/lib/cmsCache";
 import { PackageCover } from "@/components/PackageCover";
 import { PriceWithDiscount } from "@/components/SavingsBox";
 import { TourBadge, UrgencyTag } from "@/components/TourBadge";
@@ -50,27 +51,32 @@ const L = {
 
 // Inclui pseudo-tour "almoco" como item agregável (R$50 padrão).
 const PSEUDO_PRICES: Record<string, number> = { almoco: 50 };
+const TOUR_KEYS: TourKey[] = ["escuna", "arraial", "buggy", "cabofrio", "jardineira", "catamara", "mergulho", "lancha"];
+const isRealTour = (key: string): key is TourKey => (TOUR_KEYS as string[]).includes(key);
 
 const Pacotes = () => {
   const nav = useNavigate();
   const [lang, setLangState] = useState<Lang>(() => loadLang());
+  const [, setCmsPriceVersion] = useState(0);
   const setLang = (l: Lang) => { saveLang(l); setLangState(l); };
   const t = dict[lang];
   const { data: pacotes } = usePacotes(true);
   const { data: tours } = useTours(false);
 
   useEffect(() => { document.title = "Pacotes promocionais · Ônix Turismo Búzios"; }, []);
+  useEffect(() => subscribeCmsCache(() => setCmsPriceVersion((version) => version + 1)), []);
 
   const imgOf = (key: string) =>
     tours?.find((x) => x.key === key)?.imagem_url || FALLBACK[key] || "";
 
   // Soma estimada se preco_original não vier do banco
-  const estimateOriginal = (tour_keys: string[]) =>
-    tour_keys.reduce((sum, k) => {
-      const real = TOUR_PRICES[k as TourKey]?.value;
-      if (typeof real === "number") return sum + real;
-      return sum + (PSEUDO_PRICES[k] || 0);
+  const estimateOriginal = (tour_keys: string[]): number | null => {
+    if (tour_keys.some((key) => isRealTour(key) && getCmsTourPriceStatus(key) !== "ready")) return null;
+    return tour_keys.reduce((sum, key) => {
+      const real = isRealTour(key) ? TOUR_PRICES[key].value : null;
+      return sum + (typeof real === "number" ? real : (PSEUDO_PRICES[key] || 0));
     }, 0);
+  };
 
   return (
     <main className="relative min-h-screen px-4 pt-10 pb-16 overflow-hidden">
