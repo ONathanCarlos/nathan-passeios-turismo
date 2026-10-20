@@ -15,6 +15,13 @@
       "when": 1791334798572,
       "tag": "0001_restore_review_grants",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792504195036,
+      "tag": "0002_add_tour_media_gallery",
+      "breakpoints": true
     }
   ]
 }
