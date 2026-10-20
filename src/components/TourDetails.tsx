@@ -4,6 +4,7 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Button } from "./ui/button";
 import { ArrowLeft, Clock, MapPin, Users, Check, AlertCircle } from "lucide-react";
 import { dict } from "@/lib/i18n";
+import { TourMediaGallery } from "./TourMediaGallery";
 import { TOUR_PRICES, tourPriceLabel, tourPriceStatusText, formatBRL } from "@/lib/prices";
 import { loadQrPromo } from "@/lib/qrPromo";
 import { useEffect, useState } from "react";
@@ -64,27 +65,15 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embed
         {/* Hero media (vídeo se existir, senão imagem) */}
         <section className={embedded ? "p-4" : "px-4"}>
           <div className="relative w-full overflow-hidden rounded-3xl border border-turquoise/25 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]">
-            <div className="aspect-[16/11] w-full bg-night">
-              {tour.videos?.length ? (
-                <div className={tour.videos.length > 1 ? "grid h-full grid-cols-1 gap-1 sm:grid-cols-2" : "h-full"}>
-                  {tour.videos.slice(0, 2).map((video, index) => (
-                    <video
-                      key={video}
-                      src={video}
-                      poster={index === 0 ? tour.image : undefined}
-                      controls
-                      playsInline
-                      preload="metadata"
-                      className="h-full w-full object-cover"
-                    />
-                  ))}
-                </div>
-              ) : (
-                <img src={tour.images?.[0] || tour.image} alt={tour.title} className="w-full h-full object-cover" />
-              )}
-            </div>
+            <TourMediaGallery
+              images={tour.images?.length ? tour.images : [tour.image]}
+              videos={tour.videos ?? []}
+              alt={tour.title}
+              lang={lang}
+              className="!aspect-auto h-full"
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-night via-night/30 to-transparent pointer-events-none" />
-            <div className="absolute bottom-0 left-0 right-0 p-5 pointer-events-none">
+            <div className="absolute bottom-0 left-0 right-0 p-5 pb-12 pointer-events-none">
               <h1 className="text-2xl sm:text-3xl font-bold leading-tight text-foreground drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
                 <span className="bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent">
                   {tour.title}

@@ -24,9 +24,9 @@ export type CmsTour = {
   descricao_it: string | null;
   preco: number;
   imagem_url: string | null;
-  gallery_imagens: string[];
+  gallery_imagens?: string[];
   video_url: string | null;
-  video_2_url: string | null;
+  video_2_url?: string | null;
   destaque: boolean;
   ativo: boolean;
   ordem: number;
@@ -39,6 +39,9 @@ export type CmsTour = {
   badge: string | null;
   urgencia: string | null;
 };
+
+export const isTourMediaSchemaReady = (tour: Pick<CmsTour, "gallery_imagens" | "video_2_url">) =>
+  Array.isArray(tour.gallery_imagens) && Object.prototype.hasOwnProperty.call(tour, "video_2_url");
 
 export type CmsHome = {
   id: string;
@@ -120,13 +123,22 @@ export const useTours = (onlyActive = true) =>
       if (onlyActive) q = q.eq("ativo", true);
       const { data, error } = await q;
       if (error) {
-        return DEFAULT_TOURS.filter((t) => (onlyActive ? t.ativo : true));
+        return DEFAULT_TOURS.filter((t) => (onlyActive ? t.ativo : true)).map((tour) => {
+          const fallback = { ...tour };
+          delete fallback.gallery_imagens;
+          delete fallback.video_2_url;
+          return fallback;
+        });
       }
       return (data || []).map((row): CmsTour => ({
         ...row,
-        gallery_imagens: "gallery_imagens" in row && Array.isArray(row.gallery_imagens)
-          ? row.gallery_imagens.filter((url): url is string => typeof url === "string") : [],
-        video_2_url: "video_2_url" in row && typeof row.video_2_url === "string" ? row.video_2_url : null,
+        ...("gallery_imagens" in row ? {
+          gallery_imagens: Array.isArray(row.gallery_imagens)
+            ? row.gallery_imagens.filter((url): url is string => typeof url === "string") : [],
+        } : {}),
+        ...("video_2_url" in row ? {
+          video_2_url: typeof row.video_2_url === "string" ? row.video_2_url : null,
+        } : {}),
       }));
     },
   });
