@@ -556,6 +556,7 @@ export type Database = {
           badge: string | null
           capacidade_max: number | null
           created_at: string
+          gallery_imagens: Json
           descricao_en: string | null
           descricao_es: string | null
           descricao_fr: string | null
@@ -580,12 +581,14 @@ export type Database = {
           updated_at: string
           urgencia: string | null
           video_url: string | null
+          video_2_url: string | null
         }
         Insert: {
           ativo?: boolean
           badge?: string | null
           capacidade_max?: number | null
           created_at?: string
+          gallery_imagens?: Json
           descricao_en?: string | null
           descricao_es?: string | null
           descricao_fr?: string | null
@@ -610,12 +613,14 @@ export type Database = {
           updated_at?: string
           urgencia?: string | null
           video_url?: string | null
+          video_2_url?: string | null
         }
         Update: {
           ativo?: boolean
           badge?: string | null
           capacidade_max?: number | null
           created_at?: string
+          gallery_imagens?: Json
           descricao_en?: string | null
           descricao_es?: string | null
           descricao_fr?: string | null
@@ -640,6 +645,7 @@ export type Database = {
           updated_at?: string
           urgencia?: string | null
           video_url?: string | null
+          video_2_url?: string | null
         }
         Relationships: []
       }

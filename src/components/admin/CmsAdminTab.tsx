@@ -21,6 +21,7 @@ import {
   useUpsertTour, useDeleteTour, useUpsertModal, useDeleteModal,
   useUpsertConfig,
   uploadMedia, deleteMedia, type CmsTour, type CmsModal,
+  isTourMediaSchemaReady,
 } from "@/lib/cms";
 
 // ---------------- Sub: Help Tooltip ----------------
@@ -45,8 +46,7 @@ const TourRow = ({ t }: { t: CmsTour }) => {
   const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const mediaSchemaReady = Object.prototype.hasOwnProperty.call(draft, "gallery_imagens")
-    && Object.prototype.hasOwnProperty.call(draft, "video_2_url");
+  const mediaSchemaReady = isTourMediaSchemaReady(draft);
 
   const update = <K extends keyof CmsTour>(key: K, value: CmsTour[K]) =>
     setDraft((prev) => ({ ...prev, [key]: value }));

@@ -245,10 +245,12 @@ const Index = () => {
                 {/* Image */}
                 <div className="relative overflow-hidden">
                   <TourMediaGallery
-                    images={[opt.image, ...(cmsByKey.get(opt.key)?.gallery_imagens ?? [])]}
+                    images={[cmsByKey.get(opt.key)?.imagem_url || opt.image, ...(cmsByKey.get(opt.key)?.gallery_imagens ?? [])]}
+                    videos={[cmsByKey.get(opt.key)?.video_url ?? "", cmsByKey.get(opt.key)?.video_2_url ?? ""]}
                     alt={opt.title}
+                    lang={lang}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-night/85 via-night/10 to-transparent" />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night/85 via-night/10 to-transparent" />
                   {FEATURED_BADGES[opt.key] && (
                     <TourBadge
                       type={FEATURED_BADGES[opt.key]}
