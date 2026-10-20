@@ -563,6 +563,7 @@ export type Database = {
           descricao_pt: string | null
           destaque: boolean
           duracao: string | null
+          gallery_imagens: Json
           horario: string | null
           id: string
           imagem_url: string | null
@@ -579,6 +580,7 @@ export type Database = {
           preco: number
           updated_at: string
           urgencia: string | null
+          video_2_url: string | null
           video_url: string | null
         }
         Insert: {
@@ -593,6 +595,7 @@ export type Database = {
           descricao_pt?: string | null
           destaque?: boolean
           duracao?: string | null
+          gallery_imagens?: Json
           horario?: string | null
           id?: string
           imagem_url?: string | null
@@ -609,6 +612,7 @@ export type Database = {
           preco?: number
           updated_at?: string
           urgencia?: string | null
+          video_2_url?: string | null
           video_url?: string | null
         }
         Update: {
@@ -623,6 +627,7 @@ export type Database = {
           descricao_pt?: string | null
           destaque?: boolean
           duracao?: string | null
+          gallery_imagens?: Json
           horario?: string | null
           id?: string
           imagem_url?: string | null
@@ -639,6 +644,7 @@ export type Database = {
           preco?: number
           updated_at?: string
           urgencia?: string | null
+          video_2_url?: string | null
           video_url?: string | null
         }
         Relationships: []
