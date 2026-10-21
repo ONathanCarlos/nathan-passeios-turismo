@@ -7,7 +7,7 @@
 // Sempre best-effort: nunca quebra o fluxo do usuário.
 // ============================================================
 import { supabase } from "@/integrations/supabase/client";
-import { getAdminToken } from "@/lib/adminAuth";
+import { getAdminToken, logoutAdmin } from "@/lib/adminAuth";
 
 const onlyDigits = (s: string) => (s || "").replace(/\D/g, "");
 
@@ -26,6 +26,7 @@ async function callAdmin<T = any>(action: string, payload: Record<string, unknow
   });
   if (error) {
     const context = (error as any).context;
+    if (context?.status === 401) logoutAdmin();
     if (context && typeof context.json === "function") {
       try {
         const detail = await context.json();

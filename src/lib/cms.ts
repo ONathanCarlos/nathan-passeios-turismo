@@ -5,7 +5,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { forceRefreshCms } from "./cmsCache";
-import { getAdminToken } from "./adminAuth";
+import { getAdminToken, logoutAdmin } from "./adminAuth";
 import type { Lang } from "./i18n";
 
 // ----- Types -----
@@ -146,8 +146,10 @@ export const useModais = () =>
     queryKey: ["cms", "modais"],
     queryFn: async () => {
       if (getAdminToken()) {
-        const result = await adminCall<{ rows: CmsModal[] }>("cms_list", { table: "modais" });
-        return (result.rows || []).sort((a, b) => a.key.localeCompare(b.key));
+        try {
+          const result = await adminCall<{ rows: CmsModal[] }>("cms_list", { table: "modais" });
+          return (result.rows || []).sort((a, b) => a.key.localeCompare(b.key));
+        } catch { /* sessão admin inválida: usa leitura pública */ }
       }
       const { data, error } = await supabase.from("modais").select("*").order("key");
       if (error) throw error;
@@ -159,11 +161,14 @@ export const useConfig = () =>
   useQuery({
     queryKey: ["cms", "config"],
     queryFn: async () => {
-      let data: Array<{ chave: string; valor: string | null }>;
+      let data: Array<{ chave: string; valor: string | null }> | null = null;
       if (getAdminToken()) {
-        const result = await adminCall<{ rows: Array<{ chave: string; valor: string | null }> }>("cms_list", { table: "config_global" });
-        data = result.rows || [];
-      } else {
+        try {
+          const result = await adminCall<{ rows: Array<{ chave: string; valor: string | null }> }>("cms_list", { table: "config_global" });
+          data = result.rows || [];
+        } catch { /* sessão admin inválida: usa leitura pública */ }
+      }
+      if (!data) {
         const response = await supabase.from("config_global").select("chave,valor");
         if (response.error) throw response.error;
         data = response.data || [];
@@ -184,7 +189,10 @@ async function adminCall<T = unknown>(action: string, payload: Record<string, un
   const { data, error } = await supabase.functions.invoke("admin-data", {
     body: { action, token, ...payload },
   });
-  if (error) throw error;
+  if (error) {
+    if ((error as any)?.context?.status === 401) logoutAdmin();
+    throw error;
+  }
   if (data?.ok === false) throw new Error(data?.error || "admin_error");
   return data as T;
 }
