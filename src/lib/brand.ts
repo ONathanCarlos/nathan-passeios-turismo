@@ -1,6 +1,6 @@
 /** Shared identity and booking destination; legacy CMS contact falls back to the current destination. */
 export const BRAND_NAME = "Ônix Turismo Búzios";
-export const BOOKING_WHATSAPP = "5511932662509";
+export const BOOKING_WHATSAPP = "5522998216796";
 
 export const bookingWhatsApp = (configured?: string) => {
   const number = configured?.replace(/\D/g, "");
