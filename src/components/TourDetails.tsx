@@ -9,6 +9,7 @@ import { loadQrPromo } from "@/lib/qrPromo";
 import { useEffect, useState } from "react";
 import { subscribeQrPromo } from "@/lib/qrPromo";
 import { forceRefreshCms, getCmsTourPriceStatus, subscribeCmsCache } from "@/lib/cmsCache";
+import { CRUISE_FEE_DETAIL_NOTICE } from "@/lib/cruiseEmbarkation";
 
 interface Props {
   tourKey: TourKey;
@@ -143,6 +144,11 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embed
             {priceReady && TOUR_PRICES[tourKey].note && (
               <p className="mt-1 text-xs text-amber-200/80 italic">
                 {TOUR_PRICES[tourKey].note![lang]}
+              </p>
+            )}
+            {priceReady && (tourKey === "escuna" || tourKey === "catamara") && (
+              <p role="note" className="mt-2 border-t border-amber-300/15 pt-2 text-xs leading-relaxed text-amber-200/90">
+                {CRUISE_FEE_DETAIL_NOTICE[lang]}
               </p>
             )}
           </div>
