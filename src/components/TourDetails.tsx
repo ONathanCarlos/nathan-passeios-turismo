@@ -2,13 +2,14 @@ import { Lang } from "@/lib/i18n";
 import { TourKey, getTour, sectionLabels } from "@/lib/tours";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Button } from "./ui/button";
-import { ArrowLeft, Clock, MapPin, Users, Check, AlertCircle } from "lucide-react";
+import { ArrowLeft, Clock, MapPin, Users, Check, AlertCircle, ExternalLink } from "lucide-react";
 import { dict } from "@/lib/i18n";
 import { TOUR_PRICES, tourPriceLabel, tourPriceStatusText, formatBRL } from "@/lib/prices";
 import { loadQrPromo } from "@/lib/qrPromo";
 import { useEffect, useState } from "react";
 import { subscribeQrPromo } from "@/lib/qrPromo";
 import { forceRefreshCms, getCmsTourPriceStatus, subscribeCmsCache } from "@/lib/cmsCache";
+import { CRUISE_CALENDAR_PATH, CRUISE_FEE_DETAIL_NOTICE } from "@/lib/cruiseEmbarkation";
 
 interface Props {
   tourKey: TourKey;
@@ -144,6 +145,17 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embed
               <p className="mt-1 text-xs text-amber-200/80 italic">
                 {TOUR_PRICES[tourKey].note![lang]}
               </p>
+            )}
+            {priceReady && (tourKey === "escuna" || tourKey === "catamara") && (
+              <div className="mt-2 border-t border-amber-300/15 pt-2">
+                <p role="note" className="text-xs leading-relaxed text-amber-200/90">
+                  {CRUISE_FEE_DETAIL_NOTICE[lang]}
+                </p>
+                <a href={CRUISE_CALENDAR_PATH} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-turquoise underline underline-offset-2 hover:text-turquoise-glow">
+                  <ExternalLink className="h-3 w-3" />
+                  {lang === "pt" ? "Confira o calendário de escalas da Prefeitura" : lang === "es" ? "Consulta el calendario municipal de escalas" : lang === "fr" ? "Consulter le calendrier municipal des escales" : lang === "it" ? "Consulta il calendario comunale degli scali" : "View the city cruise-call calendar"}
+                </a>
+              </div>
             )}
           </div>
 
