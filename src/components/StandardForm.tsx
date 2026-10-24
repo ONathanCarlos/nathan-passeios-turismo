@@ -24,7 +24,7 @@ import {
   validateSpecialCoupon, markSpecialUsed, SpecificCoupon, hasHolidayActiveToday,
 } from "@/lib/promo";
 import { createReservaInDb, markCouponUsedInDb, syncLead, completeReserva } from "@/lib/db";
-import { Tag, Lock } from "lucide-react";
+import { Tag, Lock, ExternalLink } from "lucide-react";
 import {
   calculateBookingAmounts,
   calculateEmbarkationFee,
@@ -36,7 +36,9 @@ import {
   EMBARKATION_FEE_PER_PERSON,
   LABELS,
   localDateKey,
+  CRUISE_CALENDAR_PATH,
 } from "@/lib/cruiseEmbarkation";
+import { bookingDraftKey, BOOKING_DRAFT_TTL_MS, clearBookingDraft, dateFromLocalKey, readBookingDraft, saveBookingDraft } from "@/lib/bookingDraft";
 
 type Payment = "cash" | "debit" | "credit" | "pix";
 
@@ -46,6 +48,14 @@ const PAYMENT_PT: Record<Payment, string> = {
   debit: "Cartão de débito",
   credit: "Cartão de crédito",
   pix: "Pix",
+};
+
+const CRUISE_CALENDAR_LINK: Record<Lang, string> = {
+  pt: "Confira o calendário de escalas da Prefeitura",
+  es: "Consulta el calendario municipal de escalas",
+  en: "View the city cruise-call calendar",
+  fr: "Consulter le calendrier municipal des escales",
+  it: "Consulta il calendario comunale degli scali",
 };
 
 interface Props {
@@ -72,6 +82,8 @@ interface Props {
   packageTourNames?: string[];
   /** chaves dos passeios vinculados ao pacote */
   packageTourKeys?: string[];
+  /** identificador estável do pacote, usado para separar o rascunho */
+  bookingDraftId?: string;
 }
 
 const fieldClass =
@@ -80,22 +92,24 @@ const fieldClass =
 export const StandardForm = ({
   lang, onLangChange, onBack, title, backgroundImage,
   adultsOnly = false, requireCpf = false, notice, requirePousada = false, tourKey,
-  packagePrice, titlePt, packageTourNames, packageTourKeys,
+  packagePrice, titlePt, packageTourNames, packageTourKeys, bookingDraftId,
 }: Props) => {
   const isPackage = typeof packagePrice === "number";
   const t = dict[lang];
-  const [name, setName] = useState("");
-  const [cpf, setCpf] = useState("");
-  const [phone, setPhone] = useState<PhoneValue>({ ddi: "+55", number: "" });
-  const [pax, setPax] = useState("");
-  const [date, setDate] = useState<Date | undefined>(undefined);
-  const [pousada, setPousada] = useState("");
-  const [room, setRoom] = useState("");
-  const [address, setAddress] = useState("");
-  const [hasKids, setHasKids] = useState<"yes" | "no" | "">("");
-  const [kidsCount, setKidsCount] = useState("");
-  const [ages, setAges] = useState<string[]>([]);
-  const [payment, setPayment] = useState<Payment | "">("");
+  const draftKey = bookingDraftKey(tourKey, bookingDraftId, titlePt ?? title);
+  const [initialDraft] = useState(() => readBookingDraft(draftKey));
+  const [name, setName] = useState(initialDraft?.name ?? "");
+  const [cpf, setCpf] = useState(initialDraft?.cpf ?? "");
+  const [phone, setPhone] = useState<PhoneValue>(initialDraft?.phone ?? { ddi: "+55", number: "" });
+  const [pax, setPax] = useState(initialDraft?.pax ?? "");
+  const [date, setDate] = useState<Date | undefined>(() => initialDraft ? dateFromLocalKey(initialDraft.date) : undefined);
+  const [pousada, setPousada] = useState(initialDraft?.pousada ?? "");
+  const [room, setRoom] = useState(initialDraft?.room ?? "");
+  const [address, setAddress] = useState(initialDraft?.address ?? "");
+  const [hasKids, setHasKids] = useState<"yes" | "no" | "">(initialDraft?.hasKids ?? "");
+  const [kidsCount, setKidsCount] = useState(initialDraft?.kidsCount ?? "");
+  const [ages, setAges] = useState<string[]>(initialDraft?.ages ?? []);
+  const [payment, setPayment] = useState<Payment | "">(initialDraft?.payment ?? "");
   const [output, setOutput] = useState<{ text: string; rows: { label: string; value: string }[] } | null>(null);
   const [reservaId, setReservaId] = useState<string | null>(null);
   const [savingReservation, setSavingReservation] = useState(false);
@@ -103,7 +117,7 @@ export const StandardForm = ({
   const [shake, setShake] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState<PromoData | null>(null);
   const [appliedSpecial, setAppliedSpecial] = useState<SpecificCoupon | null>(null);
-  const [manualCode, setManualCode] = useState("");
+  const [manualCode, setManualCode] = useState(initialDraft?.manualCode ?? "");
   const [couponPromptOpen, setCouponPromptOpen] = useState(false);
   // O preço do passeio chega do CMS de forma assíncrona. Este contador força
   // o useMemo abaixo a reler TOUR_PRICES quando o cache for atualizado.
@@ -262,6 +276,36 @@ export const StandardForm = ({
   const cruiseFeeActive = tourKey
     ? cruiseFeeApplies(tourKey, date)
     : isPackage && packageIncludesCruiseFeeTour(packageTourKeys) && isCruiseDate(date);
+  const cruiseCalendarLinkVisible = tourKey === "escuna" || tourKey === "catamara"
+    || (isPackage && packageIncludesCruiseFeeTour(packageTourKeys));
+
+  useEffect(() => {
+    if (output) {
+      clearBookingDraft(draftKey);
+      return;
+    }
+    const hasDraftData = !!(name || cpf || phone.number || pax || date || pousada || room || address
+      || hasKids || kidsCount || ages.some(Boolean) || payment || manualCode);
+    if (!hasDraftData) {
+      clearBookingDraft(draftKey);
+      return;
+    }
+    const saved = saveBookingDraft(draftKey, {
+      name, cpf, phone, pax, date: date ? localDateKey(date) : "", pousada, room, address,
+      hasKids, kidsCount, ages, payment, manualCode,
+    });
+    if (!saved) return;
+    const expiry = window.setTimeout(() => {
+      clearBookingDraft(draftKey);
+      setName(""); setCpf(""); setPhone({ ddi: "+55", number: "" }); setPax("");
+      setDate(undefined); setPousada(""); setRoom(""); setAddress("");
+      setHasKids(""); setKidsCount(""); setAges([]); setPayment(""); setManualCode("");
+      setAppliedCoupon(null); setAppliedSpecial(null); setErrors({});
+      toast.info(lang === "pt" ? "Os dados da reserva expiraram após 10 minutos. Preencha novamente." : "Booking details expired after 10 minutes. Please fill them in again.");
+    }, BOOKING_DRAFT_TTL_MS);
+    return () => window.clearTimeout(expiry);
+  }, [draftKey, output, name, cpf, phone, pax, date, pousada, room, address, hasKids, kidsCount, ages, payment, manualCode, lang]);
+
   if (!adultsOnly && ages.length !== kidsN && hasKids === "yes") {
     const next = [...ages];
     while (next.length < kidsN) next.push("");
@@ -707,6 +751,11 @@ export const StandardForm = ({
               error={errors.date}
             />
           </Field>
+          {cruiseCalendarLinkVisible && (
+            <a href={CRUISE_CALENDAR_PATH} target="_blank" rel="noopener noreferrer" className="-mt-3 inline-flex items-center gap-1 text-xs font-semibold text-turquoise underline underline-offset-2 hover:text-turquoise-glow">
+              <ExternalLink className="h-3 w-3" /> {CRUISE_CALENDAR_LINK[lang]}
+            </a>
+          )}
           {cruiseFeeActive && (
             <div role="status" className="-mt-3 rounded-xl border border-amber-400/30 bg-amber-500/10 p-3 text-sm leading-relaxed text-amber-100">
               {CRUISE_FEE_BOOKING_NOTICE[lang]}

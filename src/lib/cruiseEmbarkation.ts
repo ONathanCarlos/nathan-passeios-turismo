@@ -2,6 +2,8 @@ import type { Lang } from "@/lib/i18n";
 import type { TourKey } from "@/lib/tours";
 
 export const EMBARKATION_FEE_PER_PERSON = 10;
+export const CRUISE_CALENDAR_PATH = "/calendario-cruzeiros-2026-2027";
+export const CRUISE_CALENDAR_PDF = "/docs/calendario-escalas-cruzeiros-2026-2027.pdf";
 
 /**
  * Datas copiadas do calendário de escalas 2026–2027 enviado pelo usuário.

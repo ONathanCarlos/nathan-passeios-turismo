@@ -134,6 +134,7 @@ const PacoteDetalhes = () => {
         packagePrice={pacote.preco}
         packageTourNames={packageTourNames}
         packageTourKeys={pacote.tour_keys}
+        bookingDraftId={key}
       />
     );
   }
