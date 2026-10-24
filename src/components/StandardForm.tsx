@@ -688,37 +688,6 @@ export const StandardForm = ({
           </div>
         )}
 
-        {priceInfo && (priceInfo.embarkationFee > 0 || payment === "credit") && (
-          <section aria-live="polite" className="mb-5 rounded-2xl border border-turquoise/25 bg-card/50 p-4 space-y-2 text-sm">
-            <div className="flex justify-between gap-4">
-              <span>{lang === "pt" ? "Passeio (após descontos)" : "Tour (after discounts)"}</span>
-              <span>{formatBRL(priceInfo.fareFinal)}</span>
-            </div>
-            {priceInfo.embarkationFee > 0 && (
-              <div className="flex justify-between gap-4">
-                <span>{LABELS[lang].embarkationFee} ({priceInfo.embarkationPassengerCount} {LABELS[lang].feePerPassenger})</span>
-                <span>{formatBRL(priceInfo.embarkationFee)}</span>
-              </div>
-            )}
-            {(priceInfo.embarkationFee > 0 || priceInfo.creditSurcharge > 0) && (
-              <div className="flex justify-between gap-4 border-t border-border/50 pt-2">
-                <span>{LABELS[lang].tourSubtotal}</span>
-                <span>{formatBRL(priceInfo.subtotal)}</span>
-              </div>
-            )}
-            {priceInfo.creditSurcharge > 0 && (
-              <div className="flex justify-between gap-4 text-amber-200">
-                <span>{LABELS[lang].creditSurcharge}</span>
-                <span>{formatBRL(priceInfo.creditSurcharge)}</span>
-              </div>
-            )}
-            <div className="flex justify-between gap-4 border-t border-turquoise/30 pt-2 font-bold text-base">
-              <span>{LABELS[lang].totalDue}</span>
-              <span>{formatBRL(priceInfo.final)}</span>
-            </div>
-          </section>
-        )}
-
         <div className="space-y-5" key={shake}>
           <Field label={`✍️ ${t.fullName}`} error={errors.name} errorMsg={requiredMsg}>
             <Input value={name} onChange={(e) => { setName(e.target.value); clearErr("name"); }} className={fieldClass} />
@@ -855,6 +824,37 @@ export const StandardForm = ({
               </p>
             )}
           </Field>
+
+          {priceInfo && (priceInfo.embarkationFee > 0 || payment === "credit") && (
+            <section aria-live="polite" className="rounded-2xl border border-turquoise/25 bg-card/50 p-4 space-y-2 text-sm">
+              <div className="flex justify-between gap-4">
+                <span>{lang === "pt" ? "Passeio (após descontos)" : "Tour (after discounts)"}</span>
+                <span>{formatBRL(priceInfo.fareFinal)}</span>
+              </div>
+              {priceInfo.embarkationFee > 0 && (
+                <div className="flex justify-between gap-4">
+                  <span>{LABELS[lang].embarkationFee} ({priceInfo.embarkationPassengerCount} {LABELS[lang].feePerPassenger})</span>
+                  <span>{formatBRL(priceInfo.embarkationFee)}</span>
+                </div>
+              )}
+              {(priceInfo.embarkationFee > 0 || priceInfo.creditSurcharge > 0) && (
+                <div className="flex justify-between gap-4 border-t border-border/50 pt-2">
+                  <span>{LABELS[lang].tourSubtotal}</span>
+                  <span>{formatBRL(priceInfo.subtotal)}</span>
+                </div>
+              )}
+              {priceInfo.creditSurcharge > 0 && (
+                <div className="flex justify-between gap-4 text-amber-200">
+                  <span>{LABELS[lang].creditSurcharge}</span>
+                  <span>{formatBRL(priceInfo.creditSurcharge)}</span>
+                </div>
+              )}
+              <div className="flex justify-between gap-4 border-t border-turquoise/30 pt-2 font-bold text-base">
+                <span>{LABELS[lang].totalDue}</span>
+                <span>{formatBRL(priceInfo.final)}</span>
+              </div>
+            </section>
+          )}
 
           <button
             type="button"
