@@ -248,7 +248,7 @@ const Index = () => {
                     images={[opt.image, ...(cmsByKey.get(opt.key)?.gallery_imagens ?? [])]}
                     alt={opt.title}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-night/85 via-night/10 to-transparent" />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night/85 via-night/10 to-transparent" />
                   {FEATURED_BADGES[opt.key] && (
                     <TourBadge
                       type={FEATURED_BADGES[opt.key]}
