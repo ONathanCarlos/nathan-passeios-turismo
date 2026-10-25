@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Corrigir upload e persistência de quatro fotos/dois vídeos e validar galeria automática, toque e enquadramento.
+- [x] Corrigir upload e persistência de quatro fotos/dois vídeos e validar galeria automática, toque e enquadramento.
 
 - [x] Corrigir falha ao salvar reservas e validar formulário, persistência e envio ao WhatsApp.
 
