@@ -2,7 +2,7 @@
 // CMS Admin Tab — gerencia tours, modais, configuração global
 // e upload de mídia direto no Supabase. Tudo persiste após salvar.
 // ============================================================
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -45,6 +45,8 @@ const TourRow = ({ t }: { t: CmsTour }) => {
   const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const mediaBusy = useRef(false);
+  const busy = uploading || upsert.isPending;
   const mediaSchemaReady = Object.prototype.hasOwnProperty.call(draft, "gallery_imagens")
     && Object.prototype.hasOwnProperty.call(draft, "video_2_url");
 
@@ -52,18 +54,24 @@ const TourRow = ({ t }: { t: CmsTour }) => {
     setDraft((prev) => ({ ...prev, [key]: value }));
 
   const save = async () => {
-    await upsert.mutateAsync(draft);
-    setSaved(true);
-    toast.success("Alterações salvas e publicadas");
-    setTimeout(() => setSaved(false), 2500);
+    try {
+      await upsert.mutateAsync(draft);
+      setSaved(true);
+      toast.success("Alterações salvas e publicadas");
+      setTimeout(() => setSaved(false), 2500);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Não foi possível salvar. Tente novamente.");
+    }
   };
   const onUpload = async (file: File, kind: "imagem_url" | "video_url" | "video_2_url", galleryIndex?: number) => {
+    if (mediaBusy.current || upsert.isPending) return;
     if (!mediaSchemaReady && (galleryIndex !== undefined || kind === "video_2_url")) {
       toast.error("Fotos extras e Vídeo 2 estarão disponíveis após a atualização do banco.");
       return;
     }
     let uploadedUrl: string | null = null;
     try {
+      mediaBusy.current = true;
       setUploading(true);
       const url = await uploadMedia(file, kind.includes("video") ? "videos" : "tours");
       uploadedUrl = url;
@@ -75,23 +83,30 @@ const TourRow = ({ t }: { t: CmsTour }) => {
             gallery[galleryIndex] = url;
             return { ...draft, gallery_imagens: gallery };
           })();
-      setDraft(next);
       await upsert.mutateAsync(next);
+      setDraft(next);
       toast.success("Mídia enviada e publicada");
     } catch (e: any) {
       if (uploadedUrl) await deleteMedia(uploadedUrl).catch(() => undefined);
       toast.error(e?.message || "Não foi possível salvar a mídia. Tente novamente.");
     }
-    finally { setUploading(false); }
+    finally { mediaBusy.current = false; setUploading(false); }
   };
   const removeMedia = async (url: string | null | undefined, kind: "imagem_url" | "video_url" | "video_2_url", galleryIndex?: number) => {
-    if (url) await deleteMedia(url);
+    if (mediaBusy.current || upsert.isPending) return;
+    mediaBusy.current = true;
+    setUploading(true);
+    try {
     const next = galleryIndex === undefined
       ? { ...draft, [kind]: null }
       : { ...draft, gallery_imagens: (draft.gallery_imagens ?? []).map((item, index) => index === galleryIndex ? "" : item) };
-    setDraft(next);
     await upsert.mutateAsync(next);
+    setDraft(next);
+    if (url) await deleteMedia(url).catch(() => undefined);
     toast.success("Mídia removida");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Não foi possível remover a mídia.");
+    } finally { mediaBusy.current = false; setUploading(false); }
   };
 
   return (
@@ -256,7 +271,7 @@ const TourRow = ({ t }: { t: CmsTour }) => {
       )}
 
       {/* Galeria de fotos e vídeos */}
-      <div className="space-y-3 border-t border-turquoise/20 pt-3">
+      <fieldset disabled={busy} className="space-y-3 border-t border-turquoise/20 pt-3 disabled:opacity-60">
         <div>
           <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">📸 Galeria de fotos</Label>
           {!mediaSchemaReady && <p className="mt-1 text-[10px] text-amber-200/80">Compatibilidade temporária: a capa pode ser enviada agora. Fotos 2–4 serão liberadas após a migration do banco.</p>}
@@ -264,7 +279,7 @@ const TourRow = ({ t }: { t: CmsTour }) => {
             <div className="space-y-1">
               <label className="relative block aspect-[4/3] cursor-pointer overflow-hidden rounded-md border border-turquoise/30 bg-night/50 hover:border-turquoise/70">
                 {draft.imagem_url ? <img src={draft.imagem_url} alt="Capa" className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-[9px] text-muted-foreground">sem capa</div>}
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.currentTarget.value = ""; if (f) onUpload(f, "imagem_url"); }} />
+                <input type="file" aria-label={`Foto 1 — ${draft.nome_pt}`} accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.currentTarget.value = ""; if (f) onUpload(f, "imagem_url"); }} />
               </label>
               <div className="text-center text-[10px] text-turquoise-glow">Foto 1 — Capa</div>
               {draft.imagem_url && <button type="button" onClick={() => removeMedia(draft.imagem_url, "imagem_url")} className="w-full text-[10px] text-rose-300 hover:underline">Remover</button>}
@@ -275,7 +290,7 @@ const TourRow = ({ t }: { t: CmsTour }) => {
                 <div key={slot} className="space-y-1">
                   <label className={`relative block aspect-[4/3] overflow-hidden rounded-md border border-turquoise/30 bg-night/50 ${mediaSchemaReady ? "cursor-pointer hover:border-turquoise/70" : "cursor-not-allowed opacity-60"}`}>
                     {url ? <img src={url} alt={`Foto ${slot + 2}`} className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center text-[9px] text-muted-foreground">sem foto</div>}
-                    <input type="file" accept="image/*" disabled={!mediaSchemaReady} className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.currentTarget.value = ""; if (f) onUpload(f, "imagem_url", slot); }} />
+                    <input type="file" aria-label={`Foto ${slot + 2} — ${draft.nome_pt}`} accept="image/*" disabled={!mediaSchemaReady} className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.currentTarget.value = ""; if (f) onUpload(f, "imagem_url", slot); }} />
                   </label>
                   <div className={`text-center text-[10px] ${mediaSchemaReady ? "text-turquoise-glow" : "text-muted-foreground"}`}>Foto {slot + 2}</div>
                   {url && <button type="button" onClick={() => removeMedia(url, "imagem_url", slot)} className="w-full text-[10px] text-rose-300 hover:underline">Remover</button>}
@@ -293,7 +308,7 @@ const TourRow = ({ t }: { t: CmsTour }) => {
               <div key={key} className="flex items-center gap-2 rounded-md border border-turquoise/20 bg-night/30 p-2">
                 <label className={`relative block h-12 w-16 overflow-hidden rounded-md border border-turquoise/30 bg-night/50 ${key === "video_2_url" && !mediaSchemaReady ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:border-turquoise/70"}`}>
                   {draft[key] ? <><video src={draft[key] || undefined} muted playsInline preload="metadata" className="w-full h-full object-cover" /><span className="absolute inset-0 flex items-center justify-center text-white/90 text-xs">▶</span></> : <div className="h-full flex items-center justify-center text-[9px] text-muted-foreground">sem vídeo</div>}
-                  <input type="file" accept="video/*" disabled={key === "video_2_url" && !mediaSchemaReady} className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.currentTarget.value = ""; if (f) onUpload(f, key); }} />
+                  <input type="file" aria-label={`${label} — ${draft.nome_pt}`} accept="video/mp4,video/webm,video/quicktime" disabled={key === "video_2_url" && !mediaSchemaReady} className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.currentTarget.value = ""; if (f) onUpload(f, key); }} />
                 </label>
                 <div className="space-y-1">
                   <div className={`text-[10px] ${key === "video_2_url" && !mediaSchemaReady ? "text-muted-foreground" : "text-turquoise-glow"}`}>{label}</div>
@@ -303,15 +318,16 @@ const TourRow = ({ t }: { t: CmsTour }) => {
             ))}
           </div>
         </div>
-      </div>
+      </fieldset>
+      {uploading && <Loader2 aria-label="Enviando mídia" className="h-4 w-4 animate-spin text-turquoise" />}
 
-      <Button size="sm" onClick={save} disabled={upsert.isPending}
+      <Button size="sm" onClick={save} disabled={busy}
           className={`transition-colors ${saved ? "bg-emerald-500 text-white hover:bg-emerald-600" : "bg-turquoise text-night hover:bg-turquoise/80"}`}>
           {saved ? <CheckCircle2 className="h-3 w-3 mr-1" /> : <Save className="h-3 w-3 mr-1" />}
           {saved ? "Publicado" : "Salvar"}
         </Button>
 
-        <Button size="sm" variant="ghost" className="text-rose-300 hover:text-rose-200"
+        <Button size="sm" variant="ghost" disabled={busy} className="text-rose-300 hover:text-rose-200"
           onClick={() => { if (confirm(`Excluir definitivamente "${draft.nome_pt}"? Esta ação não pode ser desfeita.`)) del.mutate(draft.id); }}>
           <Trash2 className="h-3 w-3 mr-1" /> Excluir
         </Button>
