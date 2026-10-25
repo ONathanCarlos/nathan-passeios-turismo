@@ -11,6 +11,7 @@ import { subscribeQrPromo } from "@/lib/qrPromo";
 import { forceRefreshCms, getCmsTourPriceStatus, subscribeCmsCache } from "@/lib/cmsCache";
 import { CRUISE_CALENDAR_PATH, CRUISE_FEE_DETAIL_NOTICE } from "@/lib/cruiseEmbarkation";
 import { TourMediaGallery } from "./TourMediaGallery";
+import { TOUR_VIDEO_LIMIT } from "@/lib/tourMedia";
 
 interface Props {
   tourKey: TourKey;
@@ -79,7 +80,7 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embed
 
           {!!tour.videos?.length && (
             <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {tour.videos.slice(0, 2).map((video) => (
+              {tour.videos.slice(0, TOUR_VIDEO_LIMIT).map((video) => (
                 <video key={video} src={video} controls playsInline preload="metadata"
                   className="aspect-video w-full rounded-lg bg-background object-contain" />
               ))}
