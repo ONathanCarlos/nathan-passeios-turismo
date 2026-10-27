@@ -14,24 +14,44 @@ export const parseLangFromUrl = (): Lang | null => {
   if (typeof window === "undefined") return null;
   const raw = new URLSearchParams(window.location.search).get("lang");
   if (!raw) return null;
-  return LANG_ALIASES[raw.trim().toLowerCase()] || null;
+  return langFromLocale(raw);
+};
+
+const langFromLocale = (raw: string): Lang | null => {
+  const normalized = raw.trim().toLowerCase().replace(/_/g, "-");
+  return LANG_ALIASES[normalized] || LANG_ALIASES[normalized.split("-")[0]] || null;
+};
+
+/** Detecta o primeiro idioma suportado nas preferências do navegador/dispositivo. */
+export const detectDeviceLang = (): Lang | null => {
+  if (typeof navigator === "undefined") return null;
+  const preferences = [
+    ...(Array.isArray(navigator.languages) ? navigator.languages : []),
+    navigator.language,
+  ];
+  for (const preference of preferences) {
+    if (!preference) continue;
+    const detected = langFromLocale(preference);
+    if (detected) return detected;
+  }
+  return null;
 };
 
 export const loadLang = (): Lang => {
+  const fromUrl = parseLangFromUrl();
+  if (fromUrl) {
+    try { localStorage.setItem(LANG_KEY, fromUrl); } catch { /* storage may be unavailable */ }
+    return fromUrl;
+  }
   try {
-    const fromUrl = parseLangFromUrl();
-    if (fromUrl) {
-      localStorage.setItem(LANG_KEY, fromUrl);
-      return fromUrl;
-    }
     const saved = localStorage.getItem(LANG_KEY) as Lang | null;
     if (saved && ["pt","es","en","fr","it"].includes(saved)) return saved;
-  } catch {}
-  return "pt";
+  } catch { /* storage may be unavailable */ }
+  return detectDeviceLang() ?? "pt";
 };
 
 export const saveLang = (l: Lang) => {
-  try { localStorage.setItem(LANG_KEY, l); } catch {}
+  try { localStorage.setItem(LANG_KEY, l); } catch { /* storage may be unavailable */ }
   if (typeof window !== "undefined") window.dispatchEvent(new Event("nathan:lang-change"));
 };
 
