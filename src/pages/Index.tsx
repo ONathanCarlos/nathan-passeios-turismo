@@ -19,7 +19,7 @@ import { forceRefreshCms, getCmsTourPriceStatus, subscribeCmsCache } from "@/lib
 import { QrPromoBoot } from "@/components/QrPromo";
 import { SpanishLangModal } from "@/components/SpanishLangModal";
 import { CampaignPromoModal } from "@/components/CampaignPromoModal";
-import { loadQrPromo, urlHasPromoParam, subscribeQrPromo } from "@/lib/qrPromo";
+import { loadQrPromo, urlHasPromoParam, subscribeQrPromo, qrPromoForTour } from "@/lib/qrPromo";
 import { useTours, pickLang } from "@/lib/cms";
 import { TourMediaGallery } from "@/components/TourMediaGallery";
 import { CmsTourDetails } from "@/components/CmsTourDetails";
@@ -132,7 +132,7 @@ const Index = () => {
         {!admin && <QrPromoBoot lang={lang} />}
         {!admin && <SpanishLangModal lang={lang} />}
         {!admin && <CampaignPromoModal lang={lang} />}
-        {!admin && <PromoBanner lang={lang} />}
+        {!admin && <PromoBanner lang={lang} tourKey={screen.details} />}
         <div className={admin ? "" : "pt-12"}>
           <PageTransition key={`details-${screen.details}`}>
             <TourDetails
@@ -296,10 +296,16 @@ const Index = () => {
                   <h3 className="text-lg font-bold text-foreground leading-tight">{opt.title}</h3>
                   <p className="mt-1.5 text-sm text-muted-foreground leading-snug flex-1">{opt.desc}</p>
 
-                  {getCmsTourPriceStatus(opt.key) === "ready" ? qr ? (() => {
+                  {getCmsTourPriceStatus(opt.key) === "ready" ? (() => {
+                    const tourQr = qrPromoForTour(qr, opt.key);
+                    if (!tourQr) return (
+                      <p className="float-soft mt-3 text-2xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+                        {tourPriceLabel(opt.key, lang)}
+                      </p>
+                    );
                     const meta = TOUR_PRICES[opt.key];
                     const orig = meta.value;
-                    const disc = orig - (orig * qr.percent) / 100;
+                    const disc = orig - (orig * tourQr.percent) / 100;
                     return (
                       <div className="float-soft mt-3">
                         <div className="text-xs text-muted-foreground line-through leading-none">
@@ -309,15 +315,11 @@ const Index = () => {
                           {meta.from ? `A partir de ${formatBRL(disc)}` : formatBRL(disc)}
                         </div>
                         <div className="text-[10px] font-bold text-emerald-300">
-                          -{qr.percent}% via QR Code
+                          -{tourQr.percent}% via QR Code
                         </div>
                       </div>
                     );
                   })() : (
-                    <p className="float-soft mt-3 text-2xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
-                      {tourPriceLabel(opt.key, lang)}
-                    </p>
-                  ) : (
                     <div className="mt-3 text-sm text-muted-foreground">
                       <p role="status">{tourPriceStatusText(getCmsTourPriceStatus(opt.key), lang)}</p>
                       {getCmsTourPriceStatus(opt.key) === "error" && (

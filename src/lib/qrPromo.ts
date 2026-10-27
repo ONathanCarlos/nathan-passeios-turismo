@@ -9,13 +9,29 @@ export interface QrPromo {
   percent: number;
   campaign: string; // ex: "qr10"
   activatedAt: string;
+  /** Quando presente, o desconto vale somente para este passeio. */
+  tourKey?: string;
 }
 
 const EVT = "nathan-qr-promo-change";
+const TOUR_QR_KEYS = new Set([
+  "escuna", "arraial", "buggy", "cabofrio", "jardineira", "catamara", "mergulho", "lancha",
+]);
 
-export const parseQrFromUrl = (): { percent: number; campaign: string } | null => {
+const parseTourQrPath = (pathname: string) => {
+  const match = /^\/passeios\/([a-z0-9-]+)\/qr(5|10)$/i.exec(pathname);
+  if (!match) return null;
+  const tourKey = match[1].toLowerCase();
+  if (!TOUR_QR_KEYS.has(tourKey)) return null;
+  const percent = Number(match[2]);
+  return { percent, campaign: `qr${percent}-${tourKey}`, tourKey };
+};
+
+export const parseQrFromUrl = (): { percent: number; campaign: string; tourKey?: string } | null => {
   if (typeof window === "undefined") return null;
   const params = new URLSearchParams(window.location.search);
+  const tourPromo = parseTourQrPath(window.location.pathname);
+  if (tourPromo) return tourPromo;
   const pathMatch = /^\/qr(\d{1,2})$/i.exec(window.location.pathname);
   const raw = params.get("promo") ?? params.get("qr") ?? pathMatch?.[1] ?? null;
   if (!raw) return null;
@@ -29,8 +45,20 @@ export const parseQrFromUrl = (): { percent: number; campaign: string } | null =
 export const urlHasPromoParam = (): boolean => {
   if (typeof window === "undefined") return false;
   const params = new URLSearchParams(window.location.search);
-  return params.has("promo") || params.has("qr") || /^\/qr\d{1,2}$/i.test(window.location.pathname);
+  return params.has("promo") || params.has("qr")
+    || /^\/qr\d{1,2}$/i.test(window.location.pathname)
+    || !!parseTourQrPath(window.location.pathname);
 };
+
+/** QR antigo sem passeio é global; um QR novo só corresponde ao passeio explícito. */
+export const qrPromoForTour = <T extends QrPromo>(promo: T | null, tourKey?: string): T | null => {
+  if (!promo) return null;
+  if (!promo.tourKey) return promo;
+  return tourKey && promo.tourKey.toLowerCase() === tourKey.toLowerCase() ? promo : null;
+};
+
+export const loadQrPromoForTour = (tourKey?: string): QrPromo | null =>
+  qrPromoForTour(loadQrPromo(), tourKey);
 
 /** Verdadeiro só quando URL é exatamente "/" — sem query, hash ou rota extra. */
 export const urlIsExactRoot = (): boolean => {
@@ -75,7 +103,7 @@ export const applyModalDiscount = (opts: { percent: number; campaign?: string })
   }
   setTimeout(() => {
     try { window.location.reload(); }
-    catch { window.location.href = window.location.href; }
+    catch { window.location.assign(window.location.href); }
   }, 50);
 };
 
@@ -95,7 +123,7 @@ export const markSeenCampaign = (campaign: string) => {
       list.push(campaign);
       localStorage.setItem(QR_SEEN_KEY, JSON.stringify(list));
     }
-  } catch {}
+  } catch { /* local storage may be unavailable */ }
 };
 
 /** Subscreve mudanças no QR promo (storage + custom event) */

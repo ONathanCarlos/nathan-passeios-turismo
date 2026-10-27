@@ -5,7 +5,7 @@ import { Button } from "./ui/button";
 import { ArrowLeft, Clock, MapPin, Users, Check, AlertCircle, ExternalLink } from "lucide-react";
 import { dict } from "@/lib/i18n";
 import { TOUR_PRICES, tourPriceLabel, tourPriceStatusText, formatBRL } from "@/lib/prices";
-import { loadQrPromo } from "@/lib/qrPromo";
+import { loadQrPromoForTour } from "@/lib/qrPromo";
 import { useEffect, useState } from "react";
 import { subscribeQrPromo } from "@/lib/qrPromo";
 import { forceRefreshCms, getCmsTourPriceStatus, subscribeCmsCache } from "@/lib/cmsCache";
@@ -23,9 +23,9 @@ interface Props {
 }
 
 export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embedded = false }: Props) => {
-  const [qr, setQr] = useState(() => loadQrPromo());
+  const [qr, setQr] = useState(() => loadQrPromoForTour(tourKey));
   const [, setCmsPriceVersion] = useState(0);
-  useEffect(() => subscribeQrPromo(() => setQr(loadQrPromo())), []);
+  useEffect(() => subscribeQrPromo(() => setQr(loadQrPromoForTour(tourKey))), [tourKey]);
   useEffect(() => subscribeCmsCache(() => setCmsPriceVersion((version) => version + 1)), []);
   const priceStatus = getCmsTourPriceStatus(tourKey);
   const priceReady = priceStatus === "ready";
