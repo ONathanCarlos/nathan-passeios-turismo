@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { ArrowLeft, Clock, MapPin, Users } from "lucide-react";
 import type { CmsTour } from "@/lib/cms";
 import { pickLang } from "@/lib/cms";
@@ -6,14 +8,9 @@ import { dict } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { TourMediaGallery } from "@/components/TourMediaGallery";
 import { formatBRL } from "@/lib/prices";
-import { bookingWhatsApp } from "@/lib/brand";
-import { getCachedConfig } from "@/lib/cmsCache";
-
-/** WhatsApp link for tours created only in the CMS (no special booking rules). */
-export const cmsTourWhatsAppUrl = (tour: CmsTour) => {
-  const msg = `Olá Nathan! Gostaria de reservar o passeio: ${tour.nome_pt}`;
-  return `https://wa.me/${bookingWhatsApp(getCachedConfig("whatsapp"))}?text=${encodeURIComponent(msg)}`;
-};
+import { isLunchCmsTour } from "@/lib/cmsLunchBooking";
+import { CmsLunchBookingForm } from "@/components/CmsLunchBookingForm";
+import { cmsTourWhatsAppUrl } from "@/lib/cmsTourWhatsApp";
 
 const BACK: Record<Lang, string> = { pt: "Voltar", es: "Volver", en: "Back", fr: "Retour", it: "Indietro" };
 
@@ -21,6 +18,8 @@ export function CmsTourDetails({ tour, lang, onLangChange, onBack }: {
   tour: CmsTour; lang: Lang; onLangChange: (l: Lang) => void; onBack: () => void;
 }) {
   const t = dict[lang];
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [bookingOpen, setBookingOpen] = useState(() => searchParams.get("reservar") === "1");
   const title = pickLang(tour, "nome", lang) || tour.nome_pt;
   const desc = pickLang(tour, "descricao", lang);
   const images = [tour.imagem_url, ...tour.gallery_imagens].filter((u): u is string => !!u);
@@ -31,6 +30,20 @@ export function CmsTourDetails({ tour, lang, onLangChange, onBack }: {
     tour.local_saida && { icon: MapPin, text: tour.local_saida },
     tour.capacidade_max && { icon: Users, text: String(tour.capacidade_max) },
   ].filter(Boolean) as { icon: typeof Clock; text: string }[];
+
+  if (isLunchCmsTour(tour) && bookingOpen) {
+    return (
+      <CmsLunchBookingForm
+        tour={tour}
+        lang={lang}
+        onLangChange={onLangChange}
+        onBack={() => {
+          setBookingOpen(false);
+          if (searchParams.has("reservar")) setSearchParams({}, { replace: true });
+        }}
+      />
+    );
+  }
 
   return (
     <main className="relative min-h-screen px-4 pt-4 pb-10">
@@ -62,11 +75,19 @@ export function CmsTourDetails({ tour, lang, onLangChange, onBack }: {
             {tour.preco > 0 && (
               <p className="text-2xl font-extrabold text-turquoise">{formatBRL(tour.preco)}</p>
             )}
-            <a href={cmsTourWhatsAppUrl(tour)} target="_blank" rel="noopener noreferrer" className="rgb-border w-full block">
-              <span className="flex items-center justify-center rounded-[0.65rem] bg-gradient-to-r from-deep-blue to-night px-4 py-3 text-sm font-bold text-foreground">
-                ✨ {t.bookNowBtn}
-              </span>
-            </a>
+            {isLunchCmsTour(tour) ? (
+              <button type="button" onClick={() => setBookingOpen(true)} className="rgb-border w-full block">
+                <span className="flex items-center justify-center rounded-[0.65rem] bg-gradient-to-r from-deep-blue to-night px-4 py-3 text-sm font-bold text-foreground">
+                  ✨ {t.bookNowBtn}
+                </span>
+              </button>
+            ) : (
+              <a href={cmsTourWhatsAppUrl(tour)} target="_blank" rel="noopener noreferrer" className="rgb-border w-full block">
+                <span className="flex items-center justify-center rounded-[0.65rem] bg-gradient-to-r from-deep-blue to-night px-4 py-3 text-sm font-bold text-foreground">
+                  ✨ {t.bookNowBtn}
+                </span>
+              </a>
+            )}
           </div>
         </article>
       </div>
