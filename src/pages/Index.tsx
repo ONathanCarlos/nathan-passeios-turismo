@@ -22,6 +22,7 @@ import { CampaignPromoModal } from "@/components/CampaignPromoModal";
 import { loadQrPromo, urlHasPromoParam, subscribeQrPromo } from "@/lib/qrPromo";
 import { useTours, pickLang } from "@/lib/cms";
 import { TourMediaGallery } from "@/components/TourMediaGallery";
+import { CmsTourDetails, cmsTourWhatsAppUrl } from "@/components/CmsTourDetails";
 
 import arraialImg from "@/assets/arraial-do-cabo.jpg";
 import escunaImg from "@/assets/escuna.jpg";
@@ -109,6 +110,18 @@ const Index = () => {
   };
   const openDetails = (key: TourKey) => routeNavigate(`/passeios/${key}`);
   const openForm = (key: TourKey) => navigate(`form-${key}` as FormScreen);
+
+  // Passeio criado somente no CMS (sem regras especiais de reserva)
+  const cmsOnlyTour = routeTourKey && !isTourKey(routeTourKey)
+    ? (cmsTours || []).find((c) => c.key === routeTourKey && c.ativo)
+    : undefined;
+  if (cmsOnlyTour) {
+    return (
+      <PageTransition key={`cms-${cmsOnlyTour.key}`}>
+        <CmsTourDetails tour={cmsOnlyTour} lang={lang} onLangChange={setLang} onBack={() => routeNavigate("/passeios")} />
+      </PageTransition>
+    );
+  }
 
   // Details screen
   if (typeof screen === "object" && "details" in screen) {
