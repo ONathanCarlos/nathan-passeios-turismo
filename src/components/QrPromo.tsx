@@ -73,7 +73,7 @@ export const QrPromoBoot = ({ lang }: Props) => {
 
     // QR válido acessado em outra rota: redireciona para a Home,
     // preservando a query string e o hash originais.
-    if (parsed && window.location.pathname !== "/") {
+    if (parsed && !parsed.tourKey && window.location.pathname !== "/") {
       window.location.replace(
         `/${window.location.search}${window.location.hash}`
       );
@@ -85,6 +85,7 @@ export const QrPromoBoot = ({ lang }: Props) => {
         percent: parsed.percent,
         campaign: parsed.campaign,
         activatedAt: new Date().toISOString(),
+        ...(parsed.tourKey ? { tourKey: parsed.tourKey } : {}),
       };
 
       saveQrPromo(next);
@@ -141,13 +142,13 @@ export const QrPromoBoot = ({ lang }: Props) => {
                   markSeenCampaign(promo.campaign);
                   localStorage.setItem("nathan_qr_promo_confirmed_v1", promo.campaign);
                 }
-              } catch {}
+              } catch { /* local storage may be unavailable */ }
               setOpen(false);
               setTimeout(() => {
                 try {
                   window.location.reload();
                 } catch {
-                  window.location.href = window.location.href;
+                  window.location.assign(window.location.href);
                 }
               }, 50);
             }}

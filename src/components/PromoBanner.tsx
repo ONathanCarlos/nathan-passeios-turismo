@@ -14,7 +14,7 @@ import {
   hasHolidayActiveToday,
   isWelcomeBlockedForPhone,
 } from "@/lib/promo";
-import { isQrActive, loadQrPromo, subscribeQrPromo, urlIsExactRoot, applyModalDiscount } from "@/lib/qrPromo";
+import { loadQrPromoForTour, subscribeQrPromo, urlIsExactRoot, applyModalDiscount } from "@/lib/qrPromo";
 import { subscribeCmsCache } from "@/lib/cmsCache";
 import {
   Dialog,
@@ -170,13 +170,14 @@ const T: Record<Lang, {
 
 interface Props {
   lang: Lang;
+  tourKey?: string;
   /** controlled open from outside (e.g. "Apply Coupon" button) */
   forceOpen?: boolean;
   onForceOpenChange?: (v: boolean) => void;
   onPromoCreated?: (p: PromoData) => void;
 }
 
-export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated }: Props) => {
+export const PromoBanner = ({ lang, tourKey, forceOpen, onForceOpenChange, onPromoCreated }: Props) => {
   const t = T[lang];
   const [promo, setPromo] = useState<PromoData | null>(null);
   const [open, setOpen] = useState(false);
@@ -184,14 +185,14 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
   const [special, setSpecial] = useState<SpecificCoupon | null>(null);
   const [specialOpen, setSpecialOpen] = useState(false);
   const admin = isAdminMode();
-  const [qrActive, setQrActive] = useState<boolean>(() => isQrActive());
+  const [qrActive, setQrActive] = useState<boolean>(() => !!loadQrPromoForTour(tourKey));
 
   useEffect(() => {
     setPromo(loadPromo());
     const id = setInterval(() => setTick((x) => x + 1), 1000);
-    const unsub = subscribeQrPromo(() => setQrActive(isQrActive()));
+    const unsub = subscribeQrPromo(() => setQrActive(!!loadQrPromoForTour(tourKey)));
     return () => { clearInterval(id); unsub(); };
-  }, []);
+  }, [tourKey]);
 
   useEffect(() => {
     if (forceOpen) setOpen(true);
@@ -272,7 +273,7 @@ export const PromoBanner = ({ lang, forceOpen, onForceOpenChange, onPromoCreated
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <Sparkles className="h-4 w-4 text-amber-300 shrink-0" />
               <span className="text-[12px] sm:text-sm font-semibold text-foreground truncate">
-                🎟 {loadQrPromo()?.percent}% OFF aplicado via QR Code
+                🎟 {loadQrPromoForTour(tourKey)?.percent}% OFF aplicado via QR Code
               </span>
             </div>
           ) : !holidayActive && urlIsExactRoot() ? (

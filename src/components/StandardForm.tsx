@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { TourDatePicker } from "./TourDatePicker";
 import { PromoBanner } from "./PromoBanner";
 import { QrPromoBoot } from "./QrPromo";
-import { loadQrPromo, urlIsExactRoot } from "@/lib/qrPromo";
+import { loadQrPromoForTour, urlIsExactRoot } from "@/lib/qrPromo";
 
 import { TourKey, getTour } from "@/lib/tours";
 import { TOUR_PRICES, formatBRL, tourPriceLabel, tourPriceStatusText, COUPON_ELIGIBLE } from "@/lib/prices";
@@ -124,7 +124,7 @@ export const StandardForm = ({
   const [cmsPriceVersion, setCmsPriceVersion] = useState(0);
   const priceStatus = tourKey ? getCmsTourPriceStatus(tourKey) : "ready";
   const cmsPrice = tourKey ? getCachedTour(tourKey)?.preco : null;
-  const couponsAllowed = urlIsExactRoot() && !loadQrPromo();
+  const couponsAllowed = urlIsExactRoot() && !loadQrPromoForTour(tourKey);
   // Cupons NUNCA se aplicam a pacotes promocionais.
   const eligible = !isPackage && (tourKey ? COUPON_ELIGIBLE.has(tourKey) : false) && couponsAllowed;
   const requiredMsg = lang === "pt" ? "Preenchimento obrigatório" : lang === "es" ? "Campo obligatorio" : "Required field";
@@ -167,7 +167,7 @@ export const StandardForm = ({
 
   const tryApplyCoupon = () => {
     if (!eligible) { toast.error(ineligibleMsg); return; }
-    if (loadQrPromo() && !isAdminMode()) {
+    if (loadQrPromoForTour(tourKey) && !isAdminMode()) {
       toast.error(lang === "pt"
         ? "Cupom de boas-vindas indisponível: desconto via QR Code já está ativo."
         : "Welcome coupon unavailable: a QR Code discount is already active.");
@@ -253,7 +253,7 @@ export const StandardForm = ({
     const baseOriginal = meta.from
       ? meta.value
       : (paxN + adultKidsN) * meta.value + halfN * (meta.value / 2);
-    const qr = loadQrPromo();
+    const qr = loadQrPromoForTour(tourKey);
     const original = qr ? baseOriginal - (baseOriginal * qr.percent) / 100 : baseOriginal;
     const discount = effectiveCoupon ? (original * effectiveCoupon.percent) / 100 : 0;
     const fareFinal = original - discount;
@@ -559,7 +559,7 @@ export const StandardForm = ({
     return (
       <>
         {!adminOn && <QrPromoBoot lang={lang} />}
-        {!adminOn && <PromoBanner lang={lang} />}
+        {!adminOn && <PromoBanner lang={lang} tourKey={tourKey} />}
         <div className={adminOn ? "" : "pt-12"}>
           <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage}>
             <SummaryOutput text={output.text} rows={output.rows} tourTitle={title} lang={lang} onReset={onBack} onSend={handleReservationSent} />
@@ -576,6 +576,7 @@ export const StandardForm = ({
       {!adminOn && (
         <PromoBanner
           lang={lang}
+          tourKey={tourKey}
           forceOpen={couponPromptOpen}
           onForceOpenChange={setCouponPromptOpen}
           onPromoCreated={(p) => {

@@ -37,7 +37,7 @@ const QrPromoRouteGuard = () => {
     const parsed = parseQrFromUrl();
     const validPromo = !!parsed;
 
-    if (validPromo && location.pathname !== "/") {
+    if (validPromo && !parsed?.tourKey && location.pathname !== "/") {
       const search = `?promo=${parsed!.campaign}`;
       navigate(
         {
@@ -86,6 +86,7 @@ const App = () => (
               <Route path="/qr:percent" element={<Home />} />
               <Route path="/passeios" element={<Index />} />
               <Route path="/passeios/:tourKey" element={<Index />} />
+              <Route path="/passeios/:tourKey/:promoCode" element={<Index />} />
               <Route path="/pacotes" element={<Pacotes />} />
               <Route path="/pacotes/:key" element={<PacoteDetalhes />} />
               <Route path="/calendario-cruzeiros-2026-2027" element={<CruiseCalendar />} />

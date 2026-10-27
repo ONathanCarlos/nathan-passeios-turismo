@@ -57,11 +57,11 @@ const PRICE_STATUS_TEXT: Record<Lang, Record<CmsTourPriceStatus, string>> = {
 export const tourPriceStatusText = (status: CmsTourPriceStatus, lang: Lang) =>
   PRICE_STATUS_TEXT[lang][status];
 
-import { loadQrPromo } from "./qrPromo";
+import { loadQrPromoForTour } from "./qrPromo";
 
 export const tourPriceLabel = (key: TourKey, lang: Lang): string => {
   const p = TOUR_PRICES[key];
-  const qr = loadQrPromo();
+  const qr = loadQrPromoForTour(key);
   if (qr) {
     const discounted = p.value - (p.value * qr.percent) / 100;
     return p.from ? `${FROM[lang]} ${formatBRL(discounted)}` : formatBRL(discounted);
