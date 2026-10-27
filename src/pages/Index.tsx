@@ -252,7 +252,7 @@ const Index = () => {
             {options.map((opt, i) => (
               <article
                 key={opt.key}
-                style={{ animationDelay: `${i * 70}ms` }}
+                style={{ animationDelay: `${i * 70}ms`, order: cmsByKey.get(opt.key)?.ordem ?? 999 }}
                 className="group glass-card rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:border-turquoise/60 hover:-translate-y-1 hover:turquoise-glow animate-in fade-in slide-in-from-bottom-3 fill-mode-both"
               >
                 {/* Image */}
@@ -354,6 +354,32 @@ const Index = () => {
                 </div>
               </article>
             ))}
+            {(cmsTours || []).filter((c) => c.ativo && !isTourKey(c.key)).map((c) => {
+              const title = pickLang(c, "nome", lang) || c.nome_pt;
+              return (
+                <article key={c.key} style={{ order: c.ordem }} className="group glass-card rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:border-turquoise/60 hover:-translate-y-1">
+                  <div className="relative overflow-hidden">
+                    <TourMediaGallery images={[c.imagem_url, ...c.gallery_imagens].filter((u): u is string => !!u)} alt={title} />
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night/85 via-night/10 to-transparent" />
+                    {c.badge && <div className="absolute top-3 right-12"><TourBadge type={c.badge} lang={lang} /></div>}
+                  </div>
+                  <div className="p-4 flex flex-col flex-1">
+                    <h3 className="text-lg font-bold text-foreground leading-tight">{title}</h3>
+                    <p className="mt-1.5 text-sm text-muted-foreground leading-snug flex-1">{pickLang(c, "descricao", lang)}</p>
+                    {c.preco > 0 && <p className="mt-3 text-2xl font-extrabold text-turquoise">{formatBRL(c.preco)}</p>}
+                    {c.urgencia && <UrgencyTag text={c.urgencia} className="mt-2" />}
+                    <div className="mt-4 flex flex-col gap-2">
+                      <button type="button" onClick={() => routeNavigate(`/passeios/${c.key}`)} className="w-full rounded-xl border border-turquoise/40 bg-turquoise/10 px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-turquoise/20 transition-colors">
+                        {t.viewDetails}
+                      </button>
+                      <a href={cmsTourWhatsAppUrl(c)} target="_blank" rel="noopener noreferrer" className="rgb-border w-full block" aria-label={`${t.bookNowBtn} — ${title}`}>
+                        <span className="flex items-center justify-center gap-1.5 rounded-[0.65rem] bg-gradient-to-r from-deep-blue to-night px-4 py-2.5 text-sm font-bold text-foreground">✨ {t.bookNowBtn}</span>
+                      </a>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </section>
 
