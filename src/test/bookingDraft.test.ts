@@ -29,6 +29,7 @@ const sampleDraft = {
   hasKids: "no" as const,
   kidsCount: "",
   ages: [],
+  guests: [{ name: "Cliente Teste", age: "34" }, { name: "Convidada", age: "29" }],
   payment: "credit" as const,
   manualCode: "",
 };

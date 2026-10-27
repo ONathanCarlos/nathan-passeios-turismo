@@ -12,6 +12,7 @@ export interface BookingDraft {
   hasKids: "yes" | "no" | "";
   kidsCount: string;
   ages: string[];
+  guests?: Array<{ name: string; age: string }>;
   payment: "cash" | "debit" | "credit" | "pix" | "";
   manualCode: string;
   expiresAt: number;
@@ -61,6 +62,12 @@ export const readBookingDraft = (
       hasKids: value.hasKids === "yes" || value.hasKids === "no" ? value.hasKids : "",
       kidsCount: typeof value.kidsCount === "string" ? value.kidsCount : "",
       ages: Array.isArray(value.ages) ? value.ages.filter((age): age is string => typeof age === "string").slice(0, 8) : [],
+      guests: Array.isArray(value.guests)
+        ? value.guests.slice(0, 8).map((guest) => ({
+            name: typeof guest?.name === "string" ? guest.name : "",
+            age: typeof guest?.age === "string" ? guest.age : "",
+          }))
+        : [],
       payment: value.payment === "cash" || value.payment === "debit" || value.payment === "credit" || value.payment === "pix" ? value.payment : "",
       manualCode: typeof value.manualCode === "string" ? value.manualCode : "",
       expiresAt: value.expiresAt,
