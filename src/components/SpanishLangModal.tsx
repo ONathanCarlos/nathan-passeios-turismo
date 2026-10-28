@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Sparkles } from "lucide-react";
 import { getCachedModal, subscribeCmsCache } from "@/lib/cmsCache";
-import { applyModalDiscount } from "@/lib/qrPromo";
+import { toast } from "sonner";
 import type { Lang } from "@/lib/i18n";
 
 const SESSION_KEY = "nathan_es_modal_seen_v1";
@@ -19,10 +19,11 @@ interface Props { lang: Lang }
 
 const DEFAULTS = {
   title: "¡Bienvenido, hermano! 🎉",
-  message: "Como hablas español, te regalamos un descuento exclusivo para tu reserva.",
-  cta: "Continuar",
-  activated: "Descuento activado",
-  applied: "Aplicado automáticamente",
+  message: "Como hablas español, tienes un descuento especial. Introduce el código en el campo de cupón de la reserva para aplicarlo.",
+  cta: "Copiar código y continuar",
+  close: "Continuar",
+  offer: "Descuento disponible",
+  manual: "Introduce el código en el formulario de reserva",
   percent: 5,
   code: "HERMANO5",
 };
@@ -59,19 +60,22 @@ export const SpanishLangModal = ({ lang }: Props) => {
   if (!active) return null;
 
   const percent = cms?.percentual || DEFAULTS.percent;
-  const code = cms?.codigo || DEFAULTS.code;
+  const code = cms?.codigo?.trim().toUpperCase() || DEFAULTS.code;
+  const hasCoupon = !!code && percent > 0;
   const title = cms?.titulo_es || DEFAULTS.title;
   const message = cms?.mensagem_es || DEFAULTS.message;
 
   const handleClose = () => {
     try { sessionStorage.setItem(SESSION_KEY, "1"); } catch {}
-    // Aplica o desconto aos passeios avulsos e recarrega (padrão de todos os modais).
-    if (percent > 0) {
-      applyModalDiscount({ percent, campaign: code || "espanhol" });
-      setOpen(false);
-      return;
-    }
     setOpen(false);
+  };
+
+  const handleCta = () => {
+    if (hasCoupon) {
+      navigator.clipboard?.writeText(code).catch(() => {});
+      toast.success("Código copiado. Introdúcelo en el campo de cupón de la reserva.");
+    }
+    handleClose();
   };
 
   return (
@@ -90,17 +94,17 @@ export const SpanishLangModal = ({ lang }: Props) => {
         <div className="space-y-4">
           <div className="text-center py-5 rounded-2xl bg-gradient-to-r from-amber-500/15 to-turquoise/15 border border-amber-400/30">
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              {DEFAULTS.activated}
+              {hasCoupon ? DEFAULTS.offer : "Oferta promocional"}
             </div>
             <div className="text-5xl font-extrabold bg-gradient-to-r from-amber-300 to-turquoise-glow bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] py-1">
-              {percent}% OFF
+              {hasCoupon ? `${percent}% OFF` : "—"}
             </div>
             <div className="text-xs text-emerald-300 font-semibold mt-1">
-              {DEFAULTS.applied}
+              {hasCoupon ? DEFAULTS.manual : "Código no disponible en este momento"}
             </div>
           </div>
 
-          {code && (
+          {hasCoupon && (
             <div className="text-center text-xs text-foreground/85">
               Código: <code className="text-turquoise-glow font-bold tracking-wider">{code}</code>
             </div>
@@ -111,11 +115,11 @@ export const SpanishLangModal = ({ lang }: Props) => {
 
           <button
             type="button"
-            onClick={handleClose}
+            onClick={handleCta}
             className="rgb-border w-full block"
           >
             <span className="flex items-center justify-center w-full h-12 rounded-[0.6rem] bg-gradient-to-r from-amber-400 to-turquoise-glow text-night font-bold text-sm">
-              {DEFAULTS.cta}
+              {hasCoupon ? DEFAULTS.cta : DEFAULTS.close}
             </span>
           </button>
         </div>

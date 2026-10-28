@@ -27,6 +27,18 @@ const parseTourQrPath = (pathname: string) => {
   return { percent, campaign: `qr${percent}-${tourKey}`, tourKey };
 };
 
+const isValidQrPromo = (q: QrPromo): boolean => {
+  if (!q || typeof q !== "object") return false;
+  const percentValid = Number.isInteger(q.percent) && q.percent >= 1 && q.percent <= 90;
+  const campaign = typeof q.campaign === "string" ? q.campaign.toLowerCase() : "";
+  const globalQr = q.tourKey === undefined && campaign === `qr${q.percent}`;
+  const targetedQr = typeof q.tourKey === "string"
+    && TOUR_QR_KEYS.has(q.tourKey.toLowerCase())
+    && (q.percent === 5 || q.percent === 10)
+    && campaign === `qr${q.percent}-${q.tourKey.toLowerCase()}`;
+  return percentValid && (globalQr || targetedQr);
+};
+
 export const parseQrFromUrl = (): { percent: number; campaign: string; tourKey?: string } | null => {
   if (typeof window === "undefined") return null;
   const params = new URLSearchParams(window.location.search);
@@ -70,11 +82,19 @@ export const urlIsExactRoot = (): boolean => {
 export const loadQrPromo = (): QrPromo | null => {
   try {
     const raw = localStorage.getItem(QR_KEY);
-    return raw ? (JSON.parse(raw) as QrPromo) : null;
-  } catch { return null; }
+    if (!raw) return null;
+    const q = JSON.parse(raw) as QrPromo;
+    if (isValidQrPromo(q)) return q;
+    localStorage.removeItem(QR_KEY);
+    return null;
+  } catch {
+    try { localStorage.removeItem(QR_KEY); } catch { /* storage may be unavailable */ }
+    return null;
+  }
 };
 
 export const saveQrPromo = (q: QrPromo) => {
+  if (!isValidQrPromo(q)) return;
   localStorage.setItem(QR_KEY, JSON.stringify(q));
   window.dispatchEvent(new CustomEvent(EVT));
 };
@@ -85,27 +105,6 @@ export const clearQrPromo = () => {
 };
 
 export const isQrActive = (): boolean => !!loadQrPromo();
-
-/**
- * Padrão único para QUALQUER modal de desconto (atuais e futuros).
- * Ao fechar o modal: salva o desconto como promo ativa (aplicada nos
- * passeios avulsos durante toda a sessão) e recarrega a página para que
- * os preços já apareçam com o desconto. Use sempre que criar um modal novo.
- */
-export const applyModalDiscount = (opts: { percent: number; campaign?: string }) => {
-  const pct = Math.round(opts.percent || 0);
-  if (pct > 0 && pct <= 90) {
-    saveQrPromo({
-      percent: pct,
-      campaign: opts.campaign || `promo${pct}`,
-      activatedAt: new Date().toISOString(),
-    });
-  }
-  setTimeout(() => {
-    try { window.location.reload(); }
-    catch { window.location.assign(window.location.href); }
-  }, 50);
-};
 
 export const hasSeenCampaign = (campaign: string): boolean => {
   try {

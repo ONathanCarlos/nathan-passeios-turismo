@@ -1,10 +1,14 @@
-import { afterEach, describe, expect, it } from "vitest";
-import { parseQrFromUrl, qrPromoForTour, urlHasPromoParam, type QrPromo } from "@/lib/qrPromo";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { loadQrPromo, parseQrFromUrl, qrPromoForTour, saveQrPromo, urlHasPromoParam, type QrPromo } from "@/lib/qrPromo";
 
 const setPath = (path: string) => window.history.replaceState({}, "", path);
 
 afterEach(() => {
   window.history.replaceState({}, "", "/");
+});
+
+beforeEach(() => {
+  localStorage.removeItem("nathan_qr_promo_v1");
 });
 
 describe("tour-specific QR promotions", () => {
@@ -42,5 +46,22 @@ describe("tour-specific QR promotions", () => {
     expect(qrPromoForTour(targeted, "buggy")).toBeNull();
     expect(qrPromoForTour(targeted)).toBeNull();
     expect(qrPromoForTour(global, "buggy")).toBe(global);
+  });
+
+  it("clears legacy non-QR modal discounts from persistent QR storage", () => {
+    localStorage.setItem("nathan_qr_promo_v1", JSON.stringify({
+      percent: 5, campaign: "HERMANO5", activatedAt: "2026-10-27T00:00:00.000Z",
+    }));
+
+    expect(loadQrPromo()).toBeNull();
+    expect(localStorage.getItem("nathan_qr_promo_v1")).toBeNull();
+  });
+
+  it("does not let a non-QR campaign overwrite a valid QR promotion", () => {
+    const qr: QrPromo = { percent: 10, campaign: "qr10", activatedAt: "2026-10-27T00:00:00.000Z" };
+    saveQrPromo(qr);
+    saveQrPromo({ percent: 5, campaign: "HERMANO5", activatedAt: "2026-10-27T00:01:00.000Z" });
+
+    expect(loadQrPromo()).toEqual(qr);
   });
 });

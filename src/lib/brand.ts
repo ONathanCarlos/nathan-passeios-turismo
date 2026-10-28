@@ -1,5 +1,6 @@
 /** Shared identity and booking destination; legacy CMS contact falls back to the current destination. */
 export const BRAND_NAME = "Ônix Turismo Búzios";
+export const BRAND_WEBSITE_URL = "https://onixturismobuzios.com.br";
 export const BOOKING_WHATSAPP = "5522998216796";
 
 export const bookingWhatsApp = (configured?: string) => {
