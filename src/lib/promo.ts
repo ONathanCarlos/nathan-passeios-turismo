@@ -57,6 +57,8 @@ export interface SpecificCoupon {
 }
 
 const BUILTIN_SPECIAL: SpecificCoupon[] = [
+  { code: "HERMANO5", percent: 5,
+    message: "Como hablas español, tienes un descuento especial para tu reserva. Introduce el código en el formulario." },
   { code: "TODEVOLTA12",   percent: 12, afterHoursIdle: 72, requiresReminder: true,
     message: "Sentimos sua falta! Volte com 12% de desconto especial." },
   { code: "TOURDASMAES12", percent: 12, onlyDate: "2026-05-10",
@@ -72,7 +74,8 @@ const BUILTIN_SPECIAL: SpecificCoupon[] = [
 /**
  * Mapeia `modais.key` (CMS) → metadados não-editáveis pelo CMS
  * (data/recovery), unindo com percent/code/message/ativo do CMS.
- * Modais sem entrada aqui são ignorados como cupom especial.
+ * Qualquer modal ativo com código e percentual também vira cupom digitável;
+ * chaves QR ficam sempre fora deste fluxo.
  */
 const MODAL_KEY_META: Record<string, Partial<SpecificCoupon> & { fallbackCode: string }> = {
   todevolta:  { afterHoursIdle: 72, requiresReminder: true, fallbackCode: "TODEVOLTA12" },
@@ -83,9 +86,7 @@ const MODAL_KEY_META: Record<string, Partial<SpecificCoupon> & { fallbackCode: s
   natal:      { onlyDate: "2026-12-25", fallbackCode: "NATAL15" },
   anonovo:    { onlyDate: "2026-12-31", fallbackCode: "ANO15" },
   blackfri:   { fallbackCode: "BF20" },
-  espanhol:   { fallbackCode: "HERMANO5" },
-  qr5:        { fallbackCode: "QR5" },
-  qr10:       { fallbackCode: "QR10" },
+  espanhol:   { percent: 5, fallbackCode: "HERMANO5" },
 };
 
 const pickModalText = (m: ModalCache, base: "titulo" | "mensagem") => {
@@ -113,32 +114,42 @@ const extractRuleReminder = (regra: any): boolean | undefined => {
 };
 
 /** SPECIAL_COUPONS efetivos — fonte de verdade: CMS modais (Supabase). */
-export const getSpecialCoupons = (): SpecificCoupon[] => {
-  const cmsModais = getAllCachedModais();
+export const mapCmsModalCoupons = (cmsModais: ModalCache[]): SpecificCoupon[] => {
   // Sem modais carregados → defaults estáticos (BUILTIN_SPECIAL).
   if (cmsModais.length === 0) return [...BUILTIN_SPECIAL];
 
   const merged: SpecificCoupon[] = [];
   for (const m of cmsModais) {
     if (!m.ativo) continue;
+    // Campanhas QR são aplicadas somente pelo link/modal QR, nunca como cupom digitado.
+    if (/^qr\d+$/i.test(m.key)) continue;
     const meta = MODAL_KEY_META[m.key];
     const ruleDate = extractRuleDate(m.regra);
     const ruleHours = extractRuleHours(m.regra);
     const ruleReminder = extractRuleReminder(m.regra);
-    const isSpecial = !!meta || !!ruleDate || !!ruleHours || !!ruleReminder;
+    const isSpecial = !!meta || !!ruleDate || !!ruleHours || !!ruleReminder
+      || (!!m.codigo?.trim() && Number(m.percentual) > 0);
     if (!isSpecial) continue;
     merged.push({
       key: m.key,
-      code: (m.codigo || meta.fallbackCode || m.key).toUpperCase(),
-      percent: m.percentual || 0,
+      code: (m.codigo || meta?.fallbackCode || m.key).toUpperCase(),
+      percent: m.percentual || meta?.percent || 0,
       onlyDate: ruleDate || meta?.onlyDate,
       afterHoursIdle: ruleHours ?? meta?.afterHoursIdle,
       requiresReminder: ruleReminder ?? meta?.requiresReminder,
       message: pickModalText(m, "mensagem") || meta?.message || pickModalText(m, "titulo") || "",
     });
   }
-  return merged.length > 0 ? merged : [...BUILTIN_SPECIAL];
+  // O modal espanhol tem fallback próprio; mantemos o código correspondente
+  // válido quando ainda não existe uma linha "espanhol" no CMS.
+  if (!cmsModais.some((m) => m.key === "espanhol")) {
+    const spanishDefault = BUILTIN_SPECIAL.find((coupon) => coupon.code === "HERMANO5");
+    if (spanishDefault) merged.push(spanishDefault);
+  }
+  return merged;
 };
+
+export const getSpecialCoupons = (): SpecificCoupon[] => mapCmsModalCoupons(getAllCachedModais());
 
 /** @deprecated use getSpecialCoupons() — mantido para compat */
 export const SPECIAL_COUPONS: SpecificCoupon[] = BUILTIN_SPECIAL;
@@ -372,4 +383,3 @@ export const getTodaySpecialCoupon = (promo: PromoData | null): SpecificCoupon |
   }
   return null;
 };
-

@@ -499,7 +499,7 @@ export const ModaisSection = () => {
     <TooltipProvider>
       <div className="space-y-3">
         <div className="text-[11px] text-muted-foreground">
-          Edite, ative/desative, traduza ou exclua qualquer modal promocional. Tudo é salvo no banco e refletido em tempo real no site.
+          Edite, ative/desative, traduza ou exclua qualquer modal promocional. Códigos ativos com percentual são cupons: o cliente deve digitá-los no formulário da reserva. Só descontos de links QR são aplicados automaticamente. Tudo é salvo no banco e refletido em tempo real no site.
         </div>
 
         {/* Criar novo modal */}

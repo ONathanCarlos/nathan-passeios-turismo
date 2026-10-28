@@ -11,7 +11,6 @@ import {
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { getCachedModal, subscribeCmsCache, ModalCache } from "@/lib/cmsCache";
-import { applyModalDiscount } from "@/lib/qrPromo";
 import type { Lang } from "@/lib/i18n";
 
 interface Props { lang: Lang }
@@ -55,34 +54,30 @@ export const CampaignPromoModal = ({ lang }: Props) => {
 
   const title = pick(cms, "titulo", lang) || "🎉 Oferta especial";
   const message = pick(cms, "mensagem", lang) || "Aproveite o desconto exclusivo deste link.";
-  const percent = cms.percentual || 0;
-  const code = cms.codigo || "";
+  const percent = Number(cms.percentual) || 0;
+  const code = cms.codigo?.trim().toUpperCase() || "";
+  const hasCoupon = !!code && percent > 0;
 
-  const tLabels: Record<Lang, { activated: string; applied: string; codeLabel: string; cta: string; copied: string }> = {
-    pt: { activated: "Desconto ativado", applied: "Aplicado automaticamente", codeLabel: "Código", cta: "Copiar e continuar", copied: "Cupom copiado!" },
-    es: { activated: "Descuento activado", applied: "Aplicado automáticamente", codeLabel: "Código", cta: "Copiar y continuar", copied: "¡Cupón copiado!" },
-    en: { activated: "Discount activated", applied: "Applied automatically", codeLabel: "Code", cta: "Copy and continue", copied: "Coupon copied!" },
-    fr: { activated: "Réduction activée", applied: "Appliquée automatiquement", codeLabel: "Code", cta: "Copier et continuer", copied: "Coupon copié !" },
-    it: { activated: "Sconto attivato", applied: "Applicato automaticamente", codeLabel: "Codice", cta: "Copia e continua", copied: "Coupon copiato!" },
+  const tLabels: Record<Lang, { offer: string; manual: string; codeLabel: string; cta: string; close: string; copied: string; noCode: string; onlyTours: string }> = {
+    pt: { offer: "Desconto disponível", manual: "Digite o código no formulário da reserva", codeLabel: "Código", cta: "Copiar código e continuar", close: "Continuar", copied: "Código copiado. Insira-o no campo de cupom da reserva.", noCode: "Código ainda não configurado", onlyTours: "Válido apenas para passeios individuais." },
+    es: { offer: "Descuento disponible", manual: "Introduce el código en el formulario de reserva", codeLabel: "Código", cta: "Copiar código y continuar", close: "Continuar", copied: "Código copiado. Introdúcelo en el campo de cupón de la reserva.", noCode: "Código aún no configurado", onlyTours: "Válido solo para paseos individuales." },
+    en: { offer: "Discount available", manual: "Enter the code in the booking form", codeLabel: "Code", cta: "Copy code and continue", close: "Continue", copied: "Code copied. Enter it in the booking coupon field.", noCode: "Code is not configured yet", onlyTours: "Valid for individual tours only." },
+    fr: { offer: "Réduction disponible", manual: "Saisissez le code dans le formulaire de réservation", codeLabel: "Code", cta: "Copier le code et continuer", close: "Continuer", copied: "Code copié. Saisissez-le dans le champ coupon de la réservation.", noCode: "Code pas encore configuré", onlyTours: "Valable uniquement pour les excursions individuelles." },
+    it: { offer: "Sconto disponibile", manual: "Inserisci il codice nel modulo di prenotazione", codeLabel: "Codice", cta: "Copia il codice e continua", close: "Continua", copied: "Codice copiato. Inseriscilo nel campo coupon della prenotazione.", noCode: "Codice non ancora configurato", onlyTours: "Valido solo per tour individuali." },
   };
   const L = tLabels[lang];
 
   const handleClose = () => {
     try { sessionStorage.setItem(`nathan_campaign_modal_${promoKey}`, "1"); } catch {}
-    // Aplica o desconto do cupom/modal aos passeios avulsos e recarrega a página
-    // para que os preços já apareçam com o desconto ativo.
-    if (percent > 0) {
-      applyModalDiscount({ percent, campaign: code || promoKey || `promo${percent}` });
-      setOpen(false);
-      return;
-    }
     setOpen(false);
   };
 
   const handleCta = () => {
-    if (code) {
+    if (hasCoupon) {
       navigator.clipboard?.writeText(code).catch(() => {});
       toast.success(L.copied);
+    } else if (percent > 0) {
+      toast.error(L.noCode);
     }
     handleClose();
   };
@@ -102,25 +97,25 @@ export const CampaignPromoModal = ({ lang }: Props) => {
 
         <div className="space-y-4">
           <div className="text-center py-5 rounded-2xl bg-gradient-to-r from-amber-500/15 to-turquoise/15 border border-amber-400/30">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{L.activated}</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{hasCoupon ? L.offer : L.noCode}</div>
             <div className="text-5xl font-extrabold bg-gradient-to-r from-amber-300 to-turquoise-glow bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] py-1">
-              {percent}% OFF
+              {hasCoupon ? `${percent}% OFF` : "—"}
             </div>
-            <div className="text-xs text-emerald-300 font-semibold mt-1">{L.applied}</div>
+            <div className="text-xs text-emerald-300 font-semibold mt-1">{hasCoupon ? L.manual : L.noCode}</div>
           </div>
 
-          {code && (
+          {hasCoupon && (
             <div className="text-center text-xs text-foreground/85">
               {L.codeLabel}: <code className="text-turquoise-glow font-bold tracking-wider">{code}</code>
             </div>
           )}
           <p className="text-center text-[10px] text-amber-200/80 italic">
-            *Desconto válido apenas para passeios avulsos.
+            *{L.onlyTours}
           </p>
 
           <button type="button" onClick={handleCta} className="rgb-border w-full block">
             <span className="flex items-center justify-center w-full h-12 rounded-[0.6rem] bg-gradient-to-r from-amber-400 to-turquoise-glow text-night font-bold text-sm">
-              {L.cta}
+              {hasCoupon ? L.cta : L.close}
             </span>
           </button>
         </div>

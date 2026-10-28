@@ -14,7 +14,7 @@ import {
   hasHolidayActiveToday,
   isWelcomeBlockedForPhone,
 } from "@/lib/promo";
-import { loadQrPromoForTour, subscribeQrPromo, urlIsExactRoot, applyModalDiscount } from "@/lib/qrPromo";
+import { loadQrPromoForTour, subscribeQrPromo, urlIsExactRoot } from "@/lib/qrPromo";
 import { subscribeCmsCache } from "@/lib/cmsCache";
 import {
   Dialog,
@@ -168,6 +168,14 @@ const T: Record<Lang, {
   },
 };
 
+const SPECIAL_COPY: Record<Lang, { title: string; instruction: string; cta: string; copied: string; code: string; onlyTours: string }> = {
+  pt: { title: "Hoje é dia especial 🎉", instruction: "Digite este código no campo de cupom da reserva para aplicar o desconto.", cta: "Copiar código para a reserva", copied: "Código copiado. Digite-o no campo de cupom da reserva.", code: "Código", onlyTours: "Válido apenas para passeios individuais." },
+  es: { title: "Hoy es un día especial 🎉", instruction: "Introduce este código en el campo de cupón de la reserva para aplicar el descuento.", cta: "Copiar código para la reserva", copied: "Código copiado. Introdúcelo en el campo de cupón de la reserva.", code: "Código", onlyTours: "Válido solo para paseos individuales." },
+  en: { title: "Today is a special day 🎉", instruction: "Enter this code in the booking coupon field to apply the discount.", cta: "Copy code for booking", copied: "Code copied. Enter it in the booking coupon field.", code: "Code", onlyTours: "Valid for individual tours only." },
+  fr: { title: "Aujourd'hui est un jour spécial 🎉", instruction: "Saisissez ce code dans le champ coupon de la réservation pour appliquer la réduction.", cta: "Copier le code pour réserver", copied: "Code copié. Saisissez-le dans le champ coupon de la réservation.", code: "Code", onlyTours: "Valable uniquement pour les excursions individuelles." },
+  it: { title: "Oggi è un giorno speciale 🎉", instruction: "Inserisci questo codice nel campo coupon della prenotazione per applicare lo sconto.", cta: "Copia il codice per prenotare", copied: "Codice copiato. Inseriscilo nel campo coupon della prenotazione.", code: "Codice", onlyTours: "Valido solo per tour individuali." },
+};
+
 interface Props {
   lang: Lang;
   tourKey?: string;
@@ -315,46 +323,35 @@ export const PromoBanner = ({ lang, tourKey, forceOpen, onForceOpenChange, onPro
       />
 
       {/* Modal de cupom especial */}
-      <Dialog open={specialOpen} onOpenChange={(v) => {
-        if (!v) {
-          setSpecialOpen(false);
-          if (special && special.percent > 0) {
-            applyModalDiscount({ percent: special.percent, campaign: special.code });
-          }
-        } else {
-          setSpecialOpen(true);
-        }
-      }}>
+      <Dialog open={specialOpen} onOpenChange={setSpecialOpen}>
         <DialogContent className="bg-card border-amber-400/40 max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-foreground flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-amber-300" />
-              {lang === "pt" ? "Hoje é dia especial 🎉" : "Today is a special day 🎉"}
+              {SPECIAL_COPY[lang].title}
             </DialogTitle>
-            <DialogDescription>{special?.message}</DialogDescription>
+            <DialogDescription>
+              {special?.message} {SPECIAL_COPY[lang].instruction}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="text-center py-3 rounded-xl bg-gradient-to-r from-amber-500/15 to-turquoise/15 border border-amber-400/30">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{lang === "pt" ? "Código" : "Code"}</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{SPECIAL_COPY[lang].code}</div>
               <div className="text-2xl font-extrabold text-amber-200 font-mono tracking-wider">{special?.code}</div>
               <div className="text-sm text-emerald-300 font-semibold">-{special?.percent}%</div>
             </div>
+            <p className="text-center text-[10px] text-amber-200/80 italic">{SPECIAL_COPY[lang].onlyTours}</p>
             <button
               type="button"
               onClick={() => {
                 if (special) navigator.clipboard?.writeText(special.code).catch(() => {});
-                toast.success(lang === "pt" ? "Cupom copiado!" : "Coupon copied!");
+                toast.success(SPECIAL_COPY[lang].copied);
                 setSpecialOpen(false);
-                // Aplica o desconto comemorativo aos passeios avulsos e recarrega
-                // a página (padrão único de todos os modais de desconto).
-                if (special && special.percent > 0) {
-                  applyModalDiscount({ percent: special.percent, campaign: special.code });
-                }
               }}
               className="rgb-border w-full block"
             >
               <span className="flex items-center justify-center w-full h-12 rounded-[0.6rem] bg-gradient-to-r from-amber-400 to-turquoise-glow text-night font-bold text-sm">
-                {lang === "pt" ? "Resgate seu cupom agora!" : "Claim your coupon now!"}
+                {SPECIAL_COPY[lang].cta}
               </span>
             </button>
           </div>

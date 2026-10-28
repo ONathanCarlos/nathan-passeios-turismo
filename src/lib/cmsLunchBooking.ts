@@ -1,4 +1,5 @@
 import type { CmsTour } from "@/lib/cms";
+import { BRAND_WEBSITE_URL } from "@/lib/brand";
 
 export interface LunchGuest {
   name: string;
@@ -75,10 +76,12 @@ export const buildLunchBookingMessage = (input: LunchBookingMessageInput): strin
     "🧾 COMENSAIS (nome e idade)",
     ...input.guests.map((guest, index) => `${index + 1}. ${guest.name.trim()} — ${guest.age} anos${index === 0 ? " (responsável)" : ""}`),
     "",
-    "💰 DISCRIMINAÇÃO DOS VALORES",
-    `Almoço (${input.amounts.guestCount} × ${money(input.amounts.unitPrice)}): ${money(input.amounts.subtotal)}`,
+    "💰 VALORES DA RESERVA",
   ];
 
+  if (input.amounts.creditSurcharge > 0) {
+    lines.push(`Almoço (${input.amounts.guestCount} × ${money(input.amounts.unitPrice)}): ${money(input.amounts.subtotal)}`);
+  }
   if (input.amounts.creditSurcharge > 0) {
     lines.push(`Taxa do cartão (5%): ${money(input.amounts.creditSurcharge)}`);
   }
@@ -87,7 +90,7 @@ export const buildLunchBookingMessage = (input: LunchBookingMessageInput): strin
     `💳 Forma de pagamento: ${input.paymentLabel}`,
     ...(input.paymentLabel === "Cartão de crédito" ? ["A taxa de 5% do cartão já está incluída no total acima."] : []),
     "",
-    "Reserva feita pelo site - https://www.nathanturismo.com.br",
+    `Reserva feita pelo site - ${BRAND_WEBSITE_URL}`,
   );
   return lines.join("\n");
 };

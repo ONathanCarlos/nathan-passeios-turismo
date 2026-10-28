@@ -14,17 +14,19 @@ import { toast } from "sonner";
 import { TourDatePicker } from "./TourDatePicker";
 import { PromoBanner } from "./PromoBanner";
 import { QrPromoBoot } from "./QrPromo";
-import { loadQrPromoForTour, urlIsExactRoot } from "@/lib/qrPromo";
+import { loadQrPromoForTour, subscribeQrPromo } from "@/lib/qrPromo";
 
 import { TourKey, getTour } from "@/lib/tours";
 import { TOUR_PRICES, formatBRL, tourPriceLabel, tourPriceStatusText, COUPON_ELIGIBLE } from "@/lib/prices";
 import { forceRefreshCms, getCachedTour, getCmsTourPriceStatus, subscribeCmsCache } from "@/lib/cmsCache";
 import {
-  isExpired, isTester, isAdminMode, loadPromo, markCouponUsed, PromoData,
-  validateSpecialCoupon, markSpecialUsed, SpecificCoupon, hasHolidayActiveToday,
+  isExpired, isTester, isAdminMode, loadPromo, markCouponUsed, normalizeCoupon, PromoData,
+  validateSpecialCoupon, markSpecialUsed, SpecificCoupon,
 } from "@/lib/promo";
 import { createReservaInDb, markCouponUsedInDb, syncLead, completeReserva } from "@/lib/db";
-import { Tag, Lock, ExternalLink } from "lucide-react";
+import { buildBookingPriceBreakdown } from "@/lib/bookingPriceBreakdown";
+import { Tag, ExternalLink, X } from "lucide-react";
+import { BRAND_WEBSITE_URL } from "@/lib/brand";
 import {
   calculateBookingAmounts,
   calculateEmbarkationFee,
@@ -48,6 +50,64 @@ const PAYMENT_PT: Record<Payment, string> = {
   debit: "Cartão de débito",
   credit: "Cartão de crédito",
   pix: "Pix",
+};
+
+const COUPON_TEXT: Record<Lang, {
+  placeholder: string; apply: string; obtain: string; useSaved: string; enter: string;
+  notFound: string; expired: string; wrongPhone: string; used: string; wrongDate: string;
+  needsReminder: string; needsIdle: string; applied: string; created: string;
+  unavailable: string; qrExclusive: string; packageUnavailable: string;
+}> = {
+  pt: {
+    placeholder: "Digite seu cupom", apply: "Aplicar", obtain: "Obter cupom", useSaved: "Usar meu cupom",
+    enter: "Digite um código promocional.", notFound: "Cupom inválido ou inativo.", expired: "Cupom expirado.",
+    wrongPhone: "Este cupom foi emitido para outro telefone.", used: "Este cupom já foi utilizado.",
+    wrongDate: "Cupom indisponível nesta data.", needsReminder: "Este cupom exige aceite dos lembretes promocionais.",
+    needsIdle: "Este cupom de recuperação ainda não está disponível.", applied: "Cupom aplicado",
+    created: "Cupom criado. Digite o código no campo e toque em Aplicar para usar o desconto.",
+    unavailable: "Cupons indisponíveis para este passeio.", qrExclusive: "Desconto QR ativo. Cupons não acumulam com QR.",
+    packageUnavailable: "Pacotes promocionais não aceitam cupons.",
+  },
+  es: {
+    placeholder: "Introduce tu cupón", apply: "Aplicar", obtain: "Obtener cupón", useSaved: "Usar mi cupón",
+    enter: "Introduce un código promocional.", notFound: "Cupón inválido o inactivo.", expired: "El cupón ha caducado.",
+    wrongPhone: "Este cupón fue emitido para otro teléfono.", used: "Este cupón ya fue utilizado.",
+    wrongDate: "El cupón no está disponible en esta fecha.", needsReminder: "Este cupón requiere aceptar los recordatorios promocionales.",
+    needsIdle: "Este cupón de recuperación aún no está disponible.", applied: "Cupón aplicado",
+    created: "Cupón creado. Introduce el código en el campo y pulsa Aplicar para usar el descuento.",
+    unavailable: "Cupones no disponibles para este paseo.", qrExclusive: "Descuento QR activo. Los cupones no se acumulan con QR.",
+    packageUnavailable: "Los paquetes promocionales no aceptan cupones.",
+  },
+  en: {
+    placeholder: "Enter your coupon", apply: "Apply", obtain: "Get a coupon", useSaved: "Use my coupon",
+    enter: "Enter a promo code.", notFound: "Invalid or inactive coupon.", expired: "This coupon has expired.",
+    wrongPhone: "This coupon was issued for another phone number.", used: "This coupon has already been used.",
+    wrongDate: "This coupon is not available on this date.", needsReminder: "This coupon requires opting in to promotional reminders.",
+    needsIdle: "This recovery coupon is not available yet.", applied: "Coupon applied",
+    created: "Coupon created. Enter the code in the field and tap Apply to use the discount.",
+    unavailable: "Coupons are not available for this tour.", qrExclusive: "QR discount is active. Coupons cannot be combined with QR.",
+    packageUnavailable: "Promotional packages do not accept coupons.",
+  },
+  fr: {
+    placeholder: "Saisissez votre coupon", apply: "Appliquer", obtain: "Obtenir un coupon", useSaved: "Utiliser mon coupon",
+    enter: "Saisissez un code promotionnel.", notFound: "Coupon invalide ou inactif.", expired: "Ce coupon a expiré.",
+    wrongPhone: "Ce coupon a été émis pour un autre numéro.", used: "Ce coupon a déjà été utilisé.",
+    wrongDate: "Ce coupon n'est pas disponible à cette date.", needsReminder: "Ce coupon exige l'inscription aux rappels promotionnels.",
+    needsIdle: "Ce coupon de relance n'est pas encore disponible.", applied: "Coupon appliqué",
+    created: "Coupon créé. Saisissez le code dans le champ puis appuyez sur Appliquer.",
+    unavailable: "Les coupons ne sont pas disponibles pour cette excursion.", qrExclusive: "Réduction QR active. Les coupons ne se cumulent pas avec le QR.",
+    packageUnavailable: "Les forfaits promotionnels n'acceptent pas les coupons.",
+  },
+  it: {
+    placeholder: "Inserisci il tuo coupon", apply: "Applica", obtain: "Ottieni un coupon", useSaved: "Usa il mio coupon",
+    enter: "Inserisci un codice promozionale.", notFound: "Coupon non valido o inattivo.", expired: "Questo coupon è scaduto.",
+    wrongPhone: "Questo coupon è stato emesso per un altro numero.", used: "Questo coupon è già stato utilizzato.",
+    wrongDate: "Questo coupon non è disponibile in questa data.", needsReminder: "Questo coupon richiede l'iscrizione ai promemoria promozionali.",
+    needsIdle: "Questo coupon di recupero non è ancora disponibile.", applied: "Coupon applicato",
+    created: "Coupon creato. Inserisci il codice nel campo e premi Applica per usare lo sconto.",
+    unavailable: "Coupon non disponibili per questo tour.", qrExclusive: "Sconto QR attivo. I coupon non si sommano al QR.",
+    packageUnavailable: "I pacchetti promozionali non accettano coupon.",
+  },
 };
 
 const CRUISE_CALENDAR_LINK: Record<Lang, string> = {
@@ -119,20 +179,27 @@ export const StandardForm = ({
   const [appliedSpecial, setAppliedSpecial] = useState<SpecificCoupon | null>(null);
   const [manualCode, setManualCode] = useState(initialDraft?.manualCode ?? "");
   const [couponPromptOpen, setCouponPromptOpen] = useState(false);
+  const [qrPromoVersion, setQrPromoVersion] = useState(0);
   // O preço do passeio chega do CMS de forma assíncrona. Este contador força
   // o useMemo abaixo a reler TOUR_PRICES quando o cache for atualizado.
   const [cmsPriceVersion, setCmsPriceVersion] = useState(0);
   const priceStatus = tourKey ? getCmsTourPriceStatus(tourKey) : "ready";
   const cmsPrice = tourKey ? getCachedTour(tourKey)?.preco : null;
-  const couponsAllowed = urlIsExactRoot() && !loadQrPromoForTour(tourKey);
+  const qrDiscountActive = !!loadQrPromoForTour(tourKey);
+  const couponsAllowed = !qrDiscountActive;
   // Cupons NUNCA se aplicam a pacotes promocionais.
   const eligible = !isPackage && (tourKey ? COUPON_ELIGIBLE.has(tourKey) : false) && couponsAllowed;
+  const couponText = COUPON_TEXT[lang];
+  const savedPromo = loadPromo();
+  const savedPromoAvailable = !!savedPromo && !isExpired(savedPromo)
+    && (!savedPromo.cupomUsado || isTester(savedPromo) || isAdminMode());
   const requiredMsg = lang === "pt" ? "Preenchimento obrigatório" : lang === "es" ? "Campo obligatorio" : "Required field";
-  const ineligibleMsg = lang === "pt" ? "Cupom indisponível para este passeio."
-    : lang === "es" ? "Cupón no disponible para este paseo."
-    : "Coupon not available for this tour.";
+  const ineligibleMsg = isPackage ? couponText.packageUnavailable
+    : qrDiscountActive ? couponText.qrExclusive
+    : couponText.unavailable;
 
   useEffect(() => subscribeCmsCache(() => setCmsPriceVersion((version) => version + 1)), []);
+  useEffect(() => subscribeQrPromo(() => setQrPromoVersion((version) => version + 1)), []);
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("nathan:booking-output", { detail: { hidden: !!output } }));
@@ -165,57 +232,57 @@ export const StandardForm = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const tryApplyCoupon = () => {
+  const requestWelcomeCoupon = () => {
     if (!eligible) { toast.error(ineligibleMsg); return; }
-    if (loadQrPromoForTour(tourKey) && !isAdminMode()) {
-      toast.error(lang === "pt"
-        ? "Cupom de boas-vindas indisponível: desconto via QR Code já está ativo."
-        : "Welcome coupon unavailable: a QR Code discount is already active.");
+    const saved = loadPromo();
+    if (saved && !isExpired(saved) && (!saved.cupomUsado || isTester(saved) || isAdminMode())) {
+      setManualCode(saved.cupom);
+      toast.info(lang === "pt"
+        ? "Código preenchido. Toque em Aplicar para ativar o desconto."
+        : lang === "es" ? "Código rellenado. Pulsa Aplicar para activar el descuento."
+        : lang === "fr" ? "Code renseigné. Appuyez sur Appliquer pour activer la réduction."
+        : lang === "it" ? "Codice inserito. Premi Applica per attivare lo sconto."
+        : "Code filled in. Tap Apply to activate the discount.");
       return;
     }
-    if (hasHolidayActiveToday() && !isAdminMode()) {
-      toast.error(lang === "pt"
-        ? "Hoje vale apenas o cupom comemorativo. Use o código do dia."
-        : "Today only the holiday coupon is valid. Use the day's code.");
-      return;
-    }
-    const p = loadPromo();
-    if (!p) {
-      setCouponPromptOpen(true);
-      return;
-    }
-    if (p.cupomUsado && !isTester(p) && !isAdminMode()) {
-      toast.error(lang === "pt" ? "Você já utilizou este cupom promocional." : "Coupon already used.");
-      return;
-    }
-    if (isExpired(p)) {
-      toast.error(lang === "pt" ? "Cupom expirado." : "Coupon expired.");
-      return;
-    }
-    setAppliedCoupon(p);
-    setAppliedSpecial(null);
-    toast.success(`Cupom ${p.cupom} aplicado · -${p.percentualDesconto}%`);
+    setCouponPromptOpen(true);
   };
 
   const tryApplyManual = () => {
-    const code = manualCode.trim();
-    if (!code) return;
+    const code = normalizeCoupon(manualCode).trim();
+    if (!code) { toast.error(couponText.enter); return; }
     if (!eligible) { toast.error(ineligibleMsg); return; }
     const p = loadPromo();
+
+    // Cupom de boas-vindas: ainda exige ação explícita no campo e pertence ao telefone cadastrado.
+    if (p && normalizeCoupon(p.cupom) === code) {
+      if (isExpired(p)) { toast.error(couponText.expired); return; }
+      if (p.cupomUsado && !isTester(p) && !isAdminMode()) { toast.error(couponText.used); return; }
+      const enteredPhone = fullPhone(phone).replace(/\D/g, "");
+      const couponPhone = p.whatsapp.replace(/\D/g, "");
+      if (enteredPhone && couponPhone && enteredPhone !== couponPhone && !isTester(p) && !isAdminMode()) {
+        toast.error(couponText.wrongPhone);
+        return;
+      }
+      setAppliedCoupon(p);
+      setAppliedSpecial(null);
+      toast.success(`${couponText.applied}: ${p.cupom} · -${p.percentualDesconto}%`);
+      return;
+    }
+
     const v = validateSpecialCoupon(code, { promo: p, name, whatsapp: fullPhone(phone) });
     if (!v.ok) {
-      const msg =
-        v.reason === "not_found" ? (lang === "pt" ? "Cupom inválido." : "Invalid coupon.")
-        : v.reason === "wrong_date" ? (lang === "pt" ? "Cupom indisponível nesta data." : "Coupon not available today.")
-        : v.reason === "needs_reminder" ? (lang === "pt" ? "Cupom requer aceite de lembretes promocionais." : "Coupon requires reminder opt-in.")
-        : v.reason === "needs_idle" ? (lang === "pt" ? "Cupom de recuperação ainda não disponível." : "Recovery coupon not yet available.")
-        : (lang === "pt" ? "Cupom já utilizado." : "Coupon already used.");
+      const msg = v.reason === "not_found" ? couponText.notFound
+        : v.reason === "wrong_date" ? couponText.wrongDate
+        : v.reason === "needs_reminder" ? couponText.needsReminder
+        : v.reason === "needs_idle" ? couponText.needsIdle
+        : couponText.used;
       toast.error(msg);
       return;
     }
     setAppliedSpecial(v.coupon!);
     setAppliedCoupon(null); // especial substitui padrão
-    toast.success(`${v.coupon!.code} · -${v.coupon!.percent}%`);
+    toast.success(`${couponText.applied}: ${v.coupon!.code} · -${v.coupon!.percent}%`);
   };
 
   // Cálculo de preço (quando aplicável)
@@ -271,7 +338,7 @@ export const StandardForm = ({
       embarkationFee: embarkation.amount,
       meta, qrPercent: qr?.percent ?? 0, qrApplied: !!qr, baseOriginal,
     };
-  }, [tourKey, pax, hasKids, ages, kidsN, adultsOnly, effectiveCoupon, isPackage, packagePrice, packageTourKeys, priceStatus, cmsPrice, date, payment]);
+  }, [tourKey, pax, hasKids, ages, kidsN, adultsOnly, effectiveCoupon, isPackage, packagePrice, packageTourKeys, priceStatus, cmsPrice, date, payment, qrPromoVersion]);
 
   const cruiseFeeActive = tourKey
     ? cruiseFeeApplies(tourKey, date)
@@ -383,6 +450,7 @@ export const StandardForm = ({
     setErrors({});
     const dateStr = date!.toLocaleDateString(lang === "pt" ? "pt-BR" : lang === "es" ? "es-ES" : lang === "fr" ? "fr-FR" : lang === "it" ? "it-IT" : "en-GB");
     const rows: { label: string; value: string }[] = [];
+    const priceLines = priceInfo ? buildBookingPriceBreakdown(priceInfo, effectiveCoupon) : [];
     rows.push({ label: t.sumName, value: name });
     if (requireCpf) rows.push({ label: "CPF", value: cpf });
     rows.push({ label: t.sumPhone, value: fullPhone(phone) });
@@ -406,33 +474,18 @@ export const StandardForm = ({
     }
     rows.push({ label: t.sumPay, value: paymentLabel(payment as Payment) });
 
-    // Discriminação integral: descontos incidem no passeio; a taxa do píer não
-    // recebe desconto, e a taxa de cartão é calculada sobre o subtotal final.
-    if (priceInfo) {
-      if (effectiveCoupon || priceInfo.qrApplied) {
-        rows.push({ label: lang === "pt" ? "Valor do passeio antes dos descontos" : "Tour price before discounts", value: formatBRL(priceInfo.baseOriginal) });
-      }
-      if (priceInfo.qrApplied) {
-        rows.push({ label: "QR Code", value: `🎟 ${priceInfo.qrPercent}% OFF` });
-      }
-      if (effectiveCoupon) {
-        rows.push({ label: "Cupom", value: `${effectiveCoupon.code} (-${effectiveCoupon.percent}%)` });
-        rows.push({ label: lang === "pt" ? "Economia" : "Savings", value: formatBRL(priceInfo.discount) });
-      }
-      rows.push({ label: lang === "pt" ? "Passeio (após descontos)" : "Tour (after discounts)", value: formatBRL(priceInfo.fareFinal) });
-      if (priceInfo.embarkationFee > 0) {
+    for (const item of priceLines) {
+      if (item.kind === "coupon") rows.push({ label: "Cupom", value: `${item.code} (-${item.percent}%)` });
+      if (item.kind === "qr") rows.push({ label: "Desconto QR Code", value: `-${item.percent}%` });
+      if (item.kind === "fare") rows.push({ label: lang === "pt" ? "Passeio (após descontos)" : "Tour (after discounts)", value: formatBRL(item.amount) });
+      if (item.kind === "embarkation") {
         rows.push({
-          label: `${LABELS[lang].embarkationFee} (${priceInfo.embarkationPassengerCount} ${LABELS[lang].feePerPassenger})`,
-          value: formatBRL(priceInfo.embarkationFee),
+          label: `${LABELS[lang].embarkationFee} (${item.passengers} ${LABELS[lang].feePerPassenger})`,
+          value: formatBRL(item.amount),
         });
       }
-      if (priceInfo.embarkationFee > 0 || priceInfo.creditSurcharge > 0) {
-        rows.push({ label: LABELS[lang].tourSubtotal, value: formatBRL(priceInfo.subtotal) });
-      }
-      if (priceInfo.creditSurcharge > 0) {
-        rows.push({ label: LABELS[lang].creditSurcharge, value: formatBRL(priceInfo.creditSurcharge) });
-      }
-      rows.push({ label: LABELS[lang].totalDue, value: formatBRL(priceInfo.final) });
+      if (item.kind === "credit") rows.push({ label: LABELS[lang].creditSurcharge, value: formatBRL(item.amount) });
+      if (item.kind === "total") rows.push({ label: LABELS[lang].totalDue, value: formatBRL(item.amount) });
     }
     rows.push({ label: lang === "pt" ? "Local Check-in" : "Check-in" , value: "Praça Santos Dummont, Cabine 03 - Búzios/RJ" });
     rows.push({ label: lang === "pt" ? "Horário Check-in" : "Check-in time", value: "Até 11:30 — falar com Nathan ou Mary" });
@@ -472,27 +525,21 @@ export const StandardForm = ({
     }
     lines.push("");
     if (priceInfo) {
-      lines.push("💰 DISCRIMINAÇÃO DOS VALORES");
-      lines.push(`Passeio (após descontos): ${formatBRL(priceInfo.fareFinal)}`);
-      if (priceInfo.embarkationFee > 0) {
-        lines.push(`Taxa de embarque (${priceInfo.embarkationPassengerCount} pessoa(s) × R$ ${EMBARKATION_FEE_PER_PERSON}): ${formatBRL(priceInfo.embarkationFee)}`);
+      lines.push("💰 VALORES DA RESERVA");
+      for (const item of priceLines) {
+        if (item.kind === "coupon") lines.push(`Cupom aplicado: ${item.code} (−${item.percent}%)`);
+        if (item.kind === "qr") lines.push(`Desconto QR Code: −${item.percent}%`);
+        if (item.kind === "fare") lines.push(`Passeio (após descontos): ${formatBRL(item.amount)}`);
+        if (item.kind === "embarkation") {
+          lines.push(`Taxa de embarque (${item.passengers} pessoa(s) × R$ ${EMBARKATION_FEE_PER_PERSON}): ${formatBRL(item.amount)}`);
+        }
+        if (item.kind === "credit") lines.push(`Taxa do cartão (5%): ${formatBRL(item.amount)}`);
+        if (item.kind === "total") lines.push(`💰 TOTAL A PAGAR: ${formatBRL(item.amount)}`);
       }
-      if (priceInfo.embarkationFee > 0 || priceInfo.creditSurcharge > 0) {
-        lines.push(`Subtotal: ${formatBRL(priceInfo.subtotal)}`);
-      }
-      if (priceInfo.creditSurcharge > 0) {
-        lines.push(`Taxa do cartão (5%): ${formatBRL(priceInfo.creditSurcharge)}`);
-      }
-      lines.push(`💰 TOTAL A PAGAR: ${formatBRL(priceInfo.final)}`);
     }
     lines.push(`💳 Forma de pagamento: ${PAYMENT_PT[payment as Payment]}`);
     if (payment === "credit") {
       lines.push("A taxa de 5% do cartão já está incluída no total acima.");
-    }
-    if (effectiveCoupon) {
-      lines.push(`🎟 Promoção aplicada: ${effectiveCoupon.code} (−${effectiveCoupon.percent}%)`);
-    } else if (priceInfo?.qrApplied) {
-      lines.push(`🎟 Promoção aplicada: −${priceInfo.qrPercent}%`);
     }
     if (!noCheckin) {
       lines.push(
@@ -503,7 +550,7 @@ export const StandardForm = ({
     }
     lines.push(
       "",
-      "Reserva feita pelo site - https://www.nathanturismo.com.br",
+      `Reserva feita pelo site - ${BRAND_WEBSITE_URL}`,
     );
     // A reserva precisa existir antes da tela final: sem ID confirmado não
     // mostramos o botão do WhatsApp nem deixamos o cliente acreditar que foi salvo.
@@ -550,7 +597,8 @@ export const StandardForm = ({
 
   const reset = () => {
     setName(""); setCpf(""); setPhone({ ddi: "+55", number: "" }); setPax("");
-    setDate(undefined); setPousada(""); setRoom(""); setAddress("");
+    setDate(undefined); setPousada(""); setRoom(""); setAddress(""); setManualCode("");
+    setAppliedCoupon(null); setAppliedSpecial(null);
     setHasKids(""); setKidsCount(""); setAges([]); setPayment(""); setOutput(null);
   };
 
@@ -580,14 +628,13 @@ export const StandardForm = ({
           forceOpen={couponPromptOpen}
           onForceOpenChange={setCouponPromptOpen}
           onPromoCreated={(p) => {
-            // Auto-aplica e preenche
-            setAppliedCoupon(p);
             if (!name) setName(p.nome);
             if (!phone.number) {
               const m = p.whatsapp.match(/^(\+\d+)\s*(.*)$/);
               if (m) setPhone({ ddi: m[1], number: m[2].replace(/\D/g, "") });
             }
-            toast.success(`Cupom ${p.cupom} aplicado · -${p.percentualDesconto}%`);
+            setCouponPromptOpen(false);
+            toast.success(`Cupom ${p.cupom} criado · -${p.percentualDesconto}%. ${couponText.created}`);
           }}
         />
       )}
@@ -643,15 +690,15 @@ export const StandardForm = ({
                   </div>
                 )}
               </div>
-              {eligible && !effectiveCoupon && !hasHolidayActiveToday() && (
+              {eligible && !effectiveCoupon && (
                 <button
                   type="button"
-                  onClick={tryApplyCoupon}
+                  onClick={requestWelcomeCoupon}
                   className="rgb-border shrink-0"
                 >
                   <span className="flex items-center gap-1.5 rounded-[0.55rem] bg-gradient-to-r from-turquoise to-turquoise-glow text-night font-bold text-xs px-3 py-2">
                     <Tag className="h-3.5 w-3.5" />
-                    {lang === "pt" ? "Aplicar Cupom" : "Apply Coupon"}
+                    {savedPromoAvailable ? couponText.useSaved : couponText.obtain}
                   </span>
                 </button>
               )}
@@ -663,7 +710,7 @@ export const StandardForm = ({
                   value={effectiveCoupon ? effectiveCoupon.code : manualCode}
                   onChange={(e) => setManualCode(e.target.value.toUpperCase())}
                   disabled={!!effectiveCoupon}
-                  placeholder={lang === "pt" ? "Digite seu cupom" : "Enter your coupon"}
+                  placeholder={couponText.placeholder}
                   className={`${fieldClass} h-10 text-sm uppercase tracking-wider`}
                 />
                 {!effectiveCoupon && (
@@ -672,13 +719,19 @@ export const StandardForm = ({
                     onClick={tryApplyManual}
                     className="h-10 bg-turquoise/20 border border-turquoise/40 text-foreground hover:bg-turquoise/30"
                   >
-                    {lang === "pt" ? "Aplicar" : "Apply"}
+                    {couponText.apply}
                   </Button>
                 )}
                 {effectiveCoupon && (
-                  <div className="flex items-center px-2 text-emerald-300">
-                    <Lock className="h-4 w-4" />
-                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    aria-label={lang === "pt" ? "Remover cupom" : lang === "es" ? "Quitar cupón" : lang === "fr" ? "Retirer le coupon" : lang === "it" ? "Rimuovi coupon" : "Remove coupon"}
+                    onClick={() => { setAppliedCoupon(null); setAppliedSpecial(null); setManualCode(""); }}
+                    className="h-10 px-3 text-emerald-300 hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 )}
               </div>
             ) : (

@@ -56,6 +56,24 @@ describe("CMS lunch booking", () => {
     expect(normalizedMessage).toContain("Taxa do cartão (5%): R$ 6,50");
     expect(normalizedMessage).toContain("TOTAL A PAGAR: R$ 136,50");
     expect(normalizedMessage).toContain("Forma de pagamento: Cartão de crédito");
+    expect(message).toContain("Reserva feita pelo site - https://onixturismobuzios.com.br");
     expect(normalizedMessage).not.toMatch(/pousada|nacionalidade|CPF/i);
+  });
+
+  it("shows only one amount for cash bookings without additional fees", () => {
+    const amounts = calculateLunchBookingAmounts(65, 2, false);
+    const message = buildLunchBookingMessage({
+      tourTitle: "Almoço Buffet",
+      responsibleName: "Ana Lima",
+      phone: "+55 22 99999 1111",
+      date: "27/10/2026",
+      guests: [{ name: "Ana Lima", age: "35" }, { name: "João Lima", age: "12" }],
+      paymentLabel: "Dinheiro",
+      amounts,
+    });
+
+    const normalizedMessage = message.replace(/\u00a0/g, " ");
+    expect(normalizedMessage).toContain("TOTAL A PAGAR: R$ 130");
+    expect(normalizedMessage).not.toContain("Almoço (2 ×");
   });
 });
