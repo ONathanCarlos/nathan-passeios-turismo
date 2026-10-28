@@ -690,7 +690,7 @@ export const StandardForm = ({
                   </div>
                 )}
               </div>
-              {eligible && !effectiveCoupon && (
+              {eligible && !effectiveCoupon && !adminOn && (
                 <button
                   type="button"
                   onClick={requestWelcomeCoupon}
