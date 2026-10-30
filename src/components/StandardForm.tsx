@@ -41,11 +41,10 @@ import {
   CRUISE_CALENDAR_PATH,
 } from "@/lib/cruiseEmbarkation";
 import { bookingDraftKey, BOOKING_DRAFT_TTL_MS, clearBookingDraft, dateFromLocalKey, readBookingDraft, saveBookingDraft } from "@/lib/bookingDraft";
-
-type Payment = "cash" | "debit" | "credit" | "pix";
+import { hasCardSurcharge, type PaymentMethod } from "@/lib/payment";
 
 /** Rótulos de pagamento em PT fixo para a mensagem do WhatsApp. */
-const PAYMENT_PT: Record<Payment, string> = {
+const PAYMENT_PT: Record<PaymentMethod, string> = {
   cash: "Dinheiro",
   debit: "Cartão de débito",
   credit: "Cartão de crédito",
@@ -169,7 +168,7 @@ export const StandardForm = ({
   const [hasKids, setHasKids] = useState<"yes" | "no" | "">(initialDraft?.hasKids ?? "");
   const [kidsCount, setKidsCount] = useState(initialDraft?.kidsCount ?? "");
   const [ages, setAges] = useState<string[]>(initialDraft?.ages ?? []);
-  const [payment, setPayment] = useState<Payment | "">(initialDraft?.payment ?? "");
+  const [payment, setPayment] = useState<PaymentMethod | "">(initialDraft?.payment ?? "");
   const [output, setOutput] = useState<{ text: string; rows: { label: string; value: string }[] } | null>(null);
   const [reservaId, setReservaId] = useState<string | null>(null);
   const [savingReservation, setSavingReservation] = useState(false);
@@ -298,7 +297,7 @@ export const StandardForm = ({
         Math.max(0, parseInt(pax) || 0),
         feeChildAges,
       );
-      const amounts = calculateBookingAmounts(original, embarkation.amount, payment === "credit");
+      const amounts = calculateBookingAmounts(original, embarkation.amount, hasCardSurcharge(payment));
       return {
         original, discount: 0, fareFinal: original,
         embarkationPassengerCount: embarkation.passengerCount, embarkationFee: embarkation.amount,
@@ -331,7 +330,7 @@ export const StandardForm = ({
       Math.max(0, parseInt(pax) || 0),
       feeChildAges,
     );
-    const amounts = calculateBookingAmounts(fareFinal, embarkation.amount, payment === "credit");
+    const amounts = calculateBookingAmounts(fareFinal, embarkation.amount, hasCardSurcharge(payment));
     return {
       original, discount, fareFinal, ...amounts, final: amounts.total,
       embarkationPassengerCount: embarkation.passengerCount,
@@ -472,7 +471,7 @@ export const StandardForm = ({
       rows.push({ label: t.sumRoom, value: room });
       rows.push({ label: t.sumAddress, value: address });
     }
-    rows.push({ label: t.sumPay, value: paymentLabel(payment as Payment) });
+    rows.push({ label: t.sumPay, value: paymentLabel(payment as PaymentMethod) });
 
     for (const item of priceLines) {
       if (item.kind === "coupon") rows.push({ label: "Cupom", value: `${item.code} (-${item.percent}%)` });
@@ -537,8 +536,8 @@ export const StandardForm = ({
         if (item.kind === "total") lines.push(`💰 TOTAL A PAGAR: ${formatBRL(item.amount)}`);
       }
     }
-    lines.push(`💳 Forma de pagamento: ${PAYMENT_PT[payment as Payment]}`);
-    if (payment === "credit") {
+    lines.push(`💳 Forma de pagamento: ${PAYMENT_PT[payment as PaymentMethod]}`);
+    if (hasCardSurcharge(payment)) {
       lines.push("A taxa de 5% do cartão já está incluída no total acima.");
     }
     if (!noCheckin) {
@@ -861,7 +860,7 @@ export const StandardForm = ({
           )}
 
           <Field label={t.payment} error={errors.payment} errorMsg={requiredMsg}>
-            <Select value={payment} onValueChange={(v) => { setPayment(v as Payment); clearErr("payment"); }}>
+            <Select value={payment} onValueChange={(v) => { setPayment(v as PaymentMethod); clearErr("payment"); }}>
               <SelectTrigger className={fieldClass}>
                 <SelectValue placeholder="—" />
               </SelectTrigger>
@@ -872,14 +871,14 @@ export const StandardForm = ({
                 <SelectItem value="pix">{t.pix}</SelectItem>
               </SelectContent>
             </Select>
-            {payment === "credit" && (
+            {hasCardSurcharge(payment) && (
               <p className="mt-2 text-sm text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
                 {t.creditWarning} {LABELS[lang].estimatedCreditSurcharge}: {priceInfo ? formatBRL(priceInfo.creditSurcharge) : "—"}. {lang === "pt" ? "Já incluído no total abaixo." : lang === "es" ? "Ya incluido en el total de abajo." : lang === "fr" ? "Déjà inclus dans le total ci-dessous." : lang === "it" ? "Già incluso nel totale qui sotto." : "Already included in the total below."}
               </p>
             )}
           </Field>
 
-          {priceInfo && (priceInfo.embarkationFee > 0 || payment === "credit") && (
+          {priceInfo && (priceInfo.embarkationFee > 0 || hasCardSurcharge(payment)) && (
             <section aria-live="polite" className="rounded-2xl border border-turquoise/25 bg-card/50 p-4 space-y-2 text-sm">
               <div className="flex justify-between gap-4">
                 <span>{lang === "pt" ? "Passeio (após descontos)" : "Tour (after discounts)"}</span>

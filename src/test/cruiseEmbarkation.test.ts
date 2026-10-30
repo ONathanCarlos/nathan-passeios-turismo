@@ -38,7 +38,7 @@ describe("cruise embarkation fee", () => {
     });
   });
 
-  it("calculates the 5% credit surcharge over the subtotal, including the embarkation fee", () => {
+  it("calculates the 5% card surcharge over the subtotal, including the embarkation fee", () => {
     expect(calculateCreditSurcharge(210, true)).toBe(10.5);
     expect(calculateCreditSurcharge(210, false)).toBe(0);
     expect(calculateBookingAmounts(150, 20, true)).toEqual({
