@@ -16,24 +16,23 @@ import { createReservaInDb, syncLead, completeReserva } from "@/lib/db";
 import { bookingDraftKey, BOOKING_DRAFT_TTL_MS, clearBookingDraft, dateFromLocalKey, readBookingDraft, saveBookingDraft } from "@/lib/bookingDraft";
 import { localDateKey } from "@/lib/cruiseEmbarkation";
 import { calculateLunchBookingAmounts, buildLunchBookingMessage, type LunchGuest } from "@/lib/cmsLunchBooking";
+import { hasCardSurcharge, type PaymentMethod } from "@/lib/payment";
 
 const FIELD_CLASS = "bg-night/70 backdrop-blur-sm border-turquoise/40 text-foreground placeholder:text-foreground/50 focus-visible:ring-turquoise focus-visible:border-turquoise h-12";
-type Payment = "cash" | "debit" | "credit" | "pix";
-
 const TEXT: Record<Lang, {
   responsible: string; phone: string; date: string; dinerCount: string; participants: string;
   responsibleGuest: string; companion: string; name: string; age: string; countHelp: string;
   required: string; invalidCount: string; invalidAge: string; invalidGuest: string;
   subtotal: string; creditFee: string; total: string; creditNotice: string; payment: string;
 }> = {
-  pt: { responsible: "Nome completo do responsável", phone: "Telefone / WhatsApp do responsável", date: "Data do almoço", dinerCount: "Quantas pessoas vão almoçar?", participants: "Dados de cada pessoa", responsibleGuest: "Responsável · pessoa 1", companion: "Pessoa", name: "Nome completo", age: "Idade", countHelp: "Informe de 1 a 8 pessoas. Inclua o responsável na quantidade.", required: "Preencha este campo.", invalidCount: "Informe uma quantidade inteira entre 1 e 8.", invalidAge: "Informe uma idade válida entre 0 e 120 anos.", invalidGuest: "Informe o nome completo desta pessoa.", subtotal: "Subtotal do almoço", creditFee: "Taxa do cartão (5%)", total: "Total a pagar", creditNotice: "No cartão de crédito há acréscimo de 5%, já incluído no total abaixo.", payment: "Forma de pagamento" },
-  es: { responsible: "Nombre completo del responsable", phone: "Teléfono / WhatsApp del responsable", date: "Fecha del almuerzo", dinerCount: "¿Cuántas personas almorzarán?", participants: "Datos de cada persona", responsibleGuest: "Responsable · persona 1", companion: "Persona", name: "Nombre completo", age: "Edad", countHelp: "Indique de 1 a 8 personas. Incluya al responsable en la cantidad.", required: "Complete este campo.", invalidCount: "Indique una cantidad entera entre 1 y 8.", invalidAge: "Indique una edad válida entre 0 y 120 años.", invalidGuest: "Indique el nombre completo de esta persona.", subtotal: "Subtotal del almuerzo", creditFee: "Recargo de tarjeta (5%)", total: "Total a pagar", creditNotice: "Con tarjeta de crédito se añade un 5%, ya incluido en el total de abajo.", payment: "Forma de pago" },
-  en: { responsible: "Full name of the person in charge", phone: "Contact phone / WhatsApp", date: "Lunch date", dinerCount: "How many people will have lunch?", participants: "Details for each person", responsibleGuest: "Person in charge · guest 1", companion: "Guest", name: "Full name", age: "Age", countHelp: "Enter 1 to 8 people. Include the person in charge in the count.", required: "This field is required.", invalidCount: "Enter a whole number from 1 to 8.", invalidAge: "Enter a valid age from 0 to 120.", invalidGuest: "Enter this person's full name.", subtotal: "Lunch subtotal", creditFee: "Card fee (5%)", total: "Total due", creditNotice: "Credit card payments include a 5% fee, already included in the total below.", payment: "Payment method" },
-  fr: { responsible: "Nom complet du responsable", phone: "Téléphone / WhatsApp du responsable", date: "Date du déjeuner", dinerCount: "Combien de personnes déjeuneront ?", participants: "Données de chaque personne", responsibleGuest: "Responsable · personne 1", companion: "Personne", name: "Nom complet", age: "Âge", countHelp: "Indiquez de 1 à 8 personnes. Incluez le responsable dans le nombre.", required: "Champ obligatoire.", invalidCount: "Indiquez un nombre entier entre 1 et 8.", invalidAge: "Indiquez un âge valide entre 0 et 120 ans.", invalidGuest: "Indiquez le nom complet de cette personne.", subtotal: "Sous-total du déjeuner", creditFee: "Frais de carte (5 %)", total: "Total à payer", creditNotice: "Un supplément de 5 % s'applique par carte de crédit et est inclus dans le total ci-dessous.", payment: "Mode de paiement" },
-  it: { responsible: "Nome completo del responsabile", phone: "Telefono / WhatsApp del responsabile", date: "Data del pranzo", dinerCount: "Quante persone pranzeranno?", participants: "Dati di ogni persona", responsibleGuest: "Responsabile · persona 1", companion: "Persona", name: "Nome completo", age: "Età", countHelp: "Inserisci da 1 a 8 persone. Includi il responsabile nel totale.", required: "Campo obbligatorio.", invalidCount: "Inserisci un numero intero da 1 a 8.", invalidAge: "Inserisci un'età valida da 0 a 120 anni.", invalidGuest: "Inserisci il nome completo di questa persona.", subtotal: "Subtotale del pranzo", creditFee: "Commissione carta (5%)", total: "Totale da pagare", creditNotice: "Con carta di credito si applica un supplemento del 5%, già incluso nel totale qui sotto.", payment: "Metodo di pagamento" },
+  pt: { responsible: "Nome completo do responsável", phone: "Telefone / WhatsApp do responsável", date: "Data do almoço", dinerCount: "Quantas pessoas vão almoçar?", participants: "Dados de cada pessoa", responsibleGuest: "Responsável · pessoa 1", companion: "Pessoa", name: "Nome completo", age: "Idade", countHelp: "Informe de 1 a 8 pessoas. Inclua o responsável na quantidade.", required: "Preencha este campo.", invalidCount: "Informe uma quantidade inteira entre 1 e 8.", invalidAge: "Informe uma idade válida entre 0 e 120 anos.", invalidGuest: "Informe o nome completo desta pessoa.", subtotal: "Subtotal do almoço", creditFee: "Taxa do cartão (5%)", total: "Total a pagar", creditNotice: "No cartão de crédito ou débito há acréscimo de 5%, já incluído no total abaixo.", payment: "Forma de pagamento" },
+  es: { responsible: "Nombre completo del responsable", phone: "Teléfono / WhatsApp del responsable", date: "Fecha del almuerzo", dinerCount: "¿Cuántas personas almorzarán?", participants: "Datos de cada persona", responsibleGuest: "Responsable · persona 1", companion: "Persona", name: "Nombre completo", age: "Edad", countHelp: "Indique de 1 a 8 personas. Incluya al responsable en la cantidad.", required: "Complete este campo.", invalidCount: "Indique una cantidad entera entre 1 y 8.", invalidAge: "Indique una edad válida entre 0 y 120 años.", invalidGuest: "Indique el nombre completo de esta persona.", subtotal: "Subtotal del almuerzo", creditFee: "Recargo de tarjeta (5%)", total: "Total a pagar", creditNotice: "Con tarjeta de crédito o débito se añade un 5%, ya incluido en el total de abajo.", payment: "Forma de pago" },
+  en: { responsible: "Full name of the person in charge", phone: "Contact phone / WhatsApp", date: "Lunch date", dinerCount: "How many people will have lunch?", participants: "Details for each person", responsibleGuest: "Person in charge · guest 1", companion: "Guest", name: "Full name", age: "Age", countHelp: "Enter 1 to 8 people. Include the person in charge in the count.", required: "This field is required.", invalidCount: "Enter a whole number from 1 to 8.", invalidAge: "Enter a valid age from 0 to 120.", invalidGuest: "Enter this person's full name.", subtotal: "Lunch subtotal", creditFee: "Card fee (5%)", total: "Total due", creditNotice: "Credit or debit card payments include a 5% fee, already included in the total below.", payment: "Payment method" },
+  fr: { responsible: "Nom complet du responsable", phone: "Téléphone / WhatsApp du responsable", date: "Date du déjeuner", dinerCount: "Combien de personnes déjeuneront ?", participants: "Données de chaque personne", responsibleGuest: "Responsable · personne 1", companion: "Personne", name: "Nom complet", age: "Âge", countHelp: "Indiquez de 1 à 8 personnes. Incluez le responsable dans le nombre.", required: "Champ obligatoire.", invalidCount: "Indiquez un nombre entier entre 1 et 8.", invalidAge: "Indiquez un âge valide entre 0 et 120 ans.", invalidGuest: "Indiquez le nom complet de cette personne.", subtotal: "Sous-total du déjeuner", creditFee: "Frais de carte (5 %)", total: "Total à payer", creditNotice: "Un supplément de 5 % s'applique par carte de crédit ou de débit et est inclus dans le total ci-dessous.", payment: "Mode de paiement" },
+  it: { responsible: "Nome completo del responsabile", phone: "Telefono / WhatsApp", date: "Data del pranzo", dinerCount: "Quante persone pranzeranno?", participants: "Dati di ogni persona", responsibleGuest: "Responsabile · persona 1", companion: "Persona", name: "Nome completo", age: "Età", countHelp: "Inserisci da 1 a 8 persone. Includi il responsabile nel totale.", required: "Campo obbligatorio.", invalidCount: "Inserisci un numero intero da 1 a 8.", invalidAge: "Inserisci un'età valida da 0 a 120 anni.", invalidGuest: "Inserisci il nome completo di questa persona.", subtotal: "Subtotale del pranzo", creditFee: "Commissione carta (5%)", total: "Totale da pagare", creditNotice: "Con carta di credito o debito si applica un supplemento del 5%, già incluso nel totale qui sotto.", payment: "Metodo di pagamento" },
 };
 
-const PAYMENT_PT: Record<Payment, string> = {
+const PAYMENT_PT: Record<PaymentMethod, string> = {
   cash: "Dinheiro", debit: "Cartão de débito", credit: "Cartão de crédito", pix: "Pix",
 };
 
@@ -56,7 +55,7 @@ export const CmsLunchBookingForm = ({ tour, lang, onLangChange, onBack }: Props)
   const [date, setDate] = useState<Date | undefined>(() => initialDraft ? dateFromLocalKey(initialDraft.date) : undefined);
   const [guestCount, setGuestCount] = useState(initialDraft?.pax ?? "1");
   const [guestFields, setGuestFields] = useState<LunchGuest[]>(initialDraft?.guests?.length ? initialDraft.guests : [{ name: "", age: "" }]);
-  const [payment, setPayment] = useState<Payment | "">(initialDraft?.payment ?? "");
+  const [payment, setPayment] = useState<PaymentMethod | "">(initialDraft?.payment ?? "");
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
   const [output, setOutput] = useState<{ text: string; rows: { label: string; value: string }[] } | null>(null);
@@ -69,7 +68,7 @@ export const CmsLunchBookingForm = ({ tour, lang, onLangChange, onBack }: Props)
     name: index === 0 ? responsibleName : (guestFields[index]?.name ?? ""),
     age: guestFields[index]?.age ?? "",
   })), [visibleCount, responsibleName, guestFields]);
-  const amounts = calculateLunchBookingAmounts(tour.preco, countIsValid ? parsedCount : 0, payment === "credit");
+  const amounts = calculateLunchBookingAmounts(tour.preco, countIsValid ? parsedCount : 0, hasCardSurcharge(payment));
   const title = pickLang(tour, "nome", lang) || tour.nome_pt;
   const dateLabel = date ? date.toLocaleDateString(lang === "pt" ? "pt-BR" : lang === "es" ? "es-ES" : lang === "fr" ? "fr-FR" : lang === "it" ? "it-IT" : "en-GB") : "";
 
@@ -143,7 +142,7 @@ export const CmsLunchBookingForm = ({ tour, lang, onLangChange, onBack }: Props)
     }
 
     setErrors({});
-    const finalAmounts = calculateLunchBookingAmounts(tour.preco, parsedCount, payment === "credit");
+    const finalAmounts = calculateLunchBookingAmounts(tour.preco, parsedCount, hasCardSurcharge(payment));
     if (finalAmounts.unitPrice <= 0) {
       toast.error(lang === "pt" ? "O preço deste almoço ainda não está configurado. Entre em contato conosco." : "The price for this lunch is not configured yet. Please contact us.");
       return;
@@ -154,7 +153,7 @@ export const CmsLunchBookingForm = ({ tour, lang, onLangChange, onBack }: Props)
       phone: fullPhone(phone),
       date: dateLabel,
       guests,
-      paymentLabel: PAYMENT_PT[payment as Payment],
+      paymentLabel: PAYMENT_PT[payment as PaymentMethod],
       amounts: finalAmounts,
     });
     const labels: Record<Lang, { responsible: string; phone: string; date: string; diners: string; payment: string; meal: string; surcharge: string; total: string }> = {
@@ -170,7 +169,7 @@ export const CmsLunchBookingForm = ({ tour, lang, onLangChange, onBack }: Props)
       { label: l.phone, value: fullPhone(phone) },
       { label: l.date, value: dateLabel },
       { label: l.diners, value: guests.map((guest, index) => `${index + 1}. ${guest.name.trim()} — ${guest.age} ${lang === "pt" ? "anos" : lang === "fr" ? "ans" : lang === "it" ? "anni" : "years"}`).join("\n") },
-      { label: l.payment, value: paymentLabelLocalized(payment as Payment, lang) },
+      { label: l.payment, value: paymentLabelLocalized(payment as PaymentMethod, lang) },
       { label: l.meal, value: formatBRL(finalAmounts.subtotal) },
       ...(finalAmounts.creditSurcharge > 0 ? [{ label: l.surcharge, value: formatBRL(finalAmounts.creditSurcharge) }] : []),
       { label: l.total, value: formatBRL(finalAmounts.total) },
@@ -259,7 +258,7 @@ export const CmsLunchBookingForm = ({ tour, lang, onLangChange, onBack }: Props)
         )}
 
         <Field label={copy.payment} error={errors.payment} errorMsg={copy.required}>
-          <Select value={payment} onValueChange={(value) => { setPayment(value as Payment); setErrors((current) => ({ ...current, payment: false })); }}>
+          <Select value={payment} onValueChange={(value) => { setPayment(value as PaymentMethod); setErrors((current) => ({ ...current, payment: false })); }}>
             <SelectTrigger className={FIELD_CLASS}><SelectValue placeholder="—" /></SelectTrigger>
             <SelectContent className="bg-card border-turquoise/30">
               <SelectItem value="cash">{t.cash}</SelectItem>
@@ -268,7 +267,7 @@ export const CmsLunchBookingForm = ({ tour, lang, onLangChange, onBack }: Props)
               <SelectItem value="pix">{t.pix}</SelectItem>
             </SelectContent>
           </Select>
-          {payment === "credit" && <p className="mt-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-300">{copy.creditNotice}</p>}
+          {hasCardSurcharge(payment) && <p className="mt-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-300">{copy.creditNotice}</p>}
         </Field>
 
         {countIsValid && tour.preco > 0 && (
@@ -293,7 +292,7 @@ export const CmsLunchBookingForm = ({ tour, lang, onLangChange, onBack }: Props)
   );
 };
 
-const paymentLabelLocalized = (payment: Payment, lang: Lang): string => ({
+const paymentLabelLocalized = (payment: PaymentMethod, lang: Lang): string => ({
   cash: { pt: "Dinheiro", es: "Efectivo", en: "Cash", fr: "Espèces", it: "Contanti" },
   debit: { pt: "Cartão de débito", es: "Tarjeta de débito", en: "Debit card", fr: "Carte de débit", it: "Carta di debito" },
   credit: { pt: "Cartão de crédito", es: "Tarjeta de crédito", en: "Credit card", fr: "Carte de crédit", it: "Carta di credito" },

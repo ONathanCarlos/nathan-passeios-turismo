@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildLunchBookingMessage, calculateLunchBookingAmounts, isLunchCmsTour } from "@/lib/cmsLunchBooking";
 import type { CmsTour } from "@/lib/cms";
+import { hasCardSurcharge } from "@/lib/payment";
 
 const tour = (overrides: Partial<CmsTour> = {}): CmsTour => ({
   id: "cms-lunch",
@@ -26,7 +27,7 @@ describe("CMS lunch booking", () => {
     expect(isLunchCmsTour(tour({ key: "transfer", nome_pt: "Transfer", nome_en: "Airport transfer", nome_es: "Traslado", nome_fr: "Transfert", nome_it: "Trasferimento" }))).toBe(false);
   });
 
-  it("calculates the per-person subtotal and adds five percent only for credit", () => {
+  it("calculates the per-person subtotal and adds five percent only for card payments", () => {
     expect(calculateLunchBookingAmounts(66.67, 3, false)).toEqual({
       guestCount: 3, unitPrice: 66.67, subtotal: 200.01, creditSurcharge: 0, total: 200.01,
     });
@@ -58,6 +59,25 @@ describe("CMS lunch booking", () => {
     expect(normalizedMessage).toContain("Forma de pagamento: Cartão de crédito");
     expect(message).toContain("Reserva feita pelo site - https://onixturismobuzios.com.br");
     expect(normalizedMessage).not.toMatch(/pousada|nacionalidade|CPF/i);
+  });
+
+  it("includes the same 5% surcharge and confirmation note for debit card bookings", () => {
+    const amounts = calculateLunchBookingAmounts(65, 2, hasCardSurcharge("debit"));
+    const message = buildLunchBookingMessage({
+      tourTitle: "Almoço Buffet",
+      responsibleName: "Ana Lima",
+      phone: "+55 22 99999 1111",
+      date: "27/10/2026",
+      guests: [{ name: "Ana Lima", age: "35" }, { name: "João Lima", age: "12" }],
+      paymentLabel: "Cartão de débito",
+      amounts,
+    });
+
+    const normalizedMessage = message.replace(/\u00a0/g, " ");
+    expect(normalizedMessage).toContain("Taxa do cartão (5%): R$ 6,50");
+    expect(normalizedMessage).toContain("TOTAL A PAGAR: R$ 136,50");
+    expect(normalizedMessage).toContain("Forma de pagamento: Cartão de débito");
+    expect(normalizedMessage).toContain("A taxa de 5% do cartão já está incluída no total acima.");
   });
 
   it("shows only one amount for cash bookings without additional fees", () => {

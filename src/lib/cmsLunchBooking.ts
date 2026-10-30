@@ -37,12 +37,12 @@ const money = (value: number) => new Intl.NumberFormat("pt-BR", {
 export const calculateLunchBookingAmounts = (
   unitPrice: number,
   guestCount: number,
-  isCredit: boolean,
+  isCard: boolean,
 ): LunchBookingAmounts => {
   const safeUnitPrice = Number.isFinite(unitPrice) && unitPrice > 0 ? unitPrice : 0;
   const safeGuestCount = Number.isInteger(guestCount) && guestCount >= 1 && guestCount <= 8 ? guestCount : 0;
   const subtotal = Math.round((safeUnitPrice * safeGuestCount + Number.EPSILON) * 100) / 100;
-  const creditSurcharge = isCredit ? Math.round((subtotal * 0.05 + Number.EPSILON) * 100) / 100 : 0;
+  const creditSurcharge = isCard ? Math.round((subtotal * 0.05 + Number.EPSILON) * 100) / 100 : 0;
   return {
     guestCount: safeGuestCount,
     unitPrice: safeUnitPrice,
@@ -88,7 +88,7 @@ export const buildLunchBookingMessage = (input: LunchBookingMessageInput): strin
   lines.push(
     `💰 TOTAL A PAGAR: ${money(input.amounts.total)}`,
     `💳 Forma de pagamento: ${input.paymentLabel}`,
-    ...(input.paymentLabel === "Cartão de crédito" ? ["A taxa de 5% do cartão já está incluída no total acima."] : []),
+    ...(input.amounts.creditSurcharge > 0 ? ["A taxa de 5% do cartão já está incluída no total acima."] : []),
     "",
     `Reserva feita pelo site - ${BRAND_WEBSITE_URL}`,
   );
