@@ -56,7 +56,7 @@ export function CmsTourDetails({ tour, lang, onLangChange, onBack }: {
           <LanguageSwitcher lang={lang} onChange={onLangChange} />
         </div>
         <article className="glass-card rounded-2xl overflow-hidden">
-          {images.length > 0 && <TourMediaGallery images={images} alt={title} className="lg:mx-auto lg:w-2/5" />}
+          {images.length > 0 && <TourMediaGallery images={images} alt={title} className="lg:mx-auto lg:w-4/5" />}
           <div className="p-5 space-y-4">
             <h1 className="text-2xl font-bold text-foreground">{title}</h1>
             {desc && <p className="text-muted-foreground whitespace-pre-line">{desc}</p>}
