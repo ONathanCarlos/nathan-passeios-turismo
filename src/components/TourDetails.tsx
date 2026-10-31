@@ -67,7 +67,7 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embed
         {/* Hero media (vídeo se existir, senão imagem) */}
         <section className={embedded ? "p-4" : "px-4"}>
           <div className="relative w-full overflow-hidden rounded-3xl border border-turquoise/25 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)]">
-            <TourMediaGallery images={tour.images || [tour.image]} alt={tour.title} className="aspect-[16/11]" />
+            <TourMediaGallery images={tour.images || [tour.image]} alt={tour.title} className="aspect-[16/11] lg:mx-auto lg:w-2/5" />
             <div className="absolute inset-0 bg-gradient-to-t from-night via-night/30 to-transparent pointer-events-none" />
             <div className="absolute bottom-0 left-0 right-0 p-5 pointer-events-none">
               <h1 className="text-2xl sm:text-3xl font-bold leading-tight text-foreground drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
