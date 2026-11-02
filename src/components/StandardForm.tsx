@@ -25,6 +25,7 @@ import {
 } from "@/lib/promo";
 import { createReservaInDb, markCouponUsedInDb, syncLead, completeReserva } from "@/lib/db";
 import { buildBookingPriceBreakdown } from "@/lib/bookingPriceBreakdown";
+import { calculateRegionalBookingFees, JARDINEIRA_FEE_PER_PERSON, REGIONAL_EMBARKATION_FEE_PER_PERSON } from "@/lib/regionalBookingFees";
 import { Tag, ExternalLink, X } from "lucide-react";
 import { BRAND_WEBSITE_URL } from "@/lib/brand";
 import {
@@ -301,6 +302,7 @@ export const StandardForm = ({
       return {
         original, discount: 0, fareFinal: original,
         embarkationPassengerCount: embarkation.passengerCount, embarkationFee: embarkation.amount,
+        localEmbarkationFee: 0, jardineiraFee: 0, regionalFeePassengerCount: 0,
         ...amounts, final: amounts.total,
         meta: { value: packagePrice as number }, qrPercent: 0, qrApplied: false, baseOriginal: original,
       };
@@ -330,11 +332,24 @@ export const StandardForm = ({
       Math.max(0, parseInt(pax) || 0),
       feeChildAges,
     );
-    const amounts = calculateBookingAmounts(fareFinal, embarkation.amount, hasCardSurcharge(payment));
+    const regionalFeeChildren = !adultsOnly && hasKids === "yes" ? kidsN : 0;
+    const regionalFees = calculateRegionalBookingFees(
+      tourKey,
+      Math.max(0, parseInt(pax) || 0),
+      regionalFeeChildren,
+    );
+    const amounts = calculateBookingAmounts(
+      fareFinal,
+      embarkation.amount + regionalFees.embarkationFee + regionalFees.jardineiraFee,
+      hasCardSurcharge(payment),
+    );
     return {
       original, discount, fareFinal, ...amounts, final: amounts.total,
       embarkationPassengerCount: embarkation.passengerCount,
       embarkationFee: embarkation.amount,
+      localEmbarkationFee: regionalFees.embarkationFee,
+      jardineiraFee: regionalFees.jardineiraFee,
+      regionalFeePassengerCount: regionalFees.passengerCount,
       meta, qrPercent: qr?.percent ?? 0, qrApplied: !!qr, baseOriginal,
     };
   }, [tourKey, pax, hasKids, ages, kidsN, adultsOnly, effectiveCoupon, isPackage, packagePrice, packageTourKeys, priceStatus, cmsPrice, date, payment, qrPromoVersion]);
@@ -483,6 +498,19 @@ export const StandardForm = ({
           value: formatBRL(item.amount),
         });
       }
+      if (item.kind === "localEmbarkation") {
+        rows.push({
+          label: `${LABELS[lang].localEmbarkationFee} (${item.passengers} ${LABELS[lang].passengerUnit} × ${formatBRL(REGIONAL_EMBARKATION_FEE_PER_PERSON)})`,
+          value: formatBRL(item.amount),
+        });
+      }
+      if (item.kind === "jardineira") {
+        rows.push({
+          label: `${LABELS[lang].jardineiraFee} (${item.passengers} ${LABELS[lang].passengerUnit} × ${formatBRL(JARDINEIRA_FEE_PER_PERSON)})`,
+          value: formatBRL(item.amount),
+        });
+      }
+      if (item.kind === "subtotal") rows.push({ label: LABELS[lang].subtotalWithRegionalFees, value: formatBRL(item.amount) });
       if (item.kind === "credit") rows.push({ label: LABELS[lang].creditSurcharge, value: formatBRL(item.amount) });
       if (item.kind === "total") rows.push({ label: LABELS[lang].totalDue, value: formatBRL(item.amount) });
     }
@@ -532,6 +560,13 @@ export const StandardForm = ({
         if (item.kind === "embarkation") {
           lines.push(`Taxa de embarque (${item.passengers} pessoa(s) × R$ ${EMBARKATION_FEE_PER_PERSON}): ${formatBRL(item.amount)}`);
         }
+        if (item.kind === "localEmbarkation") {
+          lines.push(`Taxa de embarque (${item.passengers} pessoa(s) × ${formatBRL(REGIONAL_EMBARKATION_FEE_PER_PERSON)}): ${formatBRL(item.amount)}`);
+        }
+        if (item.kind === "jardineira") {
+          lines.push(`Taxa da jardineira (${item.passengers} pessoa(s) × ${formatBRL(JARDINEIRA_FEE_PER_PERSON)}): ${formatBRL(item.amount)}`);
+        }
+        if (item.kind === "subtotal") lines.push(`Subtotal (passeio + taxas de embarque e jardineira): ${formatBRL(item.amount)}`);
         if (item.kind === "credit") lines.push(`Taxa do cartão (5%): ${formatBRL(item.amount)}`);
         if (item.kind === "total") lines.push(`💰 TOTAL A PAGAR: ${formatBRL(item.amount)}`);
       }
@@ -771,6 +806,7 @@ export const StandardForm = ({
               value={date}
               onChange={(d) => { setDate(d); if (d) clearErr("date"); }}
               error={errors.date}
+              showCruiseDates={cruiseCalendarLinkVisible}
             />
           </Field>
           {cruiseCalendarLinkVisible && (
@@ -878,7 +914,7 @@ export const StandardForm = ({
             )}
           </Field>
 
-          {priceInfo && (priceInfo.embarkationFee > 0 || hasCardSurcharge(payment)) && (
+          {priceInfo && (priceInfo.embarkationFee > 0 || priceInfo.localEmbarkationFee > 0 || priceInfo.jardineiraFee > 0 || hasCardSurcharge(payment)) && (
             <section aria-live="polite" className="rounded-2xl border border-turquoise/25 bg-card/50 p-4 space-y-2 text-sm">
               <div className="flex justify-between gap-4">
                 <span>{lang === "pt" ? "Passeio (após descontos)" : "Tour (after discounts)"}</span>
@@ -890,9 +926,21 @@ export const StandardForm = ({
                   <span>{formatBRL(priceInfo.embarkationFee)}</span>
                 </div>
               )}
-              {(priceInfo.embarkationFee > 0 || priceInfo.creditSurcharge > 0) && (
+              {priceInfo.localEmbarkationFee > 0 && (
+                <div className="flex justify-between gap-4">
+                  <span>{LABELS[lang].localEmbarkationFee} ({priceInfo.regionalFeePassengerCount} {LABELS[lang].passengerUnit} × {formatBRL(REGIONAL_EMBARKATION_FEE_PER_PERSON)})</span>
+                  <span>{formatBRL(priceInfo.localEmbarkationFee)}</span>
+                </div>
+              )}
+              {priceInfo.jardineiraFee > 0 && (
+                <div className="flex justify-between gap-4">
+                  <span>{LABELS[lang].jardineiraFee} ({priceInfo.regionalFeePassengerCount} {LABELS[lang].passengerUnit} × {formatBRL(JARDINEIRA_FEE_PER_PERSON)})</span>
+                  <span>{formatBRL(priceInfo.jardineiraFee)}</span>
+                </div>
+              )}
+              {(priceInfo.embarkationFee > 0 || priceInfo.localEmbarkationFee > 0 || priceInfo.jardineiraFee > 0 || priceInfo.creditSurcharge > 0) && (
                 <div className="flex justify-between gap-4 border-t border-border/50 pt-2">
-                  <span>{LABELS[lang].tourSubtotal}</span>
+                  <span>{priceInfo.localEmbarkationFee > 0 || priceInfo.jardineiraFee > 0 ? LABELS[lang].subtotalWithRegionalFees : LABELS[lang].tourSubtotal}</span>
                   <span>{formatBRL(priceInfo.subtotal)}</span>
                 </div>
               )}

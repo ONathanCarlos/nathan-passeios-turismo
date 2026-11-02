@@ -40,6 +40,25 @@ describe("discriminação do preço da reserva", () => {
     ]);
   });
 
+  it("discrimina embarque local e jardineira e mostra subtotal com as duas taxas incluídas", () => {
+    expect(buildBookingPriceBreakdown({
+      ...price,
+      fareFinal: 200,
+      localEmbarkationFee: 45,
+      jardineiraFee: 30,
+      regionalFeePassengerCount: 3,
+      creditSurcharge: 13.75,
+      final: 288.75,
+    })).toEqual([
+      { kind: "fare", amount: 200 },
+      { kind: "localEmbarkation", amount: 45, passengers: 3 },
+      { kind: "jardineira", amount: 30, passengers: 3 },
+      { kind: "subtotal", amount: 275 },
+      { kind: "credit", amount: 13.75 },
+      { kind: "total", amount: 288.75 },
+    ]);
+  });
+
   it("mantém o desconto QR separado e não o transforma em cupom", () => {
     expect(buildBookingPriceBreakdown({ ...price, qrApplied: true, qrPercent: 10 })).toEqual([
       { kind: "qr", percent: 10 },
