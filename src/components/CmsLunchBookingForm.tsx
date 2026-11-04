@@ -17,7 +17,7 @@ import { bookingDraftKey, BOOKING_DRAFT_TTL_MS, clearBookingDraft, dateFromLocal
 import { localDateKey } from "@/lib/cruiseEmbarkation";
 import { calculateLunchBookingAmounts, buildLunchBookingMessage, type LunchGuest } from "@/lib/cmsLunchBooking";
 import { hasCardSurcharge, type PaymentMethod } from "@/lib/payment";
-import { randomVoucherSecret } from "@/lib/vouchers";
+import { randomVoucherAccessToken, randomVoucherSecret } from "@/lib/vouchers";
 
 const FIELD_CLASS = "bg-night/70 backdrop-blur-sm border-turquoise/40 text-foreground placeholder:text-foreground/50 focus-visible:ring-turquoise focus-visible:border-turquoise h-12";
 const TEXT: Record<Lang, {
@@ -257,7 +257,7 @@ export const CmsLunchBookingForm = ({ tour, lang, onLangChange, onBack }: Props)
           reservationId: pending.reservationId,
           requestId: pending.requestId,
           requestProof: pending.requestProof,
-          accessToken: randomVoucherSecret(),
+          accessToken: randomVoucherAccessToken(),
           idioma: pending.idioma,
           totalPessoas: pending.totalPeople,
           tourKeys: pending.tourKeys,
@@ -291,7 +291,7 @@ export const CmsLunchBookingForm = ({ tour, lang, onLangChange, onBack }: Props)
         reservationId: pendingVoucher.reservationId,
         requestId: pendingVoucher.requestId,
         requestProof: pendingVoucher.requestProof,
-        accessToken: randomVoucherSecret(),
+        accessToken: randomVoucherAccessToken(),
         idioma: pendingVoucher.idioma,
         totalPessoas: pendingVoucher.totalPeople,
         tourKeys: pendingVoucher.tourKeys,

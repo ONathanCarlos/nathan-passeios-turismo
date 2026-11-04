@@ -27,7 +27,6 @@ import { createReservaInDb, createReservaVoucherInDb, issueReservaVouchers, save
 import { buildBookingPriceBreakdown } from "@/lib/bookingPriceBreakdown";
 import { calculateRegionalBookingFees, JARDINEIRA_FEE_PER_PERSON, REGIONAL_EMBARKATION_FEE_PER_PERSON } from "@/lib/regionalBookingFees";
 import { Tag, ExternalLink, X } from "lucide-react";
-import { BRAND_WEBSITE_URL } from "@/lib/brand";
 import {
   calculateBookingAmounts,
   calculateEmbarkationFee,
@@ -43,7 +42,8 @@ import {
 } from "@/lib/cruiseEmbarkation";
 import { bookingDraftKey, BOOKING_DRAFT_TTL_MS, clearBookingDraft, dateFromLocalKey, readBookingDraft, saveBookingDraft } from "@/lib/bookingDraft";
 import { hasCardSurcharge, type PaymentMethod } from "@/lib/payment";
-import { randomVoucherSecret } from "@/lib/vouchers";
+import { randomVoucherAccessToken, randomVoucherSecret } from "@/lib/vouchers";
+import { formatArraialPassengerSummary } from "@/lib/arraialPassengerSummary";
 
 /** Rótulos de pagamento em PT fixo para a mensagem do WhatsApp. */
 const PAYMENT_PT: Record<PaymentMethod, string> = {
@@ -543,29 +543,28 @@ export const StandardForm = ({
     // Dados digitados pelo cliente permanecem exatamente como inseridos.
     const msgTitle = titlePt || (tourKey ? getTour(tourKey, "pt").title : title);
     const noCheckin = tourKey === "arraial" || tourKey === "lancha";
-    const lines = [
-      "Olá Nathan! Aqui está minha reserva completa!",
-      "",
-      `🚤 NOVA RESERVA — ${msgTitle}`,
-    ];
+    const lines = [`🚤 NOVA RESERVA — ${msgTitle}`];
     if (isPackage && packageTourNames?.length) {
-      lines.push("", `Passeios incluídos: ${packageTourNames.join(" & ")}.`);
+      lines.push(`Passeios incluídos: ${packageTourNames.join(" & ")}.`);
     }
-    lines.push("", `👤 Responsável: ${name}`);
+    lines.push(`👤 Responsável: ${name}`);
     if (requireCpf && cpf.trim()) lines.push(`🪪 CPF: ${cpf.trim()}`);
     lines.push(
       `📞 Telefone: ${fullPhone(phone)}`,
       `📅 Data: ${dateStr}`,
-      "",
-      `👥 Passageiros Adultos: ${pax}`,
     );
-    if (cruiseFeeActive) {
-      lines.push("⚓ Por conta do cruzeiro, o embarque será em píer privado. O local específico será informado pela equipe.");
-    }
-    if (!adultsOnly && hasKids === "yes" && kidsN > 0) {
-      lines.push(`🧒 Crianças: ${kidsN} (idades: ${ages.slice(0, kidsN).filter(Boolean).join(", ")})`);
-      if (freeCount > 0) lines.push(`🆓 Passageiros grátis: ${freeCount}`);
-      if (halfCount > 0) lines.push(`½ Passageiros meia: ${halfCount}`);
+    if (tourKey === "arraial") {
+      lines.push(formatArraialPassengerSummary(Number.parseInt(pax, 10) || 0, !adultsOnly && hasKids === "yes" ? ages.slice(0, kidsN) : []));
+    } else {
+      lines.push(`👥 Passageiros Adultos: ${pax}`);
+      if (cruiseFeeActive) {
+        lines.push("⚓ Por conta do cruzeiro, o embarque será em píer privado. O local específico será informado pela equipe.");
+      }
+      if (!adultsOnly && hasKids === "yes" && kidsN > 0) {
+        lines.push(`🧒 Crianças: ${kidsN} (idades: ${ages.slice(0, kidsN).filter(Boolean).join(", ")})`);
+        if (freeCount > 0) lines.push(`🆓 Passageiros grátis: ${freeCount}`);
+        if (halfCount > 0) lines.push(`½ Passageiros meia: ${halfCount}`);
+      }
     }
     if (requirePousada) {
       if (pousada.trim()) lines.push(`🏨 Pousada: ${pousada.trim()}`);
@@ -594,9 +593,6 @@ export const StandardForm = ({
       }
     }
     lines.push(`💳 Forma de pagamento: ${PAYMENT_PT[payment as PaymentMethod]}`);
-    if (hasCardSurcharge(payment)) {
-      lines.push("A taxa de 5% do cartão já está incluída no total acima.");
-    }
     if (!noCheckin) {
       lines.push(
         "",
@@ -604,10 +600,6 @@ export const StandardForm = ({
         "🕐 Horário do Check-in: até às 11:20 da manhã. Falar com Nathan ou Mary.",
       );
     }
-    lines.push(
-      "",
-      `Reserva feita pelo site - ${BRAND_WEBSITE_URL}`,
-    );
     const messageBase = lines.join("\n");
     const voucherTourKeys = packageTourKeys?.length ? packageTourKeys : tourKey ? [tourKey] : [];
     const totalPeople = Math.max(1, (parseInt(pax, 10) || 0) + (!adultsOnly && hasKids === "yes" ? kidsN : 0));
@@ -691,7 +683,7 @@ export const StandardForm = ({
             reservationId: pending.reservationId,
             requestId: pending.requestId,
             requestProof: pending.requestProof,
-            accessToken: randomVoucherSecret(),
+            accessToken: randomVoucherAccessToken(),
             idioma: pending.idioma,
             totalPessoas: pending.totalPeople,
             tourKeys: pending.tourKeys,
@@ -731,7 +723,7 @@ export const StandardForm = ({
         reservationId: pendingVoucher.reservationId,
         requestId: pendingVoucher.requestId,
         requestProof: pendingVoucher.requestProof,
-        accessToken: randomVoucherSecret(),
+        accessToken: randomVoucherAccessToken(),
         idioma: pendingVoucher.idioma,
         totalPessoas: pendingVoucher.totalPeople,
         tourKeys: pendingVoucher.tourKeys,

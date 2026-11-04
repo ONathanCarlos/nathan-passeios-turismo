@@ -117,34 +117,44 @@ export const randomVoucherSecret = (): string => {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
 };
 
+/** Token bearer de 256 bits em Base64URL sem padding para links mais curtos. */
+export const randomVoucherAccessToken = (): string => {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+};
+
 export const voucherTokenHash = async (token: string): Promise<string> => {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 };
 
 export const voucherUrl = (token: string, origin = typeof window === "undefined" ? "https://onixturismobuzios.com.br" : window.location.origin): string =>
-  `${origin}/vouchers#token=${encodeURIComponent(token)}`;
+  `${origin}/v#${encodeURIComponent(token)}`;
+
+export const voucherTokenFromHash = (hash: string): string => {
+  const raw = hash.replace(/^#/, "");
+  const legacyToken = new URLSearchParams(raw).get("token");
+  if (legacyToken) return legacyToken;
+  if (/^[a-f0-9]{64}$/i.test(raw)) return raw;
+  return /^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/.test(raw) ? raw : "";
+};
 
 export const buildVoucherMessageAppendix = (
   lang: Lang,
   reservationCode: string,
-  items: Array<{ code: string; name: string }>,
   url: string,
 ): string => {
-  const copy = VOUCHER_COPY[lang];
-  const headers: Record<Lang, { reservation: string; items: string; open: string; instructions: string }> = {
-    pt: { reservation: "Código geral da reserva", items: "Identificadores dos passeios", open: "Vouchers seguros", instructions: "Acesse o link para visualizar, baixar, compartilhar ou imprimir seus vouchers." },
-    es: { reservation: "Código general de la reserva", items: "Identificadores de los paseos", open: "Vouchers seguros", instructions: "Abre el enlace para ver, descargar, compartir o imprimir tus vouchers." },
-    en: { reservation: "Booking reference", items: "Tour references", open: "Secure vouchers", instructions: "Open the link to view, download, share or print your vouchers." },
-    fr: { reservation: "Code général de réservation", items: "Références des excursions", open: "Vouchers sécurisés", instructions: "Ouvrez le lien pour consulter, télécharger, partager ou imprimer vos vouchers." },
-    it: { reservation: "Codice generale della prenotazione", items: "Codici dei tour", open: "Voucher sicuri", instructions: "Apri il link per visualizzare, scaricare, condividere o stampare i voucher." },
+  const copy: Record<Lang, { reservation: string; vouchers: string; instructions: string }> = {
+    pt: { reservation: "Código geral da reserva", vouchers: "Seus vouchers virtuais", instructions: "Toque no link para visualizar, baixar, compartilhar ou imprimir." },
+    es: { reservation: "Código general de la reserva", vouchers: "Tus vouchers virtuales", instructions: "Abre el enlace para ver, descargar, compartir o imprimir." },
+    en: { reservation: "Booking reference", vouchers: "Your digital vouchers", instructions: "Open the link to view, download, share or print." },
+    fr: { reservation: "Code général de réservation", vouchers: "Vos vouchers numériques", instructions: "Ouvrez le lien pour consulter, télécharger, partager ou imprimer." },
+    it: { reservation: "Codice generale della prenotazione", vouchers: "I tuoi voucher digitali", instructions: "Apri il link per visualizzare, scaricare, condividere o stampare." },
   };
-  const h = headers[lang];
-  const lines = ["", `🎟 ${h.reservation}: ${reservationCode}`];
-  if (items.length) {
-    lines.push(`${h.items}:`);
-    items.forEach((item) => lines.push(`• ${item.name}: ${item.code}`));
-  }
-  lines.push(`🔐 ${h.open}: ${url}`, h.instructions);
-  return lines.join("\n");
+  const text = copy[lang];
+  return `🎟 ${text.reservation}: ${reservationCode}\n🔐 ${text.vouchers}: ${url}\n${text.instructions}`;
 };

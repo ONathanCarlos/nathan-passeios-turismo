@@ -194,6 +194,8 @@ export interface Reserva {
   valor_com_desconto: number | null;
   status: string;
   created_at: string;
+  codigo_reserva?: string | null;
+  voucher_items?: Array<{ name: string; code: string }>;
 }
 
 export async function createReservaInDb(
@@ -260,7 +262,6 @@ export interface IssuedVoucherMessage {
   message: string;
   reservation_code: string;
   voucher_url: string;
-  items: IssuedVoucherItem[];
 }
 
 /** Emite/recupera códigos idempotentes e devolve o texto WhatsApp literal com link seguro. */
@@ -286,10 +287,10 @@ export async function issueReservaVouchers(input: {
     package_key: input.packageKey || null,
     message_base: input.messageBase,
   });
-  if (!result?.ok || !result.message || !result.reservation_code || !result.voucher_url || !result.items) {
+  if (!result?.ok || !result.message || !result.reservation_code || !result.voucher_url) {
     throw new Error(result?.error || "voucher_issue_failed");
   }
-  return { message: result.message, reservation_code: result.reservation_code, voucher_url: result.voucher_url, items: result.items };
+  return { message: result.message, reservation_code: result.reservation_code, voucher_url: result.voucher_url };
 }
 
 /** Guarda uma mensagem mesmo se a emissão estiver indisponível; ela é cifrada no servidor. */

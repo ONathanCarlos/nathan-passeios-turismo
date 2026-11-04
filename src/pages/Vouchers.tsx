@@ -7,12 +7,11 @@ import { VoucherCard } from "@/components/vouchers/VoucherCard";
 import { VoucherActions } from "@/components/vouchers/VoucherActions";
 import { fetchPublicVoucher, type PublicVoucher, type IssuedVoucherItem } from "@/lib/db";
 import { loadLang, saveLang, type Lang } from "@/lib/i18n";
-import { VOUCHER_COPY, getVoucherTemplate } from "@/lib/vouchers";
+import { VOUCHER_COPY, getVoucherTemplate, voucherTokenFromHash, voucherUrl } from "@/lib/vouchers";
 
 const tokenFromFragment = (): string => {
   if (typeof window === "undefined") return "";
-  const raw = window.location.hash.replace(/^#/, "");
-  return new URLSearchParams(raw).get("token") || "";
+  return voucherTokenFromHash(window.location.hash);
 };
 
 const localeFor: Record<Lang, string> = { pt: "pt-BR", es: "es-ES", en: "en-GB", fr: "fr-FR", it: "it-IT" };
@@ -86,7 +85,7 @@ const Vouchers = () => {
   const [token] = useState(() => tokenFromFragment());
   const copy = VOUCHER_COPY[lang];
   const page = PAGE_COPY[lang];
-  const shareUrl = useMemo(() => typeof window === "undefined" ? "https://onixturismobuzios.com.br/vouchers" : window.location.href, []);
+  const shareUrl = useMemo(() => voucherUrl(token), [token]);
 
   const onLangChange = (next: Lang) => {
     saveLang(next);

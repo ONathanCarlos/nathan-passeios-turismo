@@ -1,5 +1,4 @@
 import type { CmsTour } from "@/lib/cms";
-import { BRAND_WEBSITE_URL } from "@/lib/brand";
 
 export interface LunchGuest {
   name: string;
@@ -64,10 +63,7 @@ export interface LunchBookingMessageInput {
 
 export const buildLunchBookingMessage = (input: LunchBookingMessageInput): string => {
   const lines = [
-    "Olá Nathan! Aqui está minha reserva completa!",
-    "",
     `🍽️ NOVA RESERVA — ${input.tourTitle}`,
-    "",
     `👤 Responsável: ${input.responsibleName.trim()}`,
     `📞 Telefone: ${input.phone}`,
     `📅 Data: ${input.date}`,
@@ -88,9 +84,6 @@ export const buildLunchBookingMessage = (input: LunchBookingMessageInput): strin
   lines.push(
     `💰 TOTAL A PAGAR: ${money(input.amounts.total)}`,
     `💳 Forma de pagamento: ${input.paymentLabel}`,
-    ...(input.amounts.creditSurcharge > 0 ? ["A taxa de 5% do cartão já está incluída no total acima."] : []),
-    "",
-    `Reserva feita pelo site - ${BRAND_WEBSITE_URL}`,
   );
   return lines.join("\n");
 };

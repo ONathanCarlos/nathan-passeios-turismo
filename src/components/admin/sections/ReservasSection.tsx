@@ -61,6 +61,7 @@ export const ReservasSection = () => {
               <TableHead>Nome</TableHead>
               <TableHead>Telefone</TableHead>
               <TableHead>Destino</TableHead>
+              <TableHead>Códigos do voucher</TableHead>
               <TableHead>Data</TableHead>
               <TableHead>Pax</TableHead>
               <TableHead>Cupom</TableHead>
@@ -71,7 +72,7 @@ export const ReservasSection = () => {
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="py-6 text-center text-muted-foreground">
+                <TableCell colSpan={9} className="py-6 text-center text-muted-foreground">
                   <CalendarCheck2 className="mr-2 inline h-4 w-4" /> Nenhuma reserva ainda
                 </TableCell>
               </TableRow>
@@ -82,6 +83,15 @@ export const ReservasSection = () => {
                   <TableCell className="font-medium">{getFirstName(reservation.nome)}</TableCell>
                   <TableCell className="font-mono text-xs">{reservation.telefone}</TableCell>
                   <TableCell className="text-xs">{reservation.destino}</TableCell>
+                  <TableCell className="min-w-48 text-[10px]">
+                    <div className="space-y-1">
+                      {reservation.codigo_reserva && <div className="font-bold text-turquoise">{reservation.codigo_reserva}</div>}
+                      {(reservation.voucher_items || []).map((item) => (
+                        <div key={item.code} className="break-all"><span>{item.name}: </span><code>{item.code}</code></div>
+                      ))}
+                      {!reservation.codigo_reserva && !reservation.voucher_items?.length && "—"}
+                    </div>
+                  </TableCell>
                   <TableCell className="text-xs">{reservation.data_viagem || "—"}</TableCell>
                   <TableCell className="text-xs">{reservation.passageiros ?? "—"}</TableCell>
                   <TableCell className="font-mono text-xs">{reservation.cupom_aplicado || "—"}</TableCell>

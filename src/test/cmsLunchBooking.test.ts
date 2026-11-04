@@ -57,7 +57,8 @@ describe("CMS lunch booking", () => {
     expect(normalizedMessage).toContain("Taxa do cartão (5%): R$ 6,50");
     expect(normalizedMessage).toContain("TOTAL A PAGAR: R$ 136,50");
     expect(normalizedMessage).toContain("Forma de pagamento: Cartão de crédito");
-    expect(message).toContain("Reserva feita pelo site - https://onixturismobuzios.com.br");
+    expect(message).not.toContain("Olá Nathan!");
+    expect(message).not.toContain("Reserva feita pelo site");
     expect(normalizedMessage).not.toMatch(/pousada|nacionalidade|CPF/i);
   });
 
@@ -77,7 +78,7 @@ describe("CMS lunch booking", () => {
     expect(normalizedMessage).toContain("Taxa do cartão (5%): R$ 6,50");
     expect(normalizedMessage).toContain("TOTAL A PAGAR: R$ 136,50");
     expect(normalizedMessage).toContain("Forma de pagamento: Cartão de débito");
-    expect(normalizedMessage).toContain("A taxa de 5% do cartão já está incluída no total acima.");
+    expect(normalizedMessage).not.toContain("A taxa de 5% do cartão já está incluída no total acima.");
   });
 
   it("shows only one amount for cash bookings without additional fees", () => {

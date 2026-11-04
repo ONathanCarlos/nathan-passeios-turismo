@@ -4,9 +4,11 @@ import { describe, expect, it } from "vitest";
 import {
   VOUCHER_COPY,
   VOUCHER_TEMPLATES,
+  randomVoucherAccessToken,
   randomVoucherSecret,
   voucherSchedule,
   voucherScheduleNote,
+  voucherTokenFromHash,
   voucherUrl,
 } from "@/lib/vouchers";
 
@@ -61,9 +63,22 @@ describe("digital voucher contracts", () => {
     expect(second).toMatch(/^[a-f0-9]{64}$/);
     expect(first).not.toBe(second);
 
-    const url = voucherUrl(first, "https://onixturismobuzios.com.br");
-    expect(url).toBe(`https://onixturismobuzios.com.br/vouchers#token=${first}`);
+    const accessToken = randomVoucherAccessToken();
+    expect(accessToken).toMatch(/^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/);
+    expect(atob(accessToken.replace(/-/g, "+").replace(/_/g, "/") + "=")).toHaveLength(32);
+
+    const url = voucherUrl(accessToken, "https://onixturismobuzios.com.br");
+    expect(url).toBe(`https://onixturismobuzios.com.br/v#${accessToken}`);
     expect(new URL(url).search).toBe("");
-    expect(new URL(url).hash).toBe(`#token=${first}`);
+    expect(new URL(url).hash).toBe(`#${accessToken}`);
+    expect(voucherTokenFromHash(`#${accessToken}`)).toBe(accessToken);
+    expect(voucherTokenFromHash(`#token=${first}`)).toBe(first);
+  });
+
+  it("keeps existing long voucher links valid while sharing their short form", () => {
+    const legacy = "a".repeat(64);
+    expect(voucherTokenFromHash(`#token=${legacy}`)).toBe(legacy);
+    expect(voucherUrl(legacy, "https://onixturismobuzios.com.br")).toBe(`https://onixturismobuzios.com.br/v#${legacy}`);
+    expect(voucherTokenFromHash("#not-a-token")).toBe("");
   });
 });
