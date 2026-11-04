@@ -1,9 +1,11 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
+import { buildCompactVoucherMessage } from "./voucherMessage.ts";
 
 const enc = new TextEncoder();
 const OFFICIAL_ORIGIN = "https://onixturismobuzios.com.br";
 const TOKEN_RE = /^[a-f0-9]{64}$/i;
+const ACCESS_TOKEN_RE = /^(?:[a-f0-9]{64}|[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048])$/;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export const VOUCHER_ACTIONS = new Set([
@@ -78,25 +80,6 @@ const scheduleFor = (key: string, lang: "pt" | "es" | "en" | "fr" | "it") => {
   }
   return { pt: "A confirmar", es: "A confirmar", en: "To be confirmed", fr: "À confirmer", it: "Da confermare" }[lang];
 };
-
-const localizedLabels = (lang: "pt" | "es" | "en" | "fr" | "it") => ({
-  reservation: {
-    pt: "Código geral da reserva", es: "Código general de la reserva", en: "Booking reference", fr: "Code général de réservation", it: "Codice generale della prenotazione",
-  }[lang],
-  items: {
-    pt: "Identificadores dos passeios", es: "Identificadores de los paseos", en: "Tour references", fr: "Références des excursions", it: "Codici dei tour",
-  }[lang],
-  link: {
-    pt: "Vouchers seguros", es: "Vouchers seguros", en: "Secure vouchers", fr: "Vouchers sécurisés", it: "Voucher sicuri",
-  }[lang],
-  instructions: {
-    pt: "Acesse o link para visualizar, baixar, compartilhar ou imprimir seus vouchers.",
-    es: "Abre el enlace para ver, descargar, compartir o imprimir tus vouchers.",
-    en: "Open the link to view, download, share or print your vouchers.",
-    fr: "Ouvrez le lien pour consulter, télécharger, partager ou imprimer vos vouchers.",
-    it: "Apri il link per visualizzare, scaricare, condividere o stampare i voucher.",
-  }[lang],
-});
 
 const makeProofHash = async (proof: string) => await sha256(`onix-voucher-request-v1:${proof}`);
 const errorCode = (error: unknown) => typeof error === "object" && error !== null && "code" in error ? String((error as { code: unknown }).code) : "unknown";
@@ -208,12 +191,13 @@ export const handleVoucherAction = async (action: string, body: Record<string, u
       const reservationId = str(body.reservation_id, 36);
       const requestId = str(body.request_id, 36);
       const proof = str(body.request_proof, 64).toLowerCase();
-      const token = str(body.access_token, 64).toLowerCase();
+      const rawToken = str(body.access_token, 64);
+      const token = TOKEN_RE.test(rawToken) ? rawToken.toLowerCase() : rawToken;
       const lang = body.idioma;
       const totalPeople = Number(body.total_pessoas);
       const baseMessage = str(body.message_base, 12000);
       if (!UUID_RE.test(reservationId) || !UUID_RE.test(requestId) || !TOKEN_RE.test(proof)
-        || !TOKEN_RE.test(token) || !isLang(lang) || !Number.isInteger(totalPeople)
+        || !ACCESS_TOKEN_RE.test(token) || !isLang(lang) || !Number.isInteger(totalPeople)
         || totalPeople < 1 || totalPeople > 100 || !baseMessage) {
         return json({ ok: false, error: "invalid_input" }, 400);
       }
@@ -262,18 +246,8 @@ export const handleVoucherAction = async (action: string, body: Record<string, u
         return json({ ok: false, error: "voucher_issue_failed" }, 500);
       }
 
-      const publicUrl = `${OFFICIAL_ORIGIN}/vouchers#token=${token}`;
-      const labels = localizedLabels(lang);
-      const messageLines = [
-        baseMessage,
-        "",
-        `🎟 ${labels.reservation}: ${reservationCode}`,
-        labels.items + ":",
-        ...issuedItems.map((item) => `• ${str(item.name, 200)}: ${str(item.code, 120)}`),
-        `🔐 ${labels.link}: ${publicUrl}`,
-        labels.instructions,
-      ];
-      const finalMessage = messageLines.join("\n");
+      const publicUrl = `${OFFICIAL_ORIGIN}/v#${token}`;
+      const finalMessage = buildCompactVoucherMessage(lang, reservationCode, baseMessage, publicUrl);
       const encrypted = await encryptMessage(finalMessage);
       const { data: stored, error: saveError } = await supabase.rpc("save_reserva_voucher_message", {
         p_reserva_id: reservationId,
@@ -291,7 +265,6 @@ export const handleVoucherAction = async (action: string, body: Record<string, u
         message: finalMessage,
         reservation_code: reservationCode,
         voucher_url: publicUrl,
-        items: issuedItems,
       });
     }
 
@@ -317,8 +290,9 @@ export const handleVoucherAction = async (action: string, body: Record<string, u
     }
 
     if (action === "get_voucher") {
-      const token = str(body.access_token, 64).toLowerCase();
-      if (!TOKEN_RE.test(token)) return json({ ok: false, error: "not_found" }, 404);
+      const rawToken = str(body.access_token, 64);
+      const token = TOKEN_RE.test(rawToken) ? rawToken.toLowerCase() : rawToken;
+      if (!ACCESS_TOKEN_RE.test(token)) return json({ ok: false, error: "not_found" }, 404);
       const tokenHash = await sha256(token);
       const { data: access, error: accessError } = await supabase
         .from("reserva_voucher_acessos")

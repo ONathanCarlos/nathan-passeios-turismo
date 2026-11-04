@@ -104,7 +104,45 @@ Deno.serve(async (req) => {
         .from("reservas")
         .select("id,nome,telefone,email,destino,data_viagem,passageiros,cupom_aplicado,valor_original,valor_com_desconto,status,created_at")
         .order("created_at", { ascending: false }).limit(limit);
-      return json({ ok: true, rows: data || [] });
+      const rows = data || [];
+      if (!rows.length) return json({ ok: true, rows });
+
+      const reservationIds = rows.map((row: { id: string }) => row.id);
+      const { data: issuances, error: issuanceError } = await supabase
+        .from("reserva_voucher_emissoes")
+        .select("id,reserva_id,codigo_reserva")
+        .in("reserva_id", reservationIds)
+        .eq("status", "issued");
+      const itemsByIssuance = new Map<string, Array<{ name: string; code: string }>>();
+      if (!issuanceError && issuances?.length) {
+        const issuanceIds = issuances.map((issue: { id: string }) => issue.id);
+        const { data: voucherItems, error: itemsError } = await supabase
+          .from("reserva_passeios")
+          .select("emissao_id,nome_snapshot,codigo_passeio")
+          .in("emissao_id", issuanceIds)
+          .order("ordem", { ascending: true });
+        if (!itemsError) {
+          (voucherItems || []).forEach((item: { emissao_id: string; nome_snapshot: string; codigo_passeio: string }) => {
+            const current = itemsByIssuance.get(item.emissao_id) || [];
+            current.push({ name: item.nome_snapshot, code: item.codigo_passeio });
+            itemsByIssuance.set(item.emissao_id, current);
+          });
+        }
+      }
+      const issuanceByReservation = new Map<string, { id: string; codigo_reserva: string | null }>();
+      if (!issuanceError) {
+        (issuances || []).forEach((issue: { id: string; reserva_id: string; codigo_reserva: string | null }) => {
+          issuanceByReservation.set(issue.reserva_id, issue);
+        });
+      }
+      return json({ ok: true, rows: rows.map((row: { id: string }) => {
+        const issue = issuanceByReservation.get(row.id);
+        return {
+          ...row,
+          codigo_reserva: issue?.codigo_reserva ?? null,
+          voucher_items: issue ? itemsByIssuance.get(issue.id) || [] : [],
+        };
+      }) });
     }
 
     if (action === "pending_reservation_phones") {
