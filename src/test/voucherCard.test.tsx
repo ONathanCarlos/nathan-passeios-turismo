@@ -56,6 +56,25 @@ describe("official voucher artwork rendering", () => {
     }
   });
 
+  it("uses fully opaque masks over flattened source text", () => {
+    const item: IssuedVoucherItem = {
+      order: 1,
+      tour_key: "escuna",
+      code: "ESCUNA-2026-001284-01",
+      name: "Passeio de Escuna",
+      date: "2026-11-12",
+      schedule: "11:00h",
+      template_key: "escuna",
+    };
+    const { container } = render(<VoucherCard voucher={voucher} item={item} lang="pt" />);
+    const backgrounds = Array.from(container.querySelectorAll<HTMLElement>("[style]"))
+      .map((element) => element.style.background)
+      .filter(Boolean);
+
+    expect(backgrounds.length).toBeGreaterThan(0);
+    expect(backgrounds.every((background) => !background.includes("rgba(") && !background.includes("gradient"))).toBe(true);
+  });
+
   it("uses the Quadriciclo artwork when the CMS tour key uses hyphens", () => {
     const item: IssuedVoucherItem = {
       order: 1,
