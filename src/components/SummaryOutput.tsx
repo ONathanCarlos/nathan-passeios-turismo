@@ -14,19 +14,22 @@ interface Props {
   rows: SummaryRow[];
   tourTitle: string;
   onSend?: () => void;
+  voucherWarning?: boolean;
+  onRetryVoucher?: () => void;
+  retryingVoucher?: boolean;
 }
 
 import { BOOKING_WHATSAPP } from "@/lib/brand";
 
-const HEADER: Record<Lang, { ready: string; instr: string; review: string; send: string; back: string; tour: string }> = {
-  pt: { ready: "Reserva Pronta!", instr: "Revise abaixo os dados da sua reserva antes de enviar pelo WhatsApp.", review: "Revise antes de enviar", send: "Confirmar e enviar para WhatsApp", back: "Voltar ao Passeio", tour: "Passeio" },
-  es: { ready: "¡Reserva Lista!", instr: "Revisa los datos de tu reserva antes de enviarla por WhatsApp.", review: "Revisa antes de enviar", send: "Confirmar y enviar por WhatsApp", back: "Volver al Paseo", tour: "Paseo" },
-  en: { ready: "Booking Ready!", instr: "Review your booking details below before sending via WhatsApp.", review: "Review before sending", send: "Confirm and send to WhatsApp", back: "Back to Tour", tour: "Tour" },
-  fr: { ready: "Réservation Prête !", instr: "Vérifiez les détails de votre réservation avant de l'envoyer via WhatsApp.", review: "Vérifiez avant d'envoyer", send: "Confirmer et envoyer sur WhatsApp", back: "Retour à l'Excursion", tour: "Excursion" },
-  it: { ready: "Prenotazione Pronta!", instr: "Controlla i dati della tua prenotazione prima di inviarla via WhatsApp.", review: "Controlla prima di inviare", send: "Conferma e invia su WhatsApp", back: "Torna al Tour", tour: "Tour" },
+const HEADER: Record<Lang, { ready: string; instr: string; review: string; send: string; back: string; tour: string; voucherWarning: string; voucherUnavailable: string; retry: string; retrying: string }> = {
+  pt: { ready: "Reserva Pronta!", instr: "Revise abaixo os dados da sua reserva antes de enviar pelo WhatsApp.", review: "Revise antes de enviar", send: "Confirmar e enviar para WhatsApp", back: "Voltar ao Passeio", tour: "Passeio", voucherWarning: "Sua reserva está salva, mas não conseguimos gerar o link seguro dos vouchers agora. Tente novamente antes de enviar; se continuar, você ainda pode enviar a reserva sem o link. Não exibiremos um link fictício.", voucherUnavailable: "Sua reserva está salva. O serviço de vouchers não está disponível neste momento; você ainda pode enviar a reserva pelo WhatsApp e solicitar o voucher à equipe Ônix.", retry: "Tentar gerar vouchers novamente", retrying: "Gerando vouchers…" },
+  es: { ready: "¡Reserva Lista!", instr: "Revisa los datos de tu reserva antes de enviarla por WhatsApp.", review: "Revisa antes de enviar", send: "Confirmar y enviar por WhatsApp", back: "Volver al Paseo", tour: "Paseo", voucherWarning: "Tu reserva está guardada, pero no pudimos generar ahora el enlace seguro de los vouchers. Inténtalo de nuevo antes de enviar; si sigue fallando, puedes enviar la reserva sin el enlace. No mostraremos un enlace ficticio.", voucherUnavailable: "Tu reserva está guardada. El servicio de vouchers no está disponible ahora; puedes enviar la reserva por WhatsApp y solicitar el voucher al equipo Ônix.", retry: "Intentar generar los vouchers", retrying: "Generando vouchers…" },
+  en: { ready: "Booking Ready!", instr: "Review your booking details below before sending via WhatsApp.", review: "Review before sending", send: "Confirm and send to WhatsApp", back: "Back to Tour", tour: "Tour", voucherWarning: "Your booking is saved, but we could not create the secure voucher link right now. Try again before sending; if it still fails, you can send the booking without the link. We will not show a fake link.", voucherUnavailable: "Your booking is saved. The voucher service is unavailable right now; you can still send your booking via WhatsApp and request the voucher from the Ônix team.", retry: "Try generating vouchers again", retrying: "Generating vouchers…" },
+  fr: { ready: "Réservation Prête !", instr: "Vérifiez les détails de votre réservation avant de l'envoyer via WhatsApp.", review: "Vérifiez avant d'envoyer", send: "Confirmer et envoyer sur WhatsApp", back: "Retour à l'Excursion", tour: "Excursion", voucherWarning: "Votre réservation est enregistrée, mais le lien sécurisé des vouchers n’a pas pu être créé. Réessayez avant l’envoi ; en cas d’échec persistant, vous pouvez envoyer la réservation sans le lien. Aucun faux lien ne sera affiché.", voucherUnavailable: "Votre réservation est enregistrée. Le service de vouchers est indisponible pour le moment ; vous pouvez envoyer la réservation sur WhatsApp et demander le voucher à l’équipe Ônix.", retry: "Réessayer de générer les vouchers", retrying: "Génération des vouchers…" },
+  it: { ready: "Prenotazione Pronta!", instr: "Controlla i dati della tua prenotazione prima di inviarla via WhatsApp.", review: "Controlla prima di inviare", send: "Conferma e invia su WhatsApp", back: "Torna al Tour", tour: "Tour", voucherWarning: "La prenotazione è salvata, ma non è stato possibile generare ora il link sicuro dei voucher. Riprova prima dell’invio; se continua a non funzionare, puoi inviare la prenotazione senza link. Non mostreremo un link fittizio.", voucherUnavailable: "La prenotazione è salvata. Il servizio voucher non è disponibile ora; puoi inviare la prenotazione su WhatsApp e chiedere il voucher al team Ônix.", retry: "Prova a generare di nuovo i voucher", retrying: "Generazione voucher…" },
 };
 
-export const SummaryOutput = ({ text, lang, onReset, rows, tourTitle, onSend }: Props) => {
+export const SummaryOutput = ({ text, lang, onReset, rows, tourTitle, onSend, voucherWarning, onRetryVoucher, retryingVoucher }: Props) => {
   const h = HEADER[lang];
   const waUrl = `https://wa.me/${BOOKING_WHATSAPP}?text=${encodeURIComponent(text)}`;
 
@@ -54,6 +57,17 @@ export const SummaryOutput = ({ text, lang, onReset, rows, tourTitle, onSend }: 
         </div>
       </div>
 
+      {voucherWarning && (
+        <div role="status" className="rounded-xl border border-amber-400/50 bg-amber-500/10 p-4 text-sm leading-relaxed text-amber-100">
+          <p>{onRetryVoucher ? h.voucherWarning : h.voucherUnavailable}</p>
+          {onRetryVoucher && (
+            <Button type="button" onClick={onRetryVoucher} disabled={retryingVoucher} className="mt-3 min-h-11 w-full bg-amber-400 text-night hover:bg-amber-300">
+              {retryingVoucher ? h.retrying : h.retry}
+            </Button>
+          )}
+        </div>
+      )}
+
       {/* Send via WhatsApp */}
       <a
         href={waUrl}
@@ -66,7 +80,9 @@ export const SummaryOutput = ({ text, lang, onReset, rows, tourTitle, onSend }: 
           try {
             localStorage.removeItem("nathan_qr_promo_v1");
             localStorage.removeItem("nathan_qr_seen_v1");
-          } catch {}
+          } catch {
+            // localStorage pode estar indisponível em contextos de navegação restritos.
+          }
         }}
         className="w-full rounded-xl bg-[hsl(var(--whatsapp))] text-[hsl(var(--whatsapp-foreground))] font-bold text-sm sm:text-base min-h-14 py-3 px-4 flex items-center justify-center gap-2 text-center hover:bg-[hsl(var(--whatsapp-hover))]"
       >

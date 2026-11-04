@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CmsTour } from "@/lib/cms";
 import { pickLang } from "@/lib/cms";
 import type { Lang } from "@/lib/i18n";
@@ -12,11 +12,12 @@ import { SummaryOutput } from "@/components/SummaryOutput";
 import { PhoneInput, type PhoneValue, fullPhone } from "@/components/PhoneInput";
 import { TourDatePicker } from "@/components/TourDatePicker";
 import { toast } from "sonner";
-import { createReservaInDb, syncLead, completeReserva } from "@/lib/db";
+import { createReservaInDb, createReservaVoucherInDb, issueReservaVouchers, saveVoucherMessageInDb, syncLead } from "@/lib/db";
 import { bookingDraftKey, BOOKING_DRAFT_TTL_MS, clearBookingDraft, dateFromLocalKey, readBookingDraft, saveBookingDraft } from "@/lib/bookingDraft";
 import { localDateKey } from "@/lib/cruiseEmbarkation";
 import { calculateLunchBookingAmounts, buildLunchBookingMessage, type LunchGuest } from "@/lib/cmsLunchBooking";
 import { hasCardSurcharge, type PaymentMethod } from "@/lib/payment";
+import { randomVoucherSecret } from "@/lib/vouchers";
 
 const FIELD_CLASS = "bg-night/70 backdrop-blur-sm border-turquoise/40 text-foreground placeholder:text-foreground/50 focus-visible:ring-turquoise focus-visible:border-turquoise h-12";
 const TEXT: Record<Lang, {
@@ -45,6 +46,16 @@ interface Props {
   onBack: () => void;
 }
 
+interface PendingLunchVoucher {
+  reservationId: string;
+  requestId: string;
+  requestProof: string;
+  idioma: Lang;
+  totalPeople: number;
+  tourKeys: string[];
+  messageBase: string;
+}
+
 export const CmsLunchBookingForm = ({ tour, lang, onLangChange, onBack }: Props) => {
   const t = dict[lang];
   const copy = TEXT[lang];
@@ -58,8 +69,10 @@ export const CmsLunchBookingForm = ({ tour, lang, onLangChange, onBack }: Props)
   const [payment, setPayment] = useState<PaymentMethod | "">(initialDraft?.payment ?? "");
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
-  const [output, setOutput] = useState<{ text: string; rows: { label: string; value: string }[] } | null>(null);
-  const [reservationId, setReservationId] = useState<string | null>(null);
+  const [retryingVoucher, setRetryingVoucher] = useState(false);
+  const [pendingVoucher, setPendingVoucher] = useState<PendingLunchVoucher | null>(null);
+  const voucherCredentials = useRef<{ requestId: string; requestProof: string; fingerprint: string } | null>(null);
+  const [output, setOutput] = useState<{ text: string; rows: { label: string; value: string }[]; voucherWarning?: boolean } | null>(null);
 
   const parsedCount = Number(guestCount);
   const countIsValid = Number.isInteger(parsedCount) && parsedCount >= 1 && parsedCount <= 8;
@@ -118,6 +131,7 @@ export const CmsLunchBookingForm = ({ tour, lang, onLangChange, onBack }: Props)
   };
 
   const handleGenerate = async () => {
+    if (saving) return;
     const nextErrors: Record<string, boolean> = {};
     if (!responsibleName.trim()) nextErrors.responsible = true;
     if (!phone.number.trim()) nextErrors.phone = true;
@@ -176,38 +190,131 @@ export const CmsLunchBookingForm = ({ tour, lang, onLangChange, onBack }: Props)
     ];
 
     syncLead({ nome: responsibleName.trim(), telefone: fullPhone(phone), origem: `reserva-cms:${tour.key}` });
+    const reservationData = {
+      nome: responsibleName.trim(),
+      telefone: fullPhone(phone),
+      destino: title,
+      data_viagem: localDateKey(date!),
+      passageiros: parsedCount,
+      valor_original: finalAmounts.subtotal,
+      valor_com_desconto: finalAmounts.total,
+    };
+    const totalPeople = guests.length;
+    const tourKeys = [tour.key];
+    const fingerprint = JSON.stringify({ reservationData, totalPeople, idioma: lang, tourKeys });
+    if (voucherCredentials.current?.fingerprint !== fingerprint) {
+      voucherCredentials.current = { requestId: crypto.randomUUID(), requestProof: randomVoucherSecret(), fingerprint };
+    }
+    const credentials = voucherCredentials.current;
     setSaving(true);
     let savedId: string | null = null;
+    let voucherUnavailable = false;
     for (let attempt = 0; attempt < 3 && !savedId; attempt += 1) {
-      savedId = await createReservaInDb({
-        nome: responsibleName.trim(),
-        telefone: fullPhone(phone),
-        destino: title,
-        data_viagem: localDateKey(date!),
-        passageiros: parsedCount,
-        valor_original: finalAmounts.subtotal,
-        valor_com_desconto: finalAmounts.total,
-      });
+      try {
+        savedId = await createReservaVoucherInDb(reservationData, {
+          requestId: credentials.requestId,
+          requestProof: credentials.requestProof,
+          idioma: lang,
+          totalPessoas: totalPeople,
+        });
+      } catch {
+        savedId = null;
+      }
       if (!savedId && attempt < 2) await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
     }
-    setSaving(false);
     if (!savedId) {
+      // Mantém o fluxo comercial legado se a migration/ação de voucher não estiver implantada.
+      voucherUnavailable = true;
+      for (let attempt = 0; attempt < 3 && !savedId; attempt += 1) {
+        savedId = await createReservaInDb(reservationData);
+        if (!savedId && attempt < 2) await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
+      }
+    }
+    if (!savedId) {
+      setSaving(false);
       toast.error(lang === "pt" ? "Não conseguimos salvar sua reserva. Verifique sua conexão e tente novamente." : "We could not save your reservation. Check your connection and try again.");
       return;
     }
-    setReservationId(savedId);
-    setOutput({ text: message, rows });
+    if (voucherUnavailable) {
+      setSaving(false);
+      setOutput({ text: message, rows, voucherWarning: true });
+      return;
+    }
+    const pending: PendingLunchVoucher = {
+      reservationId: savedId,
+      requestId: credentials.requestId,
+      requestProof: credentials.requestProof,
+      idioma: lang,
+      totalPeople,
+      tourKeys,
+      messageBase: message,
+    };
+    setPendingVoucher(pending);
+    let issuedMessage: string | null = null;
+    for (let attempt = 0; attempt < 3 && !issuedMessage; attempt += 1) {
+      try {
+        const issued = await issueReservaVouchers({
+          reservationId: pending.reservationId,
+          requestId: pending.requestId,
+          requestProof: pending.requestProof,
+          accessToken: randomVoucherSecret(),
+          idioma: pending.idioma,
+          totalPessoas: pending.totalPeople,
+          tourKeys: pending.tourKeys,
+          messageBase: pending.messageBase,
+        });
+        issuedMessage = issued.message;
+      } catch {
+        if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
+      }
+    }
+    setSaving(false);
+    if (issuedMessage) {
+      setPendingVoucher(null);
+      setOutput({ text: issuedMessage, rows });
+      return;
+    }
+    await saveVoucherMessageInDb({
+      reservationId: pending.reservationId,
+      requestId: pending.requestId,
+      requestProof: pending.requestProof,
+      message,
+    });
+    setOutput({ text: message, rows, voucherWarning: true });
+  };
+
+  const retryVoucherIssue = async () => {
+    if (!pendingVoucher || retryingVoucher) return;
+    setRetryingVoucher(true);
+    try {
+      const issued = await issueReservaVouchers({
+        reservationId: pendingVoucher.reservationId,
+        requestId: pendingVoucher.requestId,
+        requestProof: pendingVoucher.requestProof,
+        accessToken: randomVoucherSecret(),
+        idioma: pendingVoucher.idioma,
+        totalPessoas: pendingVoucher.totalPeople,
+        tourKeys: pendingVoucher.tourKeys,
+        messageBase: pendingVoucher.messageBase,
+      });
+      setOutput((current) => current ? { ...current, text: issued.message, voucherWarning: false } : current);
+      setPendingVoucher(null);
+      toast.success(lang === "pt" ? "Voucher gerado com sucesso." : lang === "es" ? "Voucher generado correctamente." : lang === "fr" ? "Voucher généré avec succès." : lang === "it" ? "Voucher generato correttamente." : "Voucher generated successfully.");
+    } catch {
+      toast.error(lang === "pt" ? "Sua reserva continua salva; tente gerar o voucher novamente." : "Your booking is still saved; please try generating the voucher again.");
+    } finally {
+      setRetryingVoucher(false);
+    }
   };
 
   const handleSent = async () => {
-    if (reservationId) await completeReserva(reservationId);
     clearBookingDraft(draftKey);
   };
 
   if (output) {
     return (
       <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={tour.imagem_url || undefined}>
-        <SummaryOutput text={output.text} rows={output.rows} tourTitle={title} lang={lang} onReset={() => setOutput(null)} onSend={handleSent} />
+        <SummaryOutput text={output.text} rows={output.rows} tourTitle={title} lang={lang} onReset={() => { setOutput(null); setPendingVoucher(null); voucherCredentials.current = null; }} onSend={handleSent} voucherWarning={output.voucherWarning} onRetryVoucher={pendingVoucher ? retryVoucherIssue : undefined} retryingVoucher={retryingVoucher} />
       </PageShell>
     );
   }

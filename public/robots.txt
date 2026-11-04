@@ -1,14 +1,19 @@
 User-agent: Googlebot
 Allow: /
+Disallow: /vouchers
 
 User-agent: Bingbot
 Allow: /
+Disallow: /vouchers
 
 User-agent: Twitterbot
 Allow: /
+Disallow: /vouchers
 
 User-agent: facebookexternalhit
 Allow: /
+Disallow: /vouchers
 
 User-agent: *
 Allow: /
+Disallow: /vouchers
