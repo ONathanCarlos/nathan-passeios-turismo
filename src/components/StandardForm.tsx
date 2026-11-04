@@ -417,7 +417,7 @@ export const StandardForm = ({
     return { freeCount: f, halfCount: h };
   }, [ages, kidsN, hasKids, adultsOnly]);
 
-  const paymentLabel = (p: Payment) =>
+  const paymentLabel = (p: PaymentMethod) =>
     ({ cash: t.cash, debit: t.debit, credit: t.credit, pix: t.pix }[p]);
 
   const handleGenerate = async () => {
