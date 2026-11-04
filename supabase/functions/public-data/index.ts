@@ -1,5 +1,6 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { handleVoucherAction, VOUCHER_ACTIONS } from "../_shared/vouchers.ts";
 
 // ============================================================
 // public-data — operações públicas seguras (sem PII em massa).
@@ -31,6 +32,10 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const action = body?.action;
+
+    if (typeof action === "string" && VOUCHER_ACTIONS.has(action)) {
+      return await handleVoucherAction(action, body as Record<string, unknown>, supabase);
+    }
 
     // -------------------- LEADS --------------------
     if (action === "create_lead") {
@@ -127,7 +132,7 @@ Deno.serve(async (req) => {
       const telefone = onlyDigits(str(body?.telefone, 40));
       const destino = str(body?.destino, 200);
       if (!nome || !telefone || !destino) return json({ ok: false, error: "invalid_input" }, 400);
-      // A reserva nasce sempre pendente. Só complete_reserva registra o clique real no WhatsApp.
+      // A reserva nasce sempre pendente; abrir WhatsApp não comprova que a mensagem foi enviada.
       const status = "pendente";
       const dataViagem = str(body?.data_viagem, 20) || null;
       // Deduplica somente tentativas repetidas de salvar o mesmo resumo; nunca cria convites aqui.
@@ -168,15 +173,6 @@ Deno.serve(async (req) => {
       }
       if (!data) return json({ ok: true, id: null });
       return json({ ok: true, id: data.id });
-    }
-
-    // O clique no WhatsApp apenas atualiza o status; falhas auxiliares não afetam a reserva.
-    if (action === "complete_reserva") {
-      const id = str(body?.id, 60);
-      if (!id) return json({ ok: false, error: "invalid_input" }, 400);
-      const { error } = await supabase.from("reservas").update({ status: "concluida" }).eq("id", id);
-      if (error) console.error("reservation_status_update_failed", { code: error.code });
-      return json({ ok: true });
     }
 
     return json({ ok: false, error: "unknown_action" }, 400);

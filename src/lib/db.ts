@@ -8,6 +8,7 @@
 // ============================================================
 import { supabase } from "@/integrations/supabase/client";
 import { getAdminToken, logoutAdmin } from "@/lib/adminAuth";
+import type { Lang } from "@/lib/i18n";
 
 const onlyDigits = (s: string) => (s || "").replace(/\D/g, "");
 
@@ -217,14 +218,115 @@ export async function createReservaInDb(
   }
 }
 
-/** Marca como concluída a reserva enviada ao WhatsApp, sem bloquear o cliente. */
-export async function completeReserva(id: string): Promise<boolean> {
+export interface VoucherReservaRequest {
+  requestId: string;
+  requestProof: string;
+  idioma: Lang;
+  totalPessoas: number;
+}
+
+/** Cria a reserva e o desafio privado de voucher em uma única operação idempotente. */
+export async function createReservaVoucherInDb(reserva: NewReserva, voucher: VoucherReservaRequest): Promise<string> {
+  const result = await callPublic<{ ok: boolean; id?: string; error?: string }>("create_reserva_voucher", {
+    nome: reserva.nome,
+    telefone: onlyDigits(reserva.telefone),
+    email: reserva.email || null,
+    destino: reserva.destino,
+    data_viagem: reserva.data_viagem || null,
+    passageiros: reserva.passageiros ?? null,
+    cupom_aplicado: reserva.cupom_aplicado || null,
+    valor_original: reserva.valor_original ?? null,
+    valor_com_desconto: reserva.valor_com_desconto ?? null,
+    request_id: voucher.requestId,
+    request_proof: voucher.requestProof,
+    idioma: voucher.idioma,
+    total_pessoas: voucher.totalPessoas,
+  });
+  if (!result?.ok || !result.id) throw new Error(result?.error || "reservation_save_failed");
+  return result.id;
+}
+
+export interface IssuedVoucherItem {
+  order: number;
+  tour_key: string;
+  code: string;
+  name: string;
+  date: string;
+  schedule: string;
+  template_key: string | null;
+}
+
+export interface IssuedVoucherMessage {
+  message: string;
+  reservation_code: string;
+  voucher_url: string;
+  items: IssuedVoucherItem[];
+}
+
+/** Emite/recupera códigos idempotentes e devolve o texto WhatsApp literal com link seguro. */
+export async function issueReservaVouchers(input: {
+  reservationId: string;
+  requestId: string;
+  requestProof: string;
+  accessToken: string;
+  idioma: Lang;
+  totalPessoas: number;
+  tourKeys: string[];
+  packageKey?: string;
+  messageBase: string;
+}): Promise<IssuedVoucherMessage> {
+  const result = await callPublic<{ ok: boolean; error?: string } & Partial<IssuedVoucherMessage>>("issue_reserva_vouchers", {
+    reservation_id: input.reservationId,
+    request_id: input.requestId,
+    request_proof: input.requestProof,
+    access_token: input.accessToken,
+    idioma: input.idioma,
+    total_pessoas: input.totalPessoas,
+    tour_keys: input.tourKeys,
+    package_key: input.packageKey || null,
+    message_base: input.messageBase,
+  });
+  if (!result?.ok || !result.message || !result.reservation_code || !result.voucher_url || !result.items) {
+    throw new Error(result?.error || "voucher_issue_failed");
+  }
+  return { message: result.message, reservation_code: result.reservation_code, voucher_url: result.voucher_url, items: result.items };
+}
+
+/** Guarda uma mensagem mesmo se a emissão estiver indisponível; ela é cifrada no servidor. */
+export async function saveVoucherMessageInDb(input: {
+  reservationId: string;
+  requestId: string;
+  requestProof: string;
+  message: string;
+}): Promise<boolean> {
   try {
-    const res = await callPublic<{ ok: boolean }>("complete_reserva", { id });
-    return res?.ok === true;
-  } catch (e) {
-    console.warn("[db] completeReserva falhou", e);
+    const result = await callPublic<{ ok: boolean }>("save_voucher_message", {
+      reservation_id: input.reservationId,
+      request_id: input.requestId,
+      request_proof: input.requestProof,
+      message: input.message,
+    });
+    return result?.ok === true;
+  } catch {
     return false;
+  }
+}
+
+export interface PublicVoucher {
+  reservation_code: string;
+  language: Lang;
+  passenger_name: string;
+  travel_date: string | null;
+  total_people: number;
+  items: IssuedVoucherItem[];
+}
+
+export async function fetchPublicVoucher(accessToken: string): Promise<PublicVoucher | null> {
+  try {
+    const result = await callPublic<{ ok: boolean; voucher?: PublicVoucher }>("get_voucher", { access_token: accessToken });
+    return result?.ok ? result.voucher || null : null;
+  } catch {
+    return null;
   }
 }
 
