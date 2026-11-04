@@ -505,6 +505,153 @@ export type Database = {
         }
         Relationships: []
       }
+      reserva_passeios: {
+        Row: {
+          codigo_passeio: string
+          criado_em: string
+          data_viagem: string
+          emissao_id: string
+          horario_snapshot: string
+          id: string
+          nome_snapshot: string
+          ordem: number
+          template_key: string | null
+          template_version: number
+          tour_key: string
+        }
+        Insert: {
+          codigo_passeio: string
+          criado_em?: string
+          data_viagem: string
+          emissao_id: string
+          horario_snapshot: string
+          id?: string
+          nome_snapshot: string
+          ordem: number
+          template_key?: string | null
+          template_version?: number
+          tour_key: string
+        }
+        Update: {
+          codigo_passeio?: string
+          criado_em?: string
+          data_viagem?: string
+          emissao_id?: string
+          horario_snapshot?: string
+          id?: string
+          nome_snapshot?: string
+          ordem?: number
+          template_key?: string | null
+          template_version?: number
+          tour_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reserva_passeios_emissao_id_fkey"
+            columns: ["emissao_id"]
+            isOneToOne: false
+            referencedRelation: "reserva_voucher_emissoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reserva_voucher_acessos: {
+        Row: {
+          criado_em: string
+          emissao_id: string
+          id: string
+          revogado_em: string | null
+          token_hash: string
+        }
+        Insert: {
+          criado_em?: string
+          emissao_id: string
+          id?: string
+          revogado_em?: string | null
+          token_hash: string
+        }
+        Update: {
+          criado_em?: string
+          emissao_id?: string
+          id?: string
+          revogado_em?: string | null
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reserva_voucher_acessos_emissao_id_fkey"
+            columns: ["emissao_id"]
+            isOneToOne: false
+            referencedRelation: "reserva_voucher_emissoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reserva_voucher_emissoes: {
+        Row: {
+          atualizado_em: string
+          codigo_numero: number | null
+          codigo_reserva: string | null
+          contract_version: number
+          criado_em: string
+          id: string
+          idioma: string
+          mensagem_ciphertext: string | null
+          mensagem_iv: string | null
+          request_expires_at: string
+          request_id: string
+          request_proof_hash: string
+          reserva_id: string
+          status: string
+          template_version: number
+          total_pessoas: number
+        }
+        Insert: {
+          atualizado_em?: string
+          codigo_numero?: number | null
+          codigo_reserva?: string | null
+          contract_version?: number
+          criado_em?: string
+          id?: string
+          idioma: string
+          mensagem_ciphertext?: string | null
+          mensagem_iv?: string | null
+          request_expires_at: string
+          request_id: string
+          request_proof_hash: string
+          reserva_id: string
+          status?: string
+          template_version?: number
+          total_pessoas: number
+        }
+        Update: {
+          atualizado_em?: string
+          codigo_numero?: number | null
+          codigo_reserva?: string | null
+          contract_version?: number
+          criado_em?: string
+          id?: string
+          idioma?: string
+          mensagem_ciphertext?: string | null
+          mensagem_iv?: string | null
+          request_expires_at?: string
+          request_id?: string
+          request_proof_hash?: string
+          reserva_id?: string
+          status?: string
+          template_version?: number
+          total_pessoas?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reserva_voucher_emissoes_reserva_id_fkey"
+            columns: ["reserva_id"]
+            isOneToOne: true
+            referencedRelation: "reservas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reservas: {
         Row: {
           created_at: string
@@ -654,7 +801,46 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_reserva_voucher_request: {
+        Args: {
+          p_cupom_aplicado: string
+          p_data_viagem: string
+          p_destino: string
+          p_email: string
+          p_idioma: string
+          p_nome: string
+          p_passageiros: number
+          p_proof_hash: string
+          p_request_id: string
+          p_telefone: string
+          p_total_pessoas: number
+          p_valor_com_desconto: number
+          p_valor_original: number
+        }
+        Returns: string
+      }
+      issue_reserva_vouchers: {
+        Args: {
+          p_access_token_hash: string
+          p_idioma: string
+          p_items: Json
+          p_proof_hash: string
+          p_request_id: string
+          p_reserva_id: string
+          p_total_pessoas: number
+        }
+        Returns: Json
+      }
+      save_reserva_voucher_message: {
+        Args: {
+          p_ciphertext: string
+          p_iv: string
+          p_proof_hash: string
+          p_request_id: string
+          p_reserva_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
