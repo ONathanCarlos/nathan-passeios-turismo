@@ -9,7 +9,11 @@ import { loadQrPromoForTour } from "@/lib/qrPromo";
 import { useEffect, useState } from "react";
 import { subscribeQrPromo } from "@/lib/qrPromo";
 import { forceRefreshCms, getCmsTourPriceStatus, subscribeCmsCache } from "@/lib/cmsCache";
-import { CRUISE_CALENDAR_PATH, CRUISE_FEE_DETAIL_NOTICE } from "@/lib/cruiseEmbarkation";
+import {
+  CRUISE_CALENDAR_PATH,
+  CRUISE_FEE_DETAIL_NOTICE,
+  getCruiseEmbarkationFeePerPerson,
+} from "@/lib/cruiseEmbarkation";
 import { TourMediaGallery } from "./TourMediaGallery";
 import { TOUR_VIDEO_LIMIT } from "@/lib/tourMedia";
 
@@ -142,7 +146,7 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embed
             {priceReady && (tourKey === "escuna" || tourKey === "catamara") && (
               <div className="mt-2 border-t border-amber-300/15 pt-2">
                 <p role="note" className="text-xs leading-relaxed text-amber-200/90">
-                  {CRUISE_FEE_DETAIL_NOTICE[lang]}
+                  {CRUISE_FEE_DETAIL_NOTICE[lang](getCruiseEmbarkationFeePerPerson(tourKey))}
                 </p>
                 <a href={CRUISE_CALENDAR_PATH} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-turquoise underline underline-offset-2 hover:text-turquoise-glow">
                   <ExternalLink className="h-3 w-3" />

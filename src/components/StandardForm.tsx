@@ -35,7 +35,7 @@ import {
   packageIncludesCruiseFeeTour,
   CRUISE_CHILD_FEE_NOTICE,
   CRUISE_FEE_BOOKING_NOTICE,
-  EMBARKATION_FEE_PER_PERSON,
+  getCruiseEmbarkationFeePerPerson,
   LABELS,
   localDateKey,
   CRUISE_CALENDAR_PATH,
@@ -308,6 +308,7 @@ export const StandardForm = ({
   };
 
   // Cálculo de preço (quando aplicável)
+  const cruiseFeePerPerson = getCruiseEmbarkationFeePerPerson(tourKey, packageTourKeys);
   const priceInfo = useMemo(() => {
     if (isPackage) {
       // Pacote promocional: valor fixo por passageiro, sem cupons/QR.
@@ -319,11 +320,13 @@ export const StandardForm = ({
         feeApplies,
         Math.max(0, parseInt(pax) || 0),
         feeChildAges,
+        cruiseFeePerPerson,
       );
       const amounts = calculateBookingAmounts(original, embarkation.amount, hasCardSurcharge(payment));
       return {
         original, discount: 0, fareFinal: original,
         embarkationPassengerCount: embarkation.passengerCount, embarkationFee: embarkation.amount,
+        embarkationFeePerPerson: cruiseFeePerPerson,
         localEmbarkationFee: 0, jardineiraFee: 0, regionalFeePassengerCount: 0,
         ...amounts, final: amounts.total,
         meta: { value: packagePrice as number }, qrPercent: 0, qrApplied: false, baseOriginal: original,
@@ -353,6 +356,7 @@ export const StandardForm = ({
       feeApplies,
       Math.max(0, parseInt(pax) || 0),
       feeChildAges,
+      cruiseFeePerPerson,
     );
     const regionalFeeChildren = !adultsOnly && hasKids === "yes" ? kidsN : 0;
     const regionalFees = calculateRegionalBookingFees(
@@ -369,12 +373,13 @@ export const StandardForm = ({
       original, discount, fareFinal, ...amounts, final: amounts.total,
       embarkationPassengerCount: embarkation.passengerCount,
       embarkationFee: embarkation.amount,
+      embarkationFeePerPerson: cruiseFeePerPerson,
       localEmbarkationFee: regionalFees.embarkationFee,
       jardineiraFee: regionalFees.jardineiraFee,
       regionalFeePassengerCount: regionalFees.passengerCount,
       meta, qrPercent: qr?.percent ?? 0, qrApplied: !!qr, baseOriginal,
     };
-  }, [tourKey, pax, hasKids, ages, kidsN, adultsOnly, effectiveCoupon, isPackage, packagePrice, packageTourKeys, priceStatus, cmsPrice, date, payment, qrPromoVersion]);
+  }, [tourKey, pax, hasKids, ages, kidsN, adultsOnly, effectiveCoupon, isPackage, packagePrice, packageTourKeys, cruiseFeePerPerson, priceStatus, cmsPrice, date, payment, qrPromoVersion]);
 
   const cruiseFeeActive = tourKey
     ? cruiseFeeApplies(tourKey, date)
@@ -494,7 +499,7 @@ export const StandardForm = ({
     if (cruiseFeeActive) {
       rows.push({
         label: lang === "pt" ? "Aviso de embarque" : lang === "es" ? "Aviso de embarque" : lang === "fr" ? "Avis d'embarquement" : lang === "it" ? "Avviso d'imbarco" : "Boarding notice",
-        value: CRUISE_FEE_BOOKING_NOTICE[lang],
+        value: CRUISE_FEE_BOOKING_NOTICE[lang](cruiseFeePerPerson),
       });
     }
     rows.push({ label: t.sumPax, value: pax });
@@ -516,7 +521,7 @@ export const StandardForm = ({
       if (item.kind === "fare") rows.push({ label: lang === "pt" ? "Passeio (após descontos)" : "Tour (after discounts)", value: formatBRL(item.amount) });
       if (item.kind === "embarkation") {
         rows.push({
-          label: `${LABELS[lang].embarkationFee} (${item.passengers} ${LABELS[lang].feePerPassenger})`,
+          label: `${LABELS[lang].embarkationFee} (${item.passengers} ${LABELS[lang].feePerPassenger} × ${formatBRL(priceInfo.embarkationFeePerPerson)})`,
           value: formatBRL(item.amount),
         });
       }
@@ -579,7 +584,7 @@ export const StandardForm = ({
         if (item.kind === "qr") lines.push(`Desconto QR Code: −${item.percent}%`);
         if (item.kind === "fare") lines.push(`Passeio (após descontos): ${formatBRL(item.amount)}`);
         if (item.kind === "embarkation") {
-          lines.push(`Taxa de embarque (${item.passengers} pessoa(s) × R$ ${EMBARKATION_FEE_PER_PERSON}): ${formatBRL(item.amount)}`);
+          lines.push(`Taxa de embarque (${item.passengers} pessoa(s) × ${formatBRL(priceInfo.embarkationFeePerPerson)}): ${formatBRL(item.amount)}`);
         }
         if (item.kind === "localEmbarkation") {
           lines.push(`Taxa de embarque (${item.passengers} pessoa(s) × ${formatBRL(REGIONAL_EMBARKATION_FEE_PER_PERSON)}): ${formatBRL(item.amount)}`);
@@ -939,7 +944,7 @@ export const StandardForm = ({
           )}
           {cruiseFeeActive && (
             <div role="status" className="-mt-3 rounded-xl border border-amber-400/30 bg-amber-500/10 p-3 text-sm leading-relaxed text-amber-100">
-              {CRUISE_FEE_BOOKING_NOTICE[lang]}
+              {CRUISE_FEE_BOOKING_NOTICE[lang](cruiseFeePerPerson)}
             </div>
           )}
 
@@ -1003,7 +1008,7 @@ export const StandardForm = ({
                         />
                         {badge && <p className={`mt-2 text-sm font-semibold ${badge.cls}`}>{badge.text}</p>}
                         {cruiseFeeActive && Number.parseInt(ages[i] || "", 10) >= 5 && (
-                          <p className="mt-2 text-xs leading-relaxed text-amber-200/90">{CRUISE_CHILD_FEE_NOTICE[lang]}</p>
+                          <p className="mt-2 text-xs leading-relaxed text-amber-200/90">{CRUISE_CHILD_FEE_NOTICE[lang](cruiseFeePerPerson)}</p>
                         )}
                       </Field>
                     );
@@ -1045,7 +1050,7 @@ export const StandardForm = ({
               </div>
               {priceInfo.embarkationFee > 0 && (
                 <div className="flex justify-between gap-4">
-                  <span>{LABELS[lang].embarkationFee} ({priceInfo.embarkationPassengerCount} {LABELS[lang].feePerPassenger})</span>
+                  <span>{LABELS[lang].embarkationFee} ({priceInfo.embarkationPassengerCount} {LABELS[lang].feePerPassenger} × {formatBRL(priceInfo.embarkationFeePerPerson)})</span>
                   <span>{formatBRL(priceInfo.embarkationFee)}</span>
                 </div>
               )}
