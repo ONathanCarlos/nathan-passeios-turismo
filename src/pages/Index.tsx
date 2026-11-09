@@ -5,13 +5,14 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 import { StandardForm } from "@/components/StandardForm";
 import { TourDetails } from "@/components/TourDetails";
+import { PaymentPriceDisplay } from "@/components/PaymentPriceDisplay";
 import { TourKey } from "@/lib/tours";
 import { Tag, ArrowLeft } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { TourBadge, UrgencyTag } from "@/components/TourBadge";
 import { PageTransition } from "@/components/PageTransition";
 import { PromoBanner } from "@/components/PromoBanner";
-import { COUPON_ELIGIBLE, tourPriceLabel, tourPriceStatusText, TOUR_PRICES, formatBRL } from "@/lib/prices";
+import { COUPON_ELIGIBLE, tourPriceStatusText, TOUR_PRICES, formatBRL } from "@/lib/prices";
 import { useIsAdmin } from "@/lib/adminAuth";
 import { runNavigationTransition } from "@/lib/viewTransition";
 import { forceRefreshCms, getCmsTourPriceStatus, subscribeCmsCache } from "@/lib/cmsCache";
@@ -299,21 +300,23 @@ const Index = () => {
                   {getCmsTourPriceStatus(opt.key) === "ready" ? (() => {
                     const tourQr = qrPromoForTour(qr, opt.key);
                     if (!tourQr) return (
-                      <p className="float-soft mt-3 text-2xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
-                        {tourPriceLabel(opt.key, lang)}
-                      </p>
+                      <PaymentPriceDisplay
+                        cashPixPrice={TOUR_PRICES[opt.key].value}
+                        from={TOUR_PRICES[opt.key].from}
+                        lang={lang}
+                        size="sm"
+                        className="mt-3"
+                      />
                     );
                     const meta = TOUR_PRICES[opt.key];
                     const orig = meta.value;
                     const disc = orig - (orig * tourQr.percent) / 100;
                     return (
-                      <div className="float-soft mt-3">
+                      <div className="mt-3">
                         <div className="text-xs text-muted-foreground line-through leading-none">
                           {meta.from ? `A partir de ${formatBRL(orig)}` : formatBRL(orig)}
                         </div>
-                        <div className="text-2xl font-extrabold bg-gradient-to-r from-emerald-300 to-turquoise-glow bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
-                          {meta.from ? `A partir de ${formatBRL(disc)}` : formatBRL(disc)}
-                        </div>
+                        <PaymentPriceDisplay cashPixPrice={disc} from={meta.from} lang={lang} size="sm" />
                         <div className="text-[10px] font-bold text-emerald-300">
                           -{tourQr.percent}% via QR Code
                         </div>
@@ -370,7 +373,7 @@ const Index = () => {
                   <div className="p-4 flex flex-col flex-1">
                     <h3 className="text-lg font-bold text-foreground leading-tight">{title}</h3>
                     <p className="mt-1.5 text-sm text-muted-foreground leading-snug flex-1">{pickLang(c, "descricao", lang)}</p>
-                    {c.preco > 0 && <p className="mt-3 text-2xl font-extrabold text-turquoise">{formatBRL(c.preco)}</p>}
+                    {c.preco > 0 && <PaymentPriceDisplay cashPixPrice={c.preco} lang={lang} size="sm" className="mt-3" />}
                     {c.urgencia && <UrgencyTag text={c.urgencia} className="mt-2" />}
                     <div className="mt-4 flex flex-col gap-2">
                       <button type="button" onClick={() => routeNavigate(`/passeios/${c.key}`)} className="w-full rounded-xl border border-turquoise/40 bg-turquoise/10 px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-turquoise/20 transition-colors">

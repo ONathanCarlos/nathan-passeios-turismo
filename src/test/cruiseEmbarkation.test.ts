@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateBookingAmounts,
-  calculateCreditSurcharge,
   calculateEmbarkationFee,
   cruiseFeeApplies,
   CRUISE_CHILD_FEE_NOTICE,
@@ -14,6 +13,7 @@ import {
   isCruiseDate,
   packageIncludesCruiseFeeTour,
 } from "@/lib/cruiseEmbarkation";
+import { calculateCardPriceIncrease, calculatePriceForPayment } from "@/lib/paymentPricing";
 
 describe("cruise embarkation fee", () => {
   it("recognizes all cruise dates regardless of the cruise ship pier", () => {
@@ -75,17 +75,20 @@ describe("cruise embarkation fee", () => {
     expect(CRUISE_FEE_BOOKING_NOTICE.pt(10)).not.toContain("R$ 5");
   });
 
-  it("calculates the 5% card surcharge over the subtotal, including the embarkation fee", () => {
-    expect(calculateCreditSurcharge(210, true)).toBe(10.5);
-    expect(calculateCreditSurcharge(210, false)).toBe(0);
+  it("calculates 10% on the tour fare only and leaves fixed fees unchanged", () => {
+    expect(calculateCardPriceIncrease(210, true)).toBe(21);
+    expect(calculatePriceForPayment(210, true)).toBe(231);
+    expect(calculateCardPriceIncrease(210, false)).toBe(0);
     expect(calculateBookingAmounts(150, 20, true)).toEqual({
       subtotal: 170,
-      creditSurcharge: 8.5,
-      total: 178.5,
+      fareForPayment: 165,
+      cardPriceAdjustment: 15,
+      total: 185,
     });
     expect(calculateBookingAmounts(150, 20, false)).toEqual({
       subtotal: 170,
-      creditSurcharge: 0,
+      fareForPayment: 150,
+      cardPriceAdjustment: 0,
       total: 170,
     });
   });

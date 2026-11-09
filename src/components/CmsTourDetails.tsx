@@ -7,7 +7,7 @@ import type { Lang } from "@/lib/i18n";
 import { dict } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { TourMediaGallery } from "@/components/TourMediaGallery";
-import { formatBRL } from "@/lib/prices";
+import { PaymentPriceDisplay } from "@/components/PaymentPriceDisplay";
 import { isLunchCmsTour } from "@/lib/cmsLunchBooking";
 import { CmsLunchBookingForm } from "@/components/CmsLunchBookingForm";
 import { cmsTourWhatsAppUrl } from "@/lib/cmsTourWhatsApp";
@@ -73,7 +73,7 @@ export function CmsTourDetails({ tour, lang, onLangChange, onBack }: {
               <video key={src} src={src} controls playsInline preload="metadata" className="w-full rounded-xl bg-night" />
             ))}
             {tour.preco > 0 && (
-              <p className="text-2xl font-extrabold text-turquoise">{formatBRL(tour.preco)}</p>
+              <PaymentPriceDisplay cashPixPrice={tour.preco} lang={lang} size="lg" />
             )}
             {isLunchCmsTour(tour) ? (
               <button type="button" onClick={() => setBookingOpen(true)} className="rgb-border w-full block">

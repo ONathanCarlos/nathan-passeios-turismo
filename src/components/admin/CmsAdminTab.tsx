@@ -126,15 +126,16 @@ const TourRow = ({ t }: { t: CmsTour }) => {
         </div>
 
         <div className="sm:col-span-2 space-y-1">
-          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
-            Preço (R$)
+          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center">
+            Preço em dinheiro/Pix (R$)
+            <HelpTooltip>Este é o valor-base em dinheiro ou Pix. O site calcula automaticamente o preço no cartão de crédito ou débito com acréscimo de 10%.</HelpTooltip>
           </Label>
           <Input
             type="number" min={0}
             className="bg-night/70 border-turquoise/40 text-foreground"
             value={draft.preco ?? 0}
             onChange={(e) => update("preco", parseFloat(e.target.value) || 0)}
-            placeholder="Ex: 220"
+            placeholder="Ex.: 220 (dinheiro/Pix)"
           />
         </div>
 
@@ -453,7 +454,7 @@ export const ToursSection = () => {
               value={nv.nome_pt}
               onChange={(e) => setNv({ ...nv, nome_pt: e.target.value })} />
             <Input type="number" className="sm:col-span-3 bg-night/70 border-turquoise/40 h-9 text-xs text-foreground"
-              placeholder="Preço (R$)"
+              placeholder="Preço dinheiro/Pix (R$)"
               value={nv.preco}
               onChange={(e) => setNv({ ...nv, preco: parseFloat(e.target.value) || 0 })} />
           </div>
@@ -620,7 +621,10 @@ const PacoteRow = ({ p, allTourKeys, tourImages }: { p: Pacote; allTourKeys: { k
             value={d.nome_pt} onChange={(e) => setD({ ...d, nome_pt: e.target.value })} />
         </div>
         <div className="sm:col-span-2 space-y-1">
-          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Preço (R$)</Label>
+          <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center">
+            Preço em dinheiro/Pix (R$)
+            <HelpTooltip>Este é o valor-base do pacote em dinheiro ou Pix. O site calcula automaticamente o preço no cartão de crédito ou débito com acréscimo de 10%.</HelpTooltip>
+          </Label>
           <Input type="number" className="bg-night/70 border-turquoise/40 text-foreground"
             value={d.preco} onChange={(e) => setD({ ...d, preco: parseFloat(e.target.value) || 0 })} />
         </div>
@@ -661,8 +665,8 @@ const PacoteRow = ({ p, allTourKeys, tourImages }: { p: Pacote; allTourKeys: { k
       <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
         <div className="sm:col-span-3 space-y-1">
           <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center">
-            Preço "De" (R$)
-            <HelpTooltip>Preço cheio (sem desconto). Mostra "De R$ X / por R$ Y" para destacar economia.</HelpTooltip>
+            Preço "De" em dinheiro/Pix (R$)
+            <HelpTooltip>Preço cheio em dinheiro/Pix (sem desconto). O cartão é calculado à parte com acréscimo de 10% sobre o preço correspondente.</HelpTooltip>
           </Label>
           <Input type="number" min={0} className="bg-night/70 border-turquoise/40 text-foreground h-9 text-xs"
             value={d.preco_original ?? ""}
@@ -869,7 +873,7 @@ export const PacotesSection = () => {
               placeholder="Nome do pacote"
               value={nv.nome_pt} onChange={(e) => setNv({ ...nv, nome_pt: e.target.value })} />
             <Input type="number" className="sm:col-span-3 bg-night/70 border-turquoise/40 h-9 text-xs text-foreground"
-              placeholder="Preço (R$)"
+              placeholder="Preço dinheiro/Pix (R$)"
               value={nv.preco} onChange={(e) => setNv({ ...nv, preco: parseFloat(e.target.value) || 0 })} />
           </div>
           <Textarea rows={2} className="bg-night/70 border-turquoise/30 text-xs text-foreground"

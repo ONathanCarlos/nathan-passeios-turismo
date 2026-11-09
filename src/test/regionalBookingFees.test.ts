@@ -29,12 +29,13 @@ describe("taxas de embarque e jardineira para Arraial e Cabo Frio", () => {
     });
   });
 
-  it("inclui as duas taxas no subtotal antes do acréscimo de cartão", () => {
+  it("aplica o preço de cartão somente ao passeio, sem multiplicar as duas taxas fixas", () => {
     const fees = calculateRegionalBookingFees("arraial", 2, 1);
     expect(calculateBookingAmounts(200, fees.embarkationFee + fees.jardineiraFee, true)).toEqual({
       subtotal: 275,
-      creditSurcharge: 13.75,
-      total: 288.75,
+      fareForPayment: 220,
+      cardPriceAdjustment: 20,
+      total: 295,
     });
   });
 });

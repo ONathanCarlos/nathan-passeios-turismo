@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { hasCardSurcharge } from "@/lib/payment";
+import { isCardPayment } from "@/lib/payment";
 
-describe("sobretaxa de pagamento com cartão", () => {
-  it("aplica a regra igualmente para débito e crédito", () => {
-    expect(hasCardSurcharge("debit")).toBe(true);
-    expect(hasCardSurcharge("credit")).toBe(true);
+describe("identificação de pagamento com cartão", () => {
+  it("classifica crédito e débito como cartão", () => {
+    expect(isCardPayment("debit")).toBe(true);
+    expect(isCardPayment("credit")).toBe(true);
   });
 
-  it("não aplica a regra para dinheiro, Pix ou método ainda não selecionado", () => {
-    expect(hasCardSurcharge("cash")).toBe(false);
-    expect(hasCardSurcharge("pix")).toBe(false);
-    expect(hasCardSurcharge("")).toBe(false);
+  it("classifica dinheiro, Pix ou método não selecionado como não cartão", () => {
+    expect(isCardPayment("cash")).toBe(false);
+    expect(isCardPayment("pix")).toBe(false);
+    expect(isCardPayment("")).toBe(false);
   });
 });

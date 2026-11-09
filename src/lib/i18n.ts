@@ -95,7 +95,6 @@ type Dict = {
   debit: string;
   credit: string;
   pix: string;
-  creditWarning: string;
   generate: string;
   copy: string;
   copied: string;
@@ -196,7 +195,6 @@ export const dict: Record<Lang, Dict> = {
     debit: "Cartão de débito",
     credit: "Cartão de crédito",
     pix: "Pix",
-    creditWarning: "⚠️ Será adicionado um acréscimo de 5% referente à taxa da maquininha.",
     generate: "Reservar seu passeio",
     copy: "Copiar texto",
     copied: "Copiado!",
@@ -291,7 +289,6 @@ export const dict: Record<Lang, Dict> = {
     debit: "Tarjeta de débito",
     credit: "Tarjeta de crédito",
     pix: "Pix",
-    creditWarning: "⚠️ Se añadirá un recargo del 5% por la tasa de la terminal.",
     generate: "Reservar tu paseo",
     copy: "Copiar texto",
     copied: "¡Copiado!",
@@ -386,7 +383,6 @@ export const dict: Record<Lang, Dict> = {
     debit: "Debit card",
     credit: "Credit card",
     pix: "Pix",
-    creditWarning: "⚠️ A 5% surcharge will be added for the card machine fee.",
     generate: "Book your tour",
     copy: "Copy text",
     copied: "Copied!",
@@ -481,7 +477,6 @@ export const dict: Record<Lang, Dict> = {
     debit: "Carte de débit",
     credit: "Carte de crédit",
     pix: "Pix",
-    creditWarning: "⚠️ Un supplément de 5% sera ajouté pour les frais du terminal.",
     generate: "Réserver votre excursion",
     copy: "Copier le texte",
     copied: "Copié !",
@@ -576,7 +571,6 @@ export const dict: Record<Lang, Dict> = {
     debit: "Carta di debito",
     credit: "Carta di credito",
     pix: "Pix",
-    creditWarning: "⚠️ Verrà aggiunto un supplemento del 5% per la commissione del POS.",
     generate: "Prenota la tua escursione",
     copy: "Copia testo",
     copied: "Copiato!",
