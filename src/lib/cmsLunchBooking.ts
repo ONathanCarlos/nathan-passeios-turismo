@@ -1,4 +1,5 @@
 import type { CmsTour } from "@/lib/cms";
+import { calculatePriceForPayment, roundMoney } from "@/lib/paymentPricing";
 
 export interface LunchGuest {
   name: string;
@@ -8,8 +9,9 @@ export interface LunchGuest {
 export interface LunchBookingAmounts {
   guestCount: number;
   unitPrice: number;
+  unitPriceForPayment: number;
   subtotal: number;
-  creditSurcharge: number;
+  cardPriceAdjustment: number;
   total: number;
 }
 
@@ -38,16 +40,19 @@ export const calculateLunchBookingAmounts = (
   guestCount: number,
   isCard: boolean,
 ): LunchBookingAmounts => {
-  const safeUnitPrice = Number.isFinite(unitPrice) && unitPrice > 0 ? unitPrice : 0;
+  const safeUnitPrice = Number.isFinite(unitPrice) && unitPrice > 0 ? roundMoney(unitPrice) : 0;
   const safeGuestCount = Number.isInteger(guestCount) && guestCount >= 1 && guestCount <= 8 ? guestCount : 0;
-  const subtotal = Math.round((safeUnitPrice * safeGuestCount + Number.EPSILON) * 100) / 100;
-  const creditSurcharge = isCard ? Math.round((subtotal * 0.05 + Number.EPSILON) * 100) / 100 : 0;
+  const subtotal = roundMoney(safeUnitPrice * safeGuestCount);
+  // Arredonda o unitário exibido antes de multiplicar, mantendo total = preço por pessoa × comensais.
+  const unitPriceForPayment = calculatePriceForPayment(safeUnitPrice, isCard);
+  const total = roundMoney(unitPriceForPayment * safeGuestCount);
   return {
     guestCount: safeGuestCount,
     unitPrice: safeUnitPrice,
+    unitPriceForPayment,
     subtotal,
-    creditSurcharge,
-    total: Math.round((subtotal + creditSurcharge + Number.EPSILON) * 100) / 100,
+    cardPriceAdjustment: roundMoney(total - subtotal),
+    total,
   };
 };
 
@@ -75,11 +80,8 @@ export const buildLunchBookingMessage = (input: LunchBookingMessageInput): strin
     "💰 VALORES DA RESERVA",
   ];
 
-  if (input.amounts.creditSurcharge > 0) {
-    lines.push(`Almoço (${input.amounts.guestCount} × ${money(input.amounts.unitPrice)}): ${money(input.amounts.subtotal)}`);
-  }
-  if (input.amounts.creditSurcharge > 0) {
-    lines.push(`Taxa do cartão (5%): ${money(input.amounts.creditSurcharge)}`);
+  if (input.amounts.cardPriceAdjustment > 0) {
+    lines.push(`Preço unitário do almoço no cartão (+10%): ${money(input.amounts.unitPriceForPayment)}`);
   }
   lines.push(
     `💰 TOTAL A PAGAR: ${money(input.amounts.total)}`,

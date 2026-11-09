@@ -3,9 +3,13 @@ import { buildBookingPriceBreakdown } from "@/lib/bookingPriceBreakdown";
 
 const price = {
   fareFinal: 855,
+  fareForPayment: 855,
   embarkationFee: 0,
   embarkationPassengerCount: 0,
-  creditSurcharge: 0,
+  localEmbarkationFee: 0,
+  jardineiraFee: 0,
+  regionalFeePassengerCount: 0,
+  cardPriceAdjustment: 0,
   final: 855,
   qrApplied: false,
   qrPercent: 0,
@@ -25,37 +29,48 @@ describe("discriminação do preço da reserva", () => {
     ]);
   });
 
-  it("discrimina tarifa, embarque e cartão sem repetir o subtotal", () => {
+  it("não repete a tarifa em cartão quando não há taxas fixas adicionais", () => {
     expect(buildBookingPriceBreakdown({
       ...price,
-      embarkationFee: 30,
-      embarkationPassengerCount: 3,
-      creditSurcharge: 44.25,
-      final: 929.25,
+      fareForPayment: 940.5,
+      cardPriceAdjustment: 85.5,
+      final: 940.5,
     })).toEqual([
-      { kind: "fare", amount: 855 },
-      { kind: "embarkation", amount: 30, passengers: 3 },
-      { kind: "credit", amount: 44.25 },
-      { kind: "total", amount: 929.25 },
+      { kind: "total", amount: 940.5 },
     ]);
   });
 
-  it("discrimina embarque local e jardineira e mostra subtotal com as duas taxas incluídas", () => {
+  it("discrimina o preço selecionado do passeio e embarque como valores separados", () => {
+    expect(buildBookingPriceBreakdown({
+      ...price,
+      fareFinal: 855,
+      fareForPayment: 940.5,
+      embarkationFee: 30,
+      embarkationPassengerCount: 3,
+      cardPriceAdjustment: 85.5,
+      final: 970.5,
+    })).toEqual([
+      { kind: "fare", amount: 940.5 },
+      { kind: "embarkation", amount: 30, passengers: 3 },
+      { kind: "total", amount: 970.5 },
+    ]);
+  });
+
+  it("discrimina embarque local e jardineira sem repetir o subtotal no total", () => {
     expect(buildBookingPriceBreakdown({
       ...price,
       fareFinal: 200,
+      fareForPayment: 220,
       localEmbarkationFee: 45,
       jardineiraFee: 30,
       regionalFeePassengerCount: 3,
-      creditSurcharge: 13.75,
-      final: 288.75,
+      cardPriceAdjustment: 20,
+      final: 295,
     })).toEqual([
-      { kind: "fare", amount: 200 },
+      { kind: "fare", amount: 220 },
       { kind: "localEmbarkation", amount: 45, passengers: 3 },
       { kind: "jardineira", amount: 30, passengers: 3 },
-      { kind: "subtotal", amount: 275 },
-      { kind: "credit", amount: 13.75 },
-      { kind: "total", amount: 288.75 },
+      { kind: "total", amount: 295 },
     ]);
   });
 

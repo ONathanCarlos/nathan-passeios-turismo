@@ -4,7 +4,8 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Button } from "./ui/button";
 import { ArrowLeft, Clock, MapPin, Users, Check, AlertCircle, ExternalLink } from "lucide-react";
 import { dict } from "@/lib/i18n";
-import { TOUR_PRICES, tourPriceLabel, tourPriceStatusText, formatBRL } from "@/lib/prices";
+import { TOUR_PRICES, tourPriceStatusText, formatBRL } from "@/lib/prices";
+import { PaymentPriceDisplay } from "@/components/PaymentPriceDisplay";
 import { loadQrPromoForTour } from "@/lib/qrPromo";
 import { useEffect, useState } from "react";
 import { subscribeQrPromo } from "@/lib/qrPromo";
@@ -34,6 +35,8 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embed
   const priceStatus = getCmsTourPriceStatus(tourKey);
   const priceReady = priceStatus === "ready";
   const tour = getTour(tourKey, lang);
+  const priceMeta = TOUR_PRICES[tourKey];
+  const cashPixPrice = qr ? priceMeta.value - (priceMeta.value * qr.percent) / 100 : priceMeta.value;
   const L = sectionLabels(lang);
   const t = dict[lang];
 
@@ -105,27 +108,20 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embed
 
           {/* Price */}
           <div className="mt-4 glass-card rounded-2xl p-4 text-center">
-            {priceReady ? qr ? (() => {
-              const meta = TOUR_PRICES[tourKey];
-              const orig = meta.value;
-              const disc = orig - (orig * qr.percent) / 100;
-              return (
-                <>
+            {priceReady ? (
+              <>
+                {qr && (
                   <p className="text-sm text-muted-foreground line-through">
-                    {meta.from ? `A partir de ${formatBRL(orig)}` : formatBRL(orig)}
+                    {priceMeta.from ? `A partir de ${formatBRL(priceMeta.value)}` : formatBRL(priceMeta.value)}
                   </p>
-                  <p className="float-soft text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-emerald-300 to-turquoise-glow bg-clip-text text-transparent">
-                    {meta.from ? `A partir de ${formatBRL(disc)}` : formatBRL(disc)}
-                  </p>
+                )}
+                <PaymentPriceDisplay cashPixPrice={cashPixPrice} from={priceMeta.from} lang={lang} size="lg" />
+                {qr && (
                   <p className="mt-1 text-xs font-bold text-emerald-300">
                     🎟 {qr.percent}% OFF aplicado via QR Code
                   </p>
-                </>
-              );
-            })() : (
-              <p className="float-soft text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent">
-                {tourPriceLabel(tourKey, lang)}
-              </p>
+                )}
+              </>
             ) : (
               <div className="space-y-2">
                 <p role="status" className="text-sm text-muted-foreground">

@@ -8,6 +8,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { PageShell } from "./PageShell";
+import { PaymentPriceDisplay } from "@/components/PaymentPriceDisplay";
 import { SummaryOutput } from "./SummaryOutput";
 import { PhoneInput, PhoneValue, fullPhone } from "./PhoneInput";
 import { toast } from "sonner";
@@ -17,7 +18,7 @@ import { QrPromoBoot } from "./QrPromo";
 import { loadQrPromoForTour, subscribeQrPromo } from "@/lib/qrPromo";
 
 import { TourKey, getTour } from "@/lib/tours";
-import { TOUR_PRICES, formatBRL, tourPriceLabel, tourPriceStatusText, COUPON_ELIGIBLE } from "@/lib/prices";
+import { TOUR_PRICES, formatBRL, tourPriceStatusText, COUPON_ELIGIBLE } from "@/lib/prices";
 import { forceRefreshCms, getCachedTour, getCmsTourPriceStatus, subscribeCmsCache } from "@/lib/cmsCache";
 import {
   isExpired, isTester, isAdminMode, loadPromo, markCouponUsed, normalizeCoupon, PromoData,
@@ -41,7 +42,8 @@ import {
   CRUISE_CALENDAR_PATH,
 } from "@/lib/cruiseEmbarkation";
 import { bookingDraftKey, BOOKING_DRAFT_TTL_MS, clearBookingDraft, dateFromLocalKey, readBookingDraft, saveBookingDraft } from "@/lib/bookingDraft";
-import { hasCardSurcharge, type PaymentMethod } from "@/lib/payment";
+import { isCardPayment, type PaymentMethod } from "@/lib/payment";
+import { PAYMENT_PRICE_LABELS } from "@/lib/paymentPricing";
 import { randomVoucherAccessToken, randomVoucherSecret } from "@/lib/vouchers";
 import { formatArraialPassengerSummary } from "@/lib/arraialPassengerSummary";
 
@@ -322,14 +324,15 @@ export const StandardForm = ({
         feeChildAges,
         cruiseFeePerPerson,
       );
-      const amounts = calculateBookingAmounts(original, embarkation.amount, hasCardSurcharge(payment));
+      const amounts = calculateBookingAmounts(original, embarkation.amount, isCardPayment(payment));
       return {
         original, discount: 0, fareFinal: original,
+        unitPriceCashPix: packagePrice as number, unitPriceBeforeCoupon: packagePrice as number,
         embarkationPassengerCount: embarkation.passengerCount, embarkationFee: embarkation.amount,
         embarkationFeePerPerson: cruiseFeePerPerson,
         localEmbarkationFee: 0, jardineiraFee: 0, regionalFeePassengerCount: 0,
         ...amounts, final: amounts.total,
-        meta: { value: packagePrice as number }, qrPercent: 0, qrApplied: false, baseOriginal: original,
+        meta: { value: packagePrice as number, from: false }, qrPercent: 0, qrApplied: false, baseOriginal: original,
       };
     }
     if (!tourKey || priceStatus !== "ready" || typeof cmsPrice !== "number") return null;
@@ -350,6 +353,8 @@ export const StandardForm = ({
     const original = qr ? baseOriginal - (baseOriginal * qr.percent) / 100 : baseOriginal;
     const discount = effectiveCoupon ? (original * effectiveCoupon.percent) / 100 : 0;
     const fareFinal = original - discount;
+    const unitPriceBeforeCoupon = qr ? meta.value - (meta.value * qr.percent) / 100 : meta.value;
+    const unitPriceCashPix = unitPriceBeforeCoupon - (unitPriceBeforeCoupon * (effectiveCoupon?.percent ?? 0)) / 100;
     const feeApplies = cruiseFeeApplies(tourKey, date);
     const feeChildAges = !adultsOnly && hasKids === "yes" ? ages.slice(0, kidsN) : [];
     const embarkation = calculateEmbarkationFee(
@@ -367,10 +372,10 @@ export const StandardForm = ({
     const amounts = calculateBookingAmounts(
       fareFinal,
       embarkation.amount + regionalFees.embarkationFee + regionalFees.jardineiraFee,
-      hasCardSurcharge(payment),
+      isCardPayment(payment),
     );
     return {
-      original, discount, fareFinal, ...amounts, final: amounts.total,
+      original, discount, fareFinal, unitPriceCashPix, unitPriceBeforeCoupon, ...amounts, final: amounts.total,
       embarkationPassengerCount: embarkation.passengerCount,
       embarkationFee: embarkation.amount,
       embarkationFeePerPerson: cruiseFeePerPerson,
@@ -518,7 +523,7 @@ export const StandardForm = ({
     for (const item of priceLines) {
       if (item.kind === "coupon") rows.push({ label: "Cupom", value: `${item.code} (-${item.percent}%)` });
       if (item.kind === "qr") rows.push({ label: "Desconto QR Code", value: `-${item.percent}%` });
-      if (item.kind === "fare") rows.push({ label: lang === "pt" ? "Passeio (após descontos)" : "Tour (after discounts)", value: formatBRL(item.amount) });
+      if (item.kind === "fare") rows.push({ label: isCardPayment(payment) ? PAYMENT_PRICE_LABELS[lang].tourFareCard : PAYMENT_PRICE_LABELS[lang].tourFareCashPix, value: formatBRL(item.amount) });
       if (item.kind === "embarkation") {
         rows.push({
           label: `${LABELS[lang].embarkationFee} (${item.passengers} ${LABELS[lang].feePerPassenger} × ${formatBRL(priceInfo.embarkationFeePerPerson)})`,
@@ -537,8 +542,6 @@ export const StandardForm = ({
           value: formatBRL(item.amount),
         });
       }
-      if (item.kind === "subtotal") rows.push({ label: LABELS[lang].subtotalWithRegionalFees, value: formatBRL(item.amount) });
-      if (item.kind === "credit") rows.push({ label: LABELS[lang].creditSurcharge, value: formatBRL(item.amount) });
       if (item.kind === "total") rows.push({ label: LABELS[lang].totalDue, value: formatBRL(item.amount) });
     }
     rows.push({ label: lang === "pt" ? "Local Check-in" : "Check-in" , value: "Praça Santos Dummont, Cabine 03 - Búzios/RJ" });
@@ -582,7 +585,7 @@ export const StandardForm = ({
       for (const item of priceLines) {
         if (item.kind === "coupon") lines.push(`Cupom aplicado: ${item.code} (−${item.percent}%)`);
         if (item.kind === "qr") lines.push(`Desconto QR Code: −${item.percent}%`);
-        if (item.kind === "fare") lines.push(`Passeio (após descontos): ${formatBRL(item.amount)}`);
+        if (item.kind === "fare") lines.push(`Passeio (${isCardPayment(payment) ? "preço no cartão +10%" : "dinheiro/Pix"}, após descontos): ${formatBRL(item.amount)}`);
         if (item.kind === "embarkation") {
           lines.push(`Taxa de embarque (${item.passengers} pessoa(s) × ${formatBRL(priceInfo.embarkationFeePerPerson)}): ${formatBRL(item.amount)}`);
         }
@@ -592,8 +595,6 @@ export const StandardForm = ({
         if (item.kind === "jardineira") {
           lines.push(`Taxa da jardineira (${item.passengers} pessoa(s) × ${formatBRL(JARDINEIRA_FEE_PER_PERSON)}): ${formatBRL(item.amount)}`);
         }
-        if (item.kind === "subtotal") lines.push(`Subtotal (passeio + taxas de embarque e jardineira): ${formatBRL(item.amount)}`);
-        if (item.kind === "credit") lines.push(`Taxa do cartão (5%): ${formatBRL(item.amount)}`);
         if (item.kind === "total") lines.push(`💰 TOTAL A PAGAR: ${formatBRL(item.amount)}`);
       }
     }
@@ -815,31 +816,24 @@ export const StandardForm = ({
         {/* Preço + Aplicar Cupom */}
         {(tourKey || isPackage) && (
           <div className="mb-5 glass-card rounded-2xl p-4 space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                  {effectiveCoupon ? (lang === "pt" ? "Com desconto" : "With discount") : (lang === "pt" ? "Valor" : "Price")}
+            <div className="space-y-3">
+              <div className="min-w-0">
+                <div className="mb-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+                  {effectiveCoupon ? PAYMENT_PRICE_LABELS[lang].discountedUnitPrice : PAYMENT_PRICE_LABELS[lang].unitPrice}
                 </div>
-                {effectiveCoupon && priceInfo ? (
+                {priceInfo ? (
                   <>
-                    <div className="text-xs text-muted-foreground line-through">{formatBRL(priceInfo.original)}</div>
-                    <div className="text-2xl font-extrabold bg-gradient-to-r from-emerald-300 to-turquoise-glow bg-clip-text text-transparent">
-                      {formatBRL(priceInfo.fareFinal)}
-                    </div>
-                    <div className="text-[11px] text-emerald-300 font-semibold">
-                      {effectiveCoupon.code} · -{effectiveCoupon.percent}%
-                    </div>
+                    {(effectiveCoupon || priceInfo.qrApplied) && (
+                      <div className="mb-1 text-xs text-muted-foreground line-through">
+                        {formatBRL(priceInfo.qrApplied ? priceInfo.meta.value : priceInfo.unitPriceBeforeCoupon)}
+                      </div>
+                    )}
+                    <PaymentPriceDisplay cashPixPrice={priceInfo.unitPriceCashPix} from={!!priceInfo.meta.from} lang={lang} size="md" />
+                    {effectiveCoupon && <div className="mt-1 text-[11px] text-emerald-300 font-semibold">{effectiveCoupon.code} · -{effectiveCoupon.percent}%</div>}
+                    {priceInfo.qrApplied && <div className="mt-1 text-[11px] text-emerald-300 font-semibold">-{priceInfo.qrPercent}% via QR Code</div>}
                   </>
                 ) : (
-                  <div className="text-2xl font-extrabold bg-gradient-to-r from-turquoise to-turquoise-glow bg-clip-text text-transparent">
-                      {isPackage && priceInfo
-                      ? formatBRL(priceInfo.final)
-                      : tourKey
-                        ? priceInfo
-                          ? tourPriceLabel(tourKey, lang)
-                          : tourPriceStatusText(priceStatus, lang)
-                        : ""}
-                  </div>
+                  <div className="text-sm text-muted-foreground">{tourKey ? tourPriceStatusText(priceStatus, lang) : ""}</div>
                 )}
                 {tourKey && priceStatus === "error" && (
                   <button type="button" className="mt-1 text-xs underline text-muted-foreground" onClick={() => void forceRefreshCms.tours()}>
@@ -856,7 +850,7 @@ export const StandardForm = ({
                 <button
                   type="button"
                   onClick={requestWelcomeCoupon}
-                  className="rgb-border shrink-0"
+                  className="rgb-border w-full block"
                 >
                   <span className="flex items-center gap-1.5 rounded-[0.55rem] bg-gradient-to-r from-turquoise to-turquoise-glow text-night font-bold text-xs px-3 py-2">
                     <Tag className="h-3.5 w-3.5" />
@@ -1035,19 +1029,21 @@ export const StandardForm = ({
                 <SelectItem value="pix">{t.pix}</SelectItem>
               </SelectContent>
             </Select>
-            {hasCardSurcharge(payment) && (
+            {isCardPayment(payment) && (
               <p className="mt-2 text-sm text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
-                {t.creditWarning} {LABELS[lang].estimatedCreditSurcharge}: {priceInfo ? formatBRL(priceInfo.creditSurcharge) : "—"}. {lang === "pt" ? "Já incluído no total abaixo." : lang === "es" ? "Ya incluido en el total de abajo." : lang === "fr" ? "Déjà inclus dans le total ci-dessous." : lang === "it" ? "Già incluso nel totale qui sotto." : "Already included in the total below."}
+                {PAYMENT_PRICE_LABELS[lang].cardNotice}
               </p>
             )}
           </Field>
 
-          {priceInfo && (priceInfo.embarkationFee > 0 || priceInfo.localEmbarkationFee > 0 || priceInfo.jardineiraFee > 0 || hasCardSurcharge(payment)) && (
+          {priceInfo && payment && (
             <section aria-live="polite" className="rounded-2xl border border-turquoise/25 bg-card/50 p-4 space-y-2 text-sm">
-              <div className="flex justify-between gap-4">
-                <span>{lang === "pt" ? "Passeio (após descontos)" : "Tour (after discounts)"}</span>
-                <span>{formatBRL(priceInfo.fareFinal)}</span>
-              </div>
+              {(priceInfo.embarkationFee > 0 || priceInfo.localEmbarkationFee > 0 || priceInfo.jardineiraFee > 0) && (
+                <div className="flex justify-between gap-4">
+                  <span>{isCardPayment(payment) ? PAYMENT_PRICE_LABELS[lang].tourFareCard : PAYMENT_PRICE_LABELS[lang].tourFareCashPix}</span>
+                  <span>{formatBRL(priceInfo.fareForPayment)}</span>
+                </div>
+              )}
               {priceInfo.embarkationFee > 0 && (
                 <div className="flex justify-between gap-4">
                   <span>{LABELS[lang].embarkationFee} ({priceInfo.embarkationPassengerCount} {LABELS[lang].feePerPassenger} × {formatBRL(priceInfo.embarkationFeePerPerson)})</span>
@@ -1064,18 +1060,6 @@ export const StandardForm = ({
                 <div className="flex justify-between gap-4">
                   <span>{LABELS[lang].jardineiraFee} ({priceInfo.regionalFeePassengerCount} {LABELS[lang].passengerUnit} × {formatBRL(JARDINEIRA_FEE_PER_PERSON)})</span>
                   <span>{formatBRL(priceInfo.jardineiraFee)}</span>
-                </div>
-              )}
-              {(priceInfo.embarkationFee > 0 || priceInfo.localEmbarkationFee > 0 || priceInfo.jardineiraFee > 0 || priceInfo.creditSurcharge > 0) && (
-                <div className="flex justify-between gap-4 border-t border-border/50 pt-2">
-                  <span>{priceInfo.localEmbarkationFee > 0 || priceInfo.jardineiraFee > 0 ? LABELS[lang].subtotalWithRegionalFees : LABELS[lang].tourSubtotal}</span>
-                  <span>{formatBRL(priceInfo.subtotal)}</span>
-                </div>
-              )}
-              {priceInfo.creditSurcharge > 0 && (
-                <div className="flex justify-between gap-4 text-amber-200">
-                  <span>{LABELS[lang].creditSurcharge}</span>
-                  <span>{formatBRL(priceInfo.creditSurcharge)}</span>
                 </div>
               )}
               <div className="flex justify-between gap-4 border-t border-turquoise/30 pt-2 font-bold text-base">

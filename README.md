@@ -50,7 +50,7 @@ Forma de pagamento: (aqui ao invés de preencher o cliente selecionará entre as
 
 
 
-Observação: Caso o cliente selecione na forma de pagamento o " cartão de crédito" aparecer uma mensagem abaixo destacando que haverá um acréscimo de 5% do valor referente a taxa da maquininha.
+Observação: O preço cadastrado no CMS é o valor-base em dinheiro ou Pix. No cartão de crédito ou débito, o site calcula automaticamente um preço 10% maior sobre a tarifa do passeio; taxas fixas de embarque e jardineira, quando aplicáveis, são somadas separadamente.
 
 
 

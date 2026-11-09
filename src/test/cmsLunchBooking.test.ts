@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildLunchBookingMessage, calculateLunchBookingAmounts, isLunchCmsTour } from "@/lib/cmsLunchBooking";
 import type { CmsTour } from "@/lib/cms";
-import { hasCardSurcharge } from "@/lib/payment";
+import { isCardPayment } from "@/lib/payment";
 
 const tour = (overrides: Partial<CmsTour> = {}): CmsTour => ({
   id: "cms-lunch",
@@ -27,17 +27,17 @@ describe("CMS lunch booking", () => {
     expect(isLunchCmsTour(tour({ key: "transfer", nome_pt: "Transfer", nome_en: "Airport transfer", nome_es: "Traslado", nome_fr: "Transfert", nome_it: "Trasferimento" }))).toBe(false);
   });
 
-  it("calculates the per-person subtotal and adds five percent only for card payments", () => {
+  it("uses the CMS price for cash/Pix and applies 10% to the rounded card unit price", () => {
     expect(calculateLunchBookingAmounts(66.67, 3, false)).toEqual({
-      guestCount: 3, unitPrice: 66.67, subtotal: 200.01, creditSurcharge: 0, total: 200.01,
+      guestCount: 3, unitPrice: 66.67, unitPriceForPayment: 66.67, subtotal: 200.01, cardPriceAdjustment: 0, total: 200.01,
     });
     expect(calculateLunchBookingAmounts(66.67, 3, true)).toEqual({
-      guestCount: 3, unitPrice: 66.67, subtotal: 200.01, creditSurcharge: 10, total: 210.01,
+      guestCount: 3, unitPrice: 66.67, unitPriceForPayment: 73.34, subtotal: 200.01, cardPriceAdjustment: 20.01, total: 220.02,
     });
     expect(calculateLunchBookingAmounts(66.67, 9, true).guestCount).toBe(0);
   });
 
-  it("includes responsible, all guests, ages, date, payment, and itemized values without unrelated fields", () => {
+  it("includes responsible, all guests, ages, date, payment, and selected card price without unrelated fields", () => {
     const amounts = calculateLunchBookingAmounts(65, 2, true);
     const message = buildLunchBookingMessage({
       tourTitle: "Almoço Buffet",
@@ -54,16 +54,17 @@ describe("CMS lunch booking", () => {
     expect(message).toContain("2. João Lima — 12 anos");
     expect(message).toContain("Data: 27/10/2026");
     const normalizedMessage = message.replace(/\u00a0/g, " ");
-    expect(normalizedMessage).toContain("Taxa do cartão (5%): R$ 6,50");
-    expect(normalizedMessage).toContain("TOTAL A PAGAR: R$ 136,50");
+    expect(normalizedMessage).toContain("Preço unitário do almoço no cartão (+10%): R$ 71,50");
+    expect(normalizedMessage).toContain("TOTAL A PAGAR: R$ 143,00");
     expect(normalizedMessage).toContain("Forma de pagamento: Cartão de crédito");
+    expect(normalizedMessage).not.toMatch(/taxa do cartão|5%/i);
     expect(message).not.toContain("Olá Nathan!");
     expect(message).not.toContain("Reserva feita pelo site");
     expect(normalizedMessage).not.toMatch(/pousada|nacionalidade|CPF/i);
   });
 
-  it("includes the same 5% surcharge and confirmation note for debit card bookings", () => {
-    const amounts = calculateLunchBookingAmounts(65, 2, hasCardSurcharge("debit"));
+  it("uses the same +10% card pricing for debit", () => {
+    const amounts = calculateLunchBookingAmounts(65, 2, isCardPayment("debit"));
     const message = buildLunchBookingMessage({
       tourTitle: "Almoço Buffet",
       responsibleName: "Ana Lima",
@@ -75,13 +76,13 @@ describe("CMS lunch booking", () => {
     });
 
     const normalizedMessage = message.replace(/\u00a0/g, " ");
-    expect(normalizedMessage).toContain("Taxa do cartão (5%): R$ 6,50");
-    expect(normalizedMessage).toContain("TOTAL A PAGAR: R$ 136,50");
+    expect(normalizedMessage).toContain("Preço unitário do almoço no cartão (+10%): R$ 71,50");
+    expect(normalizedMessage).toContain("TOTAL A PAGAR: R$ 143,00");
     expect(normalizedMessage).toContain("Forma de pagamento: Cartão de débito");
-    expect(normalizedMessage).not.toContain("A taxa de 5% do cartão já está incluída no total acima.");
+    expect(normalizedMessage).not.toMatch(/taxa do cartão|5%/i);
   });
 
-  it("shows only one amount for cash bookings without additional fees", () => {
+  it("shows only one amount for cash/Pix bookings without additional fees", () => {
     const amounts = calculateLunchBookingAmounts(65, 2, false);
     const message = buildLunchBookingMessage({
       tourTitle: "Almoço Buffet",
@@ -94,7 +95,7 @@ describe("CMS lunch booking", () => {
     });
 
     const normalizedMessage = message.replace(/\u00a0/g, " ");
-    expect(normalizedMessage).toContain("TOTAL A PAGAR: R$ 130");
-    expect(normalizedMessage).not.toContain("Almoço (2 ×");
+    expect(normalizedMessage).toContain("TOTAL A PAGAR: R$ 130,00");
+    expect(normalizedMessage).not.toContain("Preço unitário do almoço");
   });
 });

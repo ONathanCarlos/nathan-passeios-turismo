@@ -1,5 +1,6 @@
 import type { Lang } from "@/lib/i18n";
 import type { TourKey } from "@/lib/tours";
+import { calculateCardPriceIncrease, calculatePriceForPayment, roundMoney } from "@/lib/paymentPricing";
 
 export const EMBARKATION_FEE_PER_PERSON = 10;
 export const ESCUNA_EMBARKATION_FEE_PER_PERSON = 5;
@@ -82,13 +83,12 @@ export const calculateEmbarkationFee = (
   return { passengerCount, amount: passengerCount * feePerPerson };
 };
 
-export const calculateCreditSurcharge = (subtotal: number, isCredit: boolean): number =>
-  isCredit ? Math.round(subtotal * 0.05 * 100) / 100 : 0;
-
-export const calculateBookingAmounts = (fareAfterDiscount: number, embarkationFee: number, isCredit: boolean) => {
-  const subtotal = fareAfterDiscount + embarkationFee;
-  const creditSurcharge = calculateCreditSurcharge(subtotal, isCredit);
-  return { subtotal, creditSurcharge, total: subtotal + creditSurcharge };
+export const calculateBookingAmounts = (fareAfterDiscount: number, additionalFees: number, isCard: boolean) => {
+  const fareForPayment = calculatePriceForPayment(fareAfterDiscount, isCard);
+  const cardPriceAdjustment = calculateCardPriceIncrease(fareAfterDiscount, isCard);
+  const subtotal = roundMoney(fareAfterDiscount + additionalFees);
+  const total = roundMoney(fareForPayment + additionalFees);
+  return { subtotal, fareForPayment, cardPriceAdjustment, total };
 };
 
 export const CRUISE_FEE_DETAIL_NOTICE: Record<Lang, (feePerPerson: number) => string> = {
@@ -123,13 +123,12 @@ export const LABELS: Record<Lang, {
   passengerUnit: string;
   subtotalWithRegionalFees: string;
   tourSubtotal: string;
-  creditSurcharge: string;
+  cardPrice: string;
   totalDue: string;
-  estimatedCreditSurcharge: string;
 }> = {
-  pt: { embarkationFee: "Taxa de embarque", feePerPassenger: "passageiro(s)", localEmbarkationFee: "Taxa de embarque", jardineiraFee: "Taxa da jardineira", passengerUnit: "pessoa(s)", subtotalWithRegionalFees: "Subtotal (passeio + taxas de embarque e jardineira)", tourSubtotal: "Subtotal", creditSurcharge: "Taxa do cartão (5%)", totalDue: "Total a pagar", estimatedCreditSurcharge: "Acréscimo do cartão (5%)" },
-  es: { embarkationFee: "Tasa de embarque", feePerPassenger: "pasajero(s)", localEmbarkationFee: "Tasa de embarque", jardineiraFee: "Tasa de la jardinera", passengerUnit: "persona(s)", subtotalWithRegionalFees: "Subtotal (excursión + tasas de embarque y jardinera)", tourSubtotal: "Subtotal", creditSurcharge: "Tasa de tarjeta (5%)", totalDue: "Total a pagar", estimatedCreditSurcharge: "Recargo de tarjeta (5%)" },
-  en: { embarkationFee: "Boarding fee", feePerPassenger: "passenger(s)", localEmbarkationFee: "Boarding fee", jardineiraFee: "Open-air bus fee", passengerUnit: "person(s)", subtotalWithRegionalFees: "Subtotal (tour + boarding and transfer fees)", tourSubtotal: "Subtotal", creditSurcharge: "Card surcharge (5%)", totalDue: "Total due", estimatedCreditSurcharge: "Card surcharge (5%)" },
-  fr: { embarkationFee: "Supplément d'embarquement", feePerPassenger: "passager(s)", localEmbarkationFee: "Frais d'embarquement", jardineiraFee: "Frais de transfert en bus ouvert", passengerUnit: "personne(s)", subtotalWithRegionalFees: "Sous-total (excursion + frais d'embarquement et de transfert)", tourSubtotal: "Sous-total", creditSurcharge: "Frais de carte (5 %)" , totalDue: "Total à payer", estimatedCreditSurcharge: "Frais de carte (5 %)" },
-  it: { embarkationFee: "Tassa d'imbarco", feePerPassenger: "passeggero(i)", localEmbarkationFee: "Tassa d'imbarco", jardineiraFee: "Tassa del bus aperto", passengerUnit: "persona/e", subtotalWithRegionalFees: "Subtotale (escursione + tasse d'imbarco e trasferimento)", tourSubtotal: "Subtotale", creditSurcharge: "Supplemento carta (5%)", totalDue: "Totale da pagare", estimatedCreditSurcharge: "Supplemento carta (5%)" },
+  pt: { embarkationFee: "Taxa de embarque", feePerPassenger: "passageiro(s)", localEmbarkationFee: "Taxa de embarque", jardineiraFee: "Taxa da jardineira", passengerUnit: "pessoa(s)", subtotalWithRegionalFees: "Subtotal (passeio + taxas de embarque e jardineira)", tourSubtotal: "Subtotal", cardPrice: "Preço do passeio no cartão (+10%)", totalDue: "Total a pagar" },
+  es: { embarkationFee: "Tasa de embarque", feePerPassenger: "pasajero(s)", localEmbarkationFee: "Tasa de embarque", jardineiraFee: "Tasa de la jardinera", passengerUnit: "persona(s)", subtotalWithRegionalFees: "Subtotal (excursión + tasas de embarque y jardinera)", tourSubtotal: "Subtotal", cardPrice: "Precio de la excursión con tarjeta (+10%)", totalDue: "Total a pagar" },
+  en: { embarkationFee: "Boarding fee", feePerPassenger: "passenger(s)", localEmbarkationFee: "Boarding fee", jardineiraFee: "Open-air bus fee", passengerUnit: "person(s)", subtotalWithRegionalFees: "Subtotal (tour + boarding and transfer fees)", tourSubtotal: "Subtotal", cardPrice: "Tour price by card (+10%)", totalDue: "Total due" },
+  fr: { embarkationFee: "Supplément d'embarquement", feePerPassenger: "passager(s)", localEmbarkationFee: "Frais d'embarquement", jardineiraFee: "Frais de transfert en bus ouvert", passengerUnit: "personne(s)", subtotalWithRegionalFees: "Sous-total (excursion + frais d'embarquement et de transfert)", tourSubtotal: "Sous-total", cardPrice: "Prix de l'excursion par carte (+10 %)" , totalDue: "Total à payer" },
+  it: { embarkationFee: "Tassa d'imbarco", feePerPassenger: "passeggero(i)", localEmbarkationFee: "Tassa d'imbarco", jardineiraFee: "Tassa del bus aperto", passengerUnit: "persona/e", subtotalWithRegionalFees: "Subtotale (escursione + tasse d'imbarco e trasferimento)", tourSubtotal: "Subtotale", cardPrice: "Prezzo dell'escursione con carta (+10%)", totalDue: "Totale da pagare" },
 };
