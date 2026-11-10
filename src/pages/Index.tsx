@@ -54,12 +54,12 @@ const CATALOG_COPY: Record<Lang, {
   promotionLabel: string;
 }> = {
   pt: {
-    intro: "Escolha seu passeio e veja fotos, detalhes e valores por forma de pagamento.",
+    intro: "Escolha seu passeio e veja fotos, detalhes e preços de acordo com a forma de pagamento.",
     galleryHint: "Deslize as fotos para ver cada passeio de outro ângulo",
     galleryCaptionDesktop: "Fotos do passeio",
     galleryCaptionMobile: "Deslize para ver mais fotos",
     paymentHeading: "Escolha a forma de pagamento",
-    couponLabel: "Cupom de desconto aplicável",
+    couponLabel: "Este passeio aceita cupom de desconto",
     promotionLabel: "Promoção",
   },
   es: {
@@ -68,7 +68,7 @@ const CATALOG_COPY: Record<Lang, {
     galleryCaptionDesktop: "Fotos del paseo",
     galleryCaptionMobile: "Desliza para ver más fotos",
     paymentHeading: "Elige la forma de pago",
-    couponLabel: "Cupón de descuento aplicable",
+    couponLabel: "Este paseo acepta cupones de descuento",
     promotionLabel: "Promoción",
   },
   en: {
@@ -77,7 +77,7 @@ const CATALOG_COPY: Record<Lang, {
     galleryCaptionDesktop: "Tour photos",
     galleryCaptionMobile: "Swipe to see more photos",
     paymentHeading: "Choose a payment method",
-    couponLabel: "Discount coupon applicable",
+    couponLabel: "This tour accepts discount coupons",
     promotionLabel: "Promotion",
   },
   fr: {
@@ -86,7 +86,7 @@ const CATALOG_COPY: Record<Lang, {
     galleryCaptionDesktop: "Photos de l'excursion",
     galleryCaptionMobile: "Faites défiler pour voir plus de photos",
     paymentHeading: "Choisissez un mode de paiement",
-    couponLabel: "Coupon de réduction applicable",
+    couponLabel: "Cette excursion accepte les coupons de réduction",
     promotionLabel: "Promotion",
   },
   it: {
@@ -95,7 +95,7 @@ const CATALOG_COPY: Record<Lang, {
     galleryCaptionDesktop: "Foto del tour",
     galleryCaptionMobile: "Scorri per vedere altre foto",
     paymentHeading: "Scegli il metodo di pagamento",
-    couponLabel: "Coupon sconto applicabile",
+    couponLabel: "Questo tour accetta coupon sconto",
     promotionLabel: "Promozione",
   },
 };

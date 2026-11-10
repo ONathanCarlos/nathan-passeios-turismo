@@ -40,6 +40,7 @@ export type ModalCache = {
 const tours: Partial<Record<TourKey, TourCache>> = {};
 const config: Record<string, string> = {};
 const modais: Record<string, ModalCache> = {};
+let configReady = false;
 export type CmsTourPriceStatus = "loading" | "ready" | "error" | "unavailable";
 let toursStatus: "loading" | "ready" | "error" = "loading";
 const listeners = new Set<() => void>();
@@ -60,6 +61,7 @@ export const getCmsTourPriceStatus = (key: TourKey): CmsTourPriceStatus => {
     : "unavailable";
 };
 export const getCachedConfig = (chave: string): string | undefined => config[chave];
+export const isCmsConfigReady = (): boolean => configReady;
 export const getCachedModal = (key: string): ModalCache | undefined => modais[key];
 export const getAllCachedModais = (): ModalCache[] => Object.values(modais);
 
@@ -147,8 +149,10 @@ async function refreshTours() {
 }
 
 async function refreshConfig() {
-  const { data } = await supabase.from("config_global").select("chave,valor");
-  if (!data) return;
+  const { data, error } = await supabase.from("config_global").select("chave,valor");
+  if (error || !data) return;
+  for (const key of Object.keys(config)) delete config[key];
   for (const r of data) config[r.chave] = r.valor ?? "";
+  configReady = true;
   emit();
 }

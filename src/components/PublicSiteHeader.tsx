@@ -24,27 +24,27 @@ const COPY: Record<Lang, {
   message: string;
 }> = {
   pt: {
-    tours: "Nossos passeios", packages: "Pacotes", about: "Sobre Nós (Sobre a Ônix)",
+    tours: "Nossos passeios", packages: "Pacotes", about: "Sobre Nós",
     contact: "Fale pelo WhatsApp", navLabel: "Navegação principal", menu: "Abrir menu", closeMenu: "Fechar menu",
     home: "Página inicial Ônix Turismo Búzios", message: "Olá! Vim pelo site e gostaria de informações sobre os passeios.",
   },
   es: {
-    tours: "Nuestros paseos", packages: "Paquetes", about: "Sobre nosotros (Sobre Ônix)",
+    tours: "Nuestros paseos", packages: "Paquetes", about: "Quiénes somos",
     contact: "Habla por WhatsApp", navLabel: "Navegación principal", menu: "Abrir menú", closeMenu: "Cerrar menú",
     home: "Inicio Ônix Turismo Búzios", message: "¡Hola! Vine por el sitio y me gustaría informaciones sobre los paseos.",
   },
   en: {
-    tours: "Our tours", packages: "Packages", about: "About us (About Ônix)",
+    tours: "Our tours", packages: "Packages", about: "About us",
     contact: "Chat on WhatsApp", navLabel: "Main navigation", menu: "Open menu", closeMenu: "Close menu",
     home: "Ônix Turismo Búzios home", message: "Hello! I came from the website and I'd like information about the tours.",
   },
   fr: {
-    tours: "Nos excursions", packages: "Forfaits", about: "À propos de nous (Ônix)",
+    tours: "Nos excursions", packages: "Forfaits", about: "Qui sommes-nous",
     contact: "Contacter sur WhatsApp", navLabel: "Navigation principale", menu: "Ouvrir le menu", closeMenu: "Fermer le menu",
     home: "Accueil Ônix Turismo Búzios", message: "Bonjour ! Je viens du site et j'aimerais des informations sur les excursions.",
   },
   it: {
-    tours: "I nostri tour", packages: "Pacchetti", about: "Chi siamo (Ônix)",
+    tours: "I nostri tour", packages: "Pacchetti", about: "Chi siamo",
     contact: "Contatta su WhatsApp", navLabel: "Navigazione principale", menu: "Apri il menu", closeMenu: "Chiudi il menu",
     home: "Home Ônix Turismo Búzios", message: "Ciao! Vengo dal sito e vorrei informazioni sulle escursioni.",
   },

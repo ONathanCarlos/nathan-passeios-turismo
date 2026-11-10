@@ -17,7 +17,7 @@ describe("cabeçalho público", () => {
 
     const tours = screen.getAllByRole("link", { name: "Nossos passeios" });
     const packages = screen.getAllByRole("link", { name: "Pacotes" });
-    const about = screen.getAllByRole("link", { name: "Sobre Nós (Sobre a Ônix)" });
+    const about = screen.getAllByRole("link", { name: "Sobre Nós" });
 
     expect(tours.some((link) => link.getAttribute("href") === "/passeios")).toBe(true);
     expect(packages.some((link) => link.getAttribute("href") === "/pacotes")).toBe(true);
@@ -45,6 +45,6 @@ describe("cabeçalho público", () => {
     fireEvent.click(menuButton);
     expect(screen.getByRole("button", { name: "Fechar menu" })).toHaveAttribute("aria-expanded", "true");
     expect(menu?.hidden).toBe(false);
-    expect(within(menu as HTMLElement).getByRole("link", { name: "Sobre Nós (Sobre a Ônix)" })).toHaveAttribute("href", "/sobre-nos");
+    expect(within(menu as HTMLElement).getByRole("link", { name: "Sobre Nós" })).toHaveAttribute("href", "/sobre-nos");
   });
 });
