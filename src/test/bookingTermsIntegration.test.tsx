@@ -5,7 +5,7 @@ import { BOOKING_TERMS_VERSION } from "@/lib/bookingTerms";
 import { createReservaVoucherInDb, issueReservaVouchers } from "@/lib/db";
 
 vi.mock("@/lib/db", () => ({createReservaInDb:vi.fn().mockResolvedValue("reservation-id"),createReservaVoucherInDb:vi.fn().mockResolvedValue("reservation-id"),issueReservaVouchers:vi.fn().mockResolvedValue({message:"Mensagem original com voucher"}),saveVoucherMessageInDb:vi.fn(),markCouponUsedInDb:vi.fn(),syncLead:vi.fn()}));
-vi.mock("@/lib/cmsCache", () => ({getCmsTourPriceStatus:()=>"ready",getCachedTour:()=>({preco:70}),subscribeCmsCache:()=>()=>{},forceRefreshCms:{tours:vi.fn()}}));
+vi.mock("@/lib/cmsCache", () => ({getCmsTourPriceStatus:()=>"ready",getCachedTour:()=>({preco:70}),getCachedConfig:()=>undefined,isCmsConfigReady:()=>true,subscribeCmsCache:()=>()=>{},forceRefreshCms:{tours:vi.fn()}}));
 vi.mock("@/lib/bookingDraft", () => ({bookingDraftKey:()=>"test",BOOKING_DRAFT_TTL_MS:600000,clearBookingDraft:vi.fn(),saveBookingDraft:()=>false,readBookingDraft:()=>({name:"Ana Costa",phone:{ddi:"+55",number:"22998001234"},pax:"2",date:"2026-11-15",hasKids:"no",payment:"pix"}),dateFromLocalKey:()=>new Date(2026,10,15)}));
 vi.mock("@/components/PromoBanner",()=>({PromoBanner:()=>null}));
 vi.mock("@/components/QrPromo",()=>({QrPromoBoot:()=>null}));

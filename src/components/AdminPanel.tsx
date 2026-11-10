@@ -213,51 +213,14 @@ export const AdminPanel = ({ open, onOpenChange, defaultTab = "dashboard" }: { o
           {/* ---------------- CUPONS ---------------- */}
           <TabsContent value="coupons" className="mt-4 space-y-4">
             <div className="glass-card rounded-xl p-3 border-turquoise/40 bg-turquoise/10 text-xs text-turquoise-glow">
-              ⚠ Percentuais, códigos e ativação de cupons promocionais agora vivem na aba <strong>Modais</strong> (fonte oficial: Lovable Cloud).
-              Os controles abaixo de percentual/validade/ativação são apenas histórico e <strong>não têm mais efeito no site público</strong>.
-              Use esta aba apenas para gerenciar <strong>cupons ativos no navegador</strong> e <strong>bloqueios por WhatsApp</strong>.
+              Os cupons de boas-vindas são configurados na aba <strong>Configurações</strong>; os cupons promocionais ficam na aba <strong>Modais</strong>.
+              As alterações salvas no CMS são usadas pelo site. Esta aba mostra apenas telefones com reserva pendente.
             </div>
             {isQrActive() && (
               <div className="glass-card rounded-xl p-3 border-amber-400/40 bg-amber-500/10 text-xs text-amber-200">
                 🎟 Promoção QR ativa. Cupons manuais desativados enquanto a URL contiver <code>?promo=qrN</code>.
               </div>
             )}
-            <div className="glass-card rounded-xl p-3 flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-bold text-turquoise-glow">Sistema de cupons</h4>
-                <p className="text-[11px] text-muted-foreground">Liga/desliga todos os cupons do site.</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Switch checked={cfg.coupon.allEnabled !== false}
-                  onCheckedChange={(v) => update({ coupon: { ...cfg.coupon, allEnabled: v } })} />
-                <span className="text-xs">{cfg.coupon.allEnabled !== false ? "Ativo" : "Desativado"}</span>
-              </div>
-            </div>
-
-            {/* Boas-vindas */}
-            <div className="glass-card rounded-xl p-3 space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-bold text-turquoise-glow">Boas-vindas (BEMVINDOXXXX)</h4>
-                <Button size="sm" variant="ghost" className="text-rose-300 hover:text-rose-200"
-                  onClick={() => { update({ coupon: { ...cfg.coupon, welcomePercent: undefined, welcomeValidityDays: undefined, welcomeEnabled: false } }); toast.success("Cupom de boas-vindas removido"); }}>
-                  <Trash2 className="h-3 w-3 mr-1" /> Remover
-                </Button>
-              </div>
-              <div className="grid grid-cols-3 gap-2 items-end">
-                <div><Label className="text-xs">Percentual</Label>
-                  <Input type="number" min={0} max={100} value={cfg.coupon.welcomePercent ?? ""} placeholder="10" className="bg-night/70 border-turquoise/40"
-                    onChange={(e) => update({ coupon: { ...cfg.coupon, welcomePercent: e.target.value === "" ? undefined : parseInt(e.target.value) } })} /></div>
-                <div><Label className="text-xs">Validade (dias)</Label>
-                  <Input type="number" min={1} value={cfg.coupon.welcomeValidityDays ?? ""} placeholder="3" className="bg-night/70 border-turquoise/40"
-                    onChange={(e) => update({ coupon: { ...cfg.coupon, welcomeValidityDays: e.target.value === "" ? undefined : parseInt(e.target.value) } })} /></div>
-                <div className="flex items-center gap-2">
-                  <Switch checked={cfg.coupon.welcomeEnabled !== false}
-                    onCheckedChange={(v) => update({ coupon: { ...cfg.coupon, welcomeEnabled: v } })} />
-                  <span className="text-xs">Ativo</span>
-                </div>
-              </div>
-            </div>
-
             {/* Telefones com reserva pendente */}
             <div className="glass-card rounded-xl p-3 space-y-3">
               <div className="flex items-center justify-between gap-2">
@@ -284,71 +247,6 @@ export const AdminPanel = ({ open, onOpenChange, defaultTab = "dashboard" }: { o
               </div>
             </div>
 
-            {/* Recuperação */}
-            <div className="glass-card rounded-xl p-3 space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-bold text-turquoise-glow">Recuperação (TODEVOLTA12)</h4>
-                <Button size="sm" variant="ghost" className="text-rose-300 hover:text-rose-200"
-                  onClick={() => { update({ coupon: { ...cfg.coupon, recoveryPercent: undefined, recoveryAfterHours: undefined, recoveryEnabled: false } }); toast.success("Cupom de recuperação removido"); }}>
-                  <Trash2 className="h-3 w-3 mr-1" /> Remover
-                </Button>
-              </div>
-              <div className="grid grid-cols-3 gap-2 items-end">
-                <div><Label className="text-xs">Percentual</Label>
-                  <Input type="number" min={0} max={100} value={cfg.coupon.recoveryPercent ?? ""} placeholder="12" className="bg-night/70 border-turquoise/40"
-                    onChange={(e) => update({ coupon: { ...cfg.coupon, recoveryPercent: e.target.value === "" ? undefined : parseInt(e.target.value) } })} /></div>
-                <div><Label className="text-xs">Após (horas)</Label>
-                  <Input type="number" min={1} value={cfg.coupon.recoveryAfterHours ?? ""} placeholder="72" className="bg-night/70 border-turquoise/40"
-                    onChange={(e) => update({ coupon: { ...cfg.coupon, recoveryAfterHours: e.target.value === "" ? undefined : parseInt(e.target.value) } })} /></div>
-                <div className="flex items-center gap-2">
-                  <Switch checked={cfg.coupon.recoveryEnabled !== false}
-                    onCheckedChange={(v) => update({ coupon: { ...cfg.coupon, recoveryEnabled: v } })} />
-                  <span className="text-xs">Ativo</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Comemorativos */}
-            <div className="glass-card rounded-xl p-3 space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-bold text-turquoise-glow">Comemorativos</h4>
-                <div className="flex items-center gap-2">
-                  <Switch checked={cfg.coupon.holidayEnabled !== false}
-                    onCheckedChange={(v) => update({ coupon: { ...cfg.coupon, holidayEnabled: v } })} />
-                  <span className="text-xs">Ativos globalmente</span>
-                </div>
-              </div>
-              <div>
-                <Label className="text-xs">Percentual padrão (todos comemorativos)</Label>
-                <Input type="number" min={0} max={100} value={cfg.coupon.holidayPercent ?? ""} placeholder="12" className="bg-night/70 border-turquoise/40 w-32"
-                  onChange={(e) => update({ coupon: { ...cfg.coupon, holidayPercent: e.target.value === "" ? undefined : parseInt(e.target.value) } })} />
-              </div>
-              <div className="space-y-2">
-                {cfg.specials.map((s, i) => (
-                  <div key={i} className="grid grid-cols-12 gap-2 items-center bg-night/40 rounded-md p-2">
-                    <Input className="col-span-3 bg-night/70 border-turquoise/30 text-xs uppercase" value={s.code}
-                      onChange={(e) => { const next = [...cfg.specials]; next[i] = { ...s, code: e.target.value.toUpperCase() }; update({ specials: next }); }} />
-                    <Input className="col-span-2 bg-night/70 border-turquoise/30" type="number" value={s.percent}
-                      onChange={(e) => { const next = [...cfg.specials]; next[i] = { ...s, percent: parseInt(e.target.value) || 0 }; update({ specials: next }); }} />
-                    <Input className="col-span-3 bg-night/70 border-turquoise/30" type="date" value={s.onlyDate || ""}
-                      onChange={(e) => { const next = [...cfg.specials]; next[i] = { ...s, onlyDate: e.target.value || undefined }; update({ specials: next }); }} />
-                    <Input className="col-span-3 bg-night/70 border-turquoise/30 text-xs" placeholder="mensagem" value={s.message || ""}
-                      onChange={(e) => { const next = [...cfg.specials]; next[i] = { ...s, message: e.target.value }; update({ specials: next }); }} />
-                    <div className="col-span-1 flex items-center gap-1">
-                      <Switch checked={s.enabled !== false}
-                        onCheckedChange={(v) => { const next = [...cfg.specials]; next[i] = { ...s, enabled: v }; update({ specials: next }); }} />
-                      <Button size="sm" variant="ghost" onClick={() => { const next = cfg.specials.filter((_, j) => j !== i); update({ specials: next }); }}>
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-                <Button size="sm" variant="outline" className="border-turquoise/40"
-                  onClick={() => update({ specials: [...cfg.specials, { code: "NOVO12", percent: 12, enabled: true, message: "" }] })}>
-                  <Plus className="h-3 w-3 mr-1" /> Adicionar cupom
-                </Button>
-              </div>
-            </div>
           </TabsContent>
 
           {/* ---------------- RESERVAS ---------------- */}

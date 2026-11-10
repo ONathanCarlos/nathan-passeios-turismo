@@ -17,11 +17,11 @@ import { CmsBookingTermsLink } from "@/components/CmsBookingTermsLink";
 
 const BACK: Record<Lang, string> = { pt: "Voltar", es: "Volver", en: "Back", fr: "Retour", it: "Indietro" };
 const COPY: Record<Lang, { duration: string; schedule: string; departure: string; capacity: string; additional: string; notes: string; perPerson: string }> = {
-  pt: { duration: "Duração", schedule: "Horário", departure: "Local de saída", capacity: "Capacidade", additional: "Informações do passeio", notes: "Observações", perPerson: "por pessoa" },
-  es: { duration: "Duración", schedule: "Horario", departure: "Lugar de salida", capacity: "Capacidad", additional: "Información del paseo", notes: "Observaciones", perPerson: "por persona" },
-  en: { duration: "Duration", schedule: "Schedule", departure: "Departure point", capacity: "Capacity", additional: "Tour information", notes: "Notes", perPerson: "per person" },
-  fr: { duration: "Durée", schedule: "Horaire", departure: "Lieu de départ", capacity: "Capacité", additional: "Informations sur l'excursion", notes: "Remarques", perPerson: "par personne" },
-  it: { duration: "Durata", schedule: "Orario", departure: "Luogo di partenza", capacity: "Capacità", additional: "Informazioni sul tour", notes: "Note", perPerson: "a persona" },
+  pt: { duration: "Duração", schedule: "Horário", departure: "Local de saída", capacity: "Capacidade", additional: "Mais sobre o passeio", notes: "Observações", perPerson: "por pessoa" },
+  es: { duration: "Duración", schedule: "Horario", departure: "Lugar de salida", capacity: "Capacidad", additional: "Más sobre el paseo", notes: "Observaciones", perPerson: "por persona" },
+  en: { duration: "Duration", schedule: "Schedule", departure: "Departure point", capacity: "Capacity", additional: "More about the tour", notes: "Notes", perPerson: "per person" },
+  fr: { duration: "Durée", schedule: "Horaire", departure: "Lieu de départ", capacity: "Capacité", additional: "En savoir plus sur l'excursion", notes: "Remarques", perPerson: "par personne" },
+  it: { duration: "Durata", schedule: "Orario", departure: "Luogo di partenza", capacity: "Capacità", additional: "Scopri di più sul tour", notes: "Note", perPerson: "a persona" },
 };
 
 const EMOJI_RE = /[\p{Extended_Pictographic}\p{Emoji_Modifier}\p{Regional_Indicator}\uFE0F\u200D]/gu;

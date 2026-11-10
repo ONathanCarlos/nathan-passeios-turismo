@@ -14,7 +14,7 @@ import { getCmsTourPriceStatus, subscribeCmsCache } from "@/lib/cmsCache";
 import { PackageCover } from "@/components/PackageCover";
 import { PriceWithDiscount } from "@/components/SavingsBox";
 import { TourBadge, UrgencyTag } from "@/components/TourBadge";
-import { Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import type { TourKey } from "@/lib/tours";
 import { runNavigationTransition } from "@/lib/viewTransition";
 
@@ -49,6 +49,13 @@ const L = {
   back:    { pt: "Voltar", es: "Volver", en: "Back", fr: "Retour", it: "Indietro" },
 };
 
+const EMOJI_RE = /[\p{Extended_Pictographic}\p{Emoji_Modifier}\p{Regional_Indicator}\uFE0F\u200D]/gu;
+const cleanDisplayText = (text: string) => text
+  .replace(EMOJI_RE, "")
+  .replace(/\s+/g, " ")
+  .replace(/\s+([,.;!?])/g, "$1")
+  .trim();
+
 // Inclui pseudo-tour "almoco" como item agregável (R$50 padrão).
 const PSEUDO_PRICES: Record<string, number> = { almoco: 50 };
 const TOUR_KEYS: TourKey[] = ["escuna", "arraial", "buggy", "cabofrio", "jardineira", "catamara", "mergulho", "lancha"];
@@ -80,52 +87,54 @@ const Pacotes = () => {
 
   return (
     <main className="relative min-h-screen overflow-hidden pb-16">
-      <div aria-hidden className="ocean-static-bg pointer-events-none fixed inset-0 z-0" />
+      <div aria-hidden="true" className="ocean-static-bg pointer-events-none fixed inset-0 z-0" />
       <div className="relative z-10">
         <PublicSiteHeader lang={lang} onLangChange={setLang} />
       </div>
-      <div className="relative z-10 mx-auto max-w-5xl px-4 pt-8">
-
-        {/* Hero */}
-        <header className="text-center mb-8 animate-in fade-in slide-in-from-top-3 duration-700">
-          <div className="inline-flex items-center gap-2 text-amber-300 text-xs uppercase tracking-wider font-bold mb-2">
-            <Sparkles className="w-4 h-4" /> {L.combo[lang]}
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pt-6 sm:pt-8">
+        <header className="mb-7 flex flex-col gap-4 rounded-2xl border border-turquoise/15 bg-gradient-to-r from-night/90 via-[#0d2639]/85 to-night/75 p-5 shadow-[0_18px_42px_rgba(0,0,0,0.18)] sm:mb-8 sm:flex-row sm:items-end sm:justify-between sm:p-7">
+          <div className="max-w-3xl">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-turquoise/25 bg-turquoise/10 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.16em] text-turquoise-glow sm:text-xs">
+              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> {L.combo[lang]}
+            </div>
+            <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-foreground sm:text-4xl">
+              Pacotes <span className="text-turquoise-glow">de Búzios</span>
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+              {SLOGAN[lang]}
+            </p>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold leading-tight mb-3">
-            <span className="bg-gradient-to-r from-amber-300 via-turquoise-glow to-turquoise bg-clip-text text-transparent drop-shadow-[0_3px_12px_rgba(0,0,0,0.85)]">
-              Pacotes de Búzios
-            </span>
-          </h1>
-          <p className="text-foreground/85 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-            ✦ {SLOGAN[lang]}
-          </p>
         </header>
 
-        {/* Lista */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          {(pacotes || []).map((p) => {
-            const nome = pickPacoteLang(p, "nome", lang) || p.nome_pt;
-            const desc = pickPacoteLang(p, "descricao", lang);
+        <section aria-label={L.combo[lang]} className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {(pacotes || []).map((p, index) => {
+            const nome = cleanDisplayText(pickPacoteLang(p, "nome", lang) || p.nome_pt);
+            const desc = cleanDisplayText(pickPacoteLang(p, "descricao", lang));
             const imgs = p.imagem_url ? [p.imagem_url] : p.tour_keys.map(imgOf).filter(Boolean);
             const originalPrice = p.preco_original ?? estimateOriginal(p.tour_keys);
             return (
-              <article key={p.id} className="group glass-card rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:border-turquoise/60 hover:-translate-y-1 hover:turquoise-glow">
-                <div className="relative aspect-[4/3] overflow-hidden bg-night">
-                  <PackageCover images={imgs} alt={nome} className="absolute inset-0 w-full h-full" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-night/90 via-night/10 to-transparent pointer-events-none" />
-                  <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-md bg-amber-400/95 px-2 py-0.5 text-[10px] font-extrabold text-night uppercase tracking-wider shadow-lg">
-                    <Sparkles className="w-3 h-3" /> {L.combo[lang]}
+              <article
+                key={p.id}
+                style={{ animationDelay: `${index * 60}ms` }}
+                className="group glass-card flex flex-col overflow-hidden rounded-2xl border border-turquoise/15 bg-gradient-to-b from-[#10283b]/90 to-night shadow-[0_18px_42px_rgba(0,0,0,0.2)] transition-all duration-300 hover:-translate-y-1 hover:border-turquoise/45 hover:shadow-[0_24px_50px_rgba(0,0,0,0.28)] animate-in fade-in slide-in-from-bottom-3 fill-mode-both"
+              >
+                <div className="relative aspect-[16/10] overflow-hidden bg-night sm:aspect-[4/3]">
+                  <PackageCover images={imgs} alt={nome} className="absolute inset-0 h-full w-full transition-transform duration-500 group-hover:scale-[1.03]" />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night/75 via-night/5 to-transparent" />
+                  <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-night/85 px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wider text-turquoise-glow shadow-lg backdrop-blur-sm sm:text-[10px]">
+                    <Sparkles className="h-3 w-3" aria-hidden="true" /> {L.combo[lang]}
                   </span>
                   {p.badge && (
-                    <div className="absolute top-3 right-3">
+                    <div className="absolute right-3 top-3">
                       <TourBadge type={p.badge} lang={lang} />
                     </div>
                   )}
                 </div>
-                <div className="p-4 flex flex-col flex-1">
-                  <h3 className="text-lg font-bold text-foreground leading-tight">{nome}</h3>
-                  {desc && <p className="mt-1.5 text-sm text-muted-foreground leading-snug flex-1">{desc}</p>}
-                  <div className="mt-3">
+
+                <div className="flex flex-1 flex-col p-4 sm:p-5">
+                  <h2 className="text-lg font-bold leading-tight text-foreground sm:text-xl">{nome}</h2>
+                  {desc && <p className="mt-1.5 flex-1 text-sm leading-relaxed text-muted-foreground">{desc}</p>}
+                  <div className="mt-4">
                     <PriceWithDiscount
                       price={p.preco}
                       originalPrice={originalPrice > p.preco ? originalPrice : null}
@@ -133,22 +142,22 @@ const Pacotes = () => {
                       size="md"
                     />
                   </div>
-                  <UrgencyTag text={p.urgencia} className="mt-2" />
-                  <div className="mt-4 flex flex-col gap-2">
+                  <UrgencyTag text={p.urgencia} className="mt-3" />
+                  <div className="mt-4 grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => runNavigationTransition(() => nav(`/pacotes/${p.key}`))}
-                      className="w-full rounded-xl border border-turquoise/40 bg-turquoise/10 px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-turquoise/20 hover:border-turquoise/70 transition-colors"
+                      className="min-h-11 w-full rounded-xl border border-turquoise/35 bg-night/55 px-2 py-2.5 text-xs font-semibold text-foreground transition-colors hover:border-turquoise/70 hover:bg-turquoise/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turquoise sm:text-sm"
                     >
                       {L.details[lang]}
                     </button>
                     <button
                       type="button"
                       onClick={() => runNavigationTransition(() => nav(`/pacotes/${p.key}?reservar=1`))}
-                      className="rgb-border w-full block"
+                      className="rgb-border block w-full"
                     >
-                      <span className="flex items-center justify-center gap-1.5 rounded-[0.65rem] bg-gradient-to-r from-deep-blue to-night px-4 py-2.5 text-sm font-bold text-foreground">
-                        ✨ {L.book[lang]}
+                      <span className="flex min-h-11 items-center justify-center gap-1 rounded-[0.65rem] bg-gradient-to-r from-turquoise to-[#24b7b5] px-2 py-2.5 text-xs font-bold text-night transition-all hover:brightness-110 sm:text-sm">
+                        {L.book[lang]} <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                       </span>
                     </button>
                   </div>
@@ -156,9 +165,9 @@ const Pacotes = () => {
               </article>
             );
           })}
-        </div>
+        </section>
 
-        <footer className="text-center mt-14 text-xs text-muted-foreground/70">
+        <footer className="mt-14 text-center text-xs text-muted-foreground/70">
           © {t.brand} · {t.footerRegion}
         </footer>
       </div>

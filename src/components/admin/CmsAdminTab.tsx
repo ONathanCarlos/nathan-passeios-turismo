@@ -557,16 +557,46 @@ export const ConfigSection = () => {
   const upsertCfg = useUpsertConfig();
   return (
     <div className="space-y-3">
+      <div className="glass-card rounded-xl border border-turquoise/25 bg-turquoise/5 p-4 space-y-3">
+        <div>
+          <h3 className="text-sm font-bold text-turquoise-glow">Cupom de boas-vindas</h3>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">O código é gerado para o WhatsApp informado e fica válido pelo período escolhido. Padrão atual: 10% de desconto por 3 dias.</p>
+        </div>
+        <div className="flex items-center justify-between gap-4 rounded-lg border border-white/10 bg-night/30 px-3 py-2">
+          <div>
+            <Label className="text-xs font-semibold">Permitir emissão de cupom de boas-vindas</Label>
+            <p className="text-[11px] text-muted-foreground">Desativar aqui esconde a opção para novos clientes.</p>
+          </div>
+          <Switch
+            checked={cfg.data?.cupom_boas_vindas_ativo !== "false"}
+            disabled={upsertCfg.isPending}
+            onCheckedChange={async (enabled) => {
+              try {
+                await upsertCfg.mutateAsync({ chave: "cupom_boas_vindas_ativo", valor: String(enabled) });
+                toast.success(enabled ? "Cupom de boas-vindas ativado" : "Cupom de boas-vindas desativado");
+              } catch (e) { toast.error(e instanceof Error ? e.message : "Não foi possível salvar."); }
+            }}
+          />
+        </div>
+      </div>
       {[
-        { k: "whatsapp",         label: "WhatsApp (somente dígitos com DDI)", placeholder: "5522998216796" },
-        { k: "desconto_padrao",  label: "Desconto padrão (%)",                placeholder: "10" },
-        { k: "texto_promo_topo", label: "Texto promocional do topo",          placeholder: "Ganhe 10% OFF..." },
-        { k: "instagram_url",    label: "Instagram URL",                       placeholder: "https://instagram.com/..." },
-        { k: "footer_region",    label: "Texto do rodapé",                     placeholder: "Búzios — RJ" },
-      ].map(({ k, label, placeholder }) => (
-        <ConfigRow key={k} chave={k} label={label} placeholder={placeholder}
+        { k: "whatsapp",         label: "WhatsApp (somente dígitos com DDI)", placeholder: "5522998216796", type: "text" as const },
+        { k: "desconto_padrao",  label: "Desconto do cupom de boas-vindas (%)", placeholder: "10", type: "number" as const, min: 1, max: 90 },
+        { k: "validade_cupom_boas_vindas_dias", label: "Validade do cupom de boas-vindas (dias)", placeholder: "3", type: "number" as const, min: 1, max: 365 },
+        { k: "texto_promo_topo", label: "Texto promocional do topo",          placeholder: "Ganhe 10% OFF...", type: "text" as const },
+        { k: "instagram_url",    label: "Instagram URL",                       placeholder: "https://instagram.com/...", type: "text" as const },
+        { k: "footer_region",    label: "Texto do rodapé",                     placeholder: "Búzios — RJ", type: "text" as const },
+      ].map(({ k, label, placeholder, type, min, max }) => (
+        <ConfigRow key={k} chave={k} label={label} placeholder={placeholder} type={type} min={min} max={max}
           current={cfg.data?.[k] ?? ""}
-          onSave={async (v) => { await upsertCfg.mutateAsync({ chave: k, valor: v }); toast.success("Alterações salvas e publicadas"); }} />
+          onSave={async (v) => {
+            if (type === "number") {
+              const number = Number(v);
+              if (!Number.isInteger(number) || number < (min ?? 1) || number > (max ?? 365)) throw new Error(`Informe um número entre ${min} e ${max}.`);
+            }
+            await upsertCfg.mutateAsync({ chave: k, valor: v });
+            toast.success("Alterações salvas e publicadas");
+          }} />
       ))}
     </div>
   );
@@ -924,8 +954,9 @@ export const CmsAdminTab = () => (
   </TooltipProvider>
 );
 
-const ConfigRow = ({ chave, label, placeholder, current, onSave }: {
+const ConfigRow = ({ chave, label, placeholder, current, onSave, type = "text", min, max }: {
   chave: string; label: string; placeholder?: string; current: string;
+  type?: "text" | "number"; min?: number; max?: number;
   onSave: (v: string) => Promise<void>;
 }) => {
   const [v, setV] = useState(current);
@@ -935,10 +966,16 @@ const ConfigRow = ({ chave, label, placeholder, current, onSave }: {
     <div className="glass-card rounded-xl p-4 space-y-2">
       <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</Label>
       <div className="flex gap-2">
-        <Input className="flex-1 bg-night/70 border-turquoise/40" placeholder={placeholder}
+        <Input className="flex-1 bg-night/70 border-turquoise/40" placeholder={placeholder} type={type} min={min} max={max}
           value={v} onChange={(e) => setV(e.target.value)} />
         <Button size="sm" className={`transition-colors ${saved ? "bg-emerald-500 text-white hover:bg-emerald-600" : "bg-turquoise text-night hover:bg-turquoise/80"}`}
-          onClick={() => { onSave(v); setSaved(true); setTimeout(() => setSaved(false), 2500); }}>
+          onClick={async () => {
+            try {
+              await onSave(v);
+              setSaved(true);
+              setTimeout(() => setSaved(false), 2500);
+            } catch (e) { toast.error(e instanceof Error ? e.message : "Não foi possível salvar. Tente novamente."); }
+          }}>
           {saved ? <CheckCircle2 className="h-3 w-3 mr-1" /> : <Save className="h-3 w-3 mr-1" />}
           {saved ? "Publicado" : "Salvar"}
         </Button>

@@ -12,7 +12,7 @@ const COPY: Record<Lang, {
 }> = {
   pt: {
     eyebrow: "Sobre a Ônix", title: "Conheça Búzios do seu jeito.",
-    intro: "Este site reúne passeios e pacotes da Ônix Turismo Búzios para você conhecer as experiências disponíveis e escolher o que combina com a sua viagem.",
+    intro: "Aqui você encontra passeios e pacotes da Ônix Turismo Búzios. Veja as opções e escolha o que combina com sua viagem.",
     explore: "Explorar passeios", packages: "Ver pacotes", contact: "Falar com a equipe",
     toursTitle: "Passeios", toursText: "Consulte as páginas de cada experiência para ver informações, fotos, valores e condições de reserva.",
     packagesTitle: "Pacotes", packagesText: "Compare combinações de experiências disponíveis em Búzios e na Região dos Lagos.",
@@ -20,7 +20,7 @@ const COPY: Record<Lang, {
   },
   es: {
     eyebrow: "Sobre Ônix", title: "Conoce Búzios a tu manera.",
-    intro: "Este sitio reúne paseos y paquetes de Ônix Turismo Búzios para que conozcas las experiencias disponibles y elijas lo que mejor acompaña tu viaje.",
+    intro: "Aquí encontrarás paseos y paquetes de Ônix Turismo Búzios. Explora las opciones y elige la que mejor se adapte a tu viaje.",
     explore: "Explorar paseos", packages: "Ver paquetes", contact: "Hablar con el equipo",
     toursTitle: "Paseos", toursText: "Consulta cada experiencia para ver información, fotos, precios y condiciones de reserva.",
     packagesTitle: "Paquetes", packagesText: "Compara combinaciones de experiencias disponibles en Búzios y la Región de los Lagos.",
@@ -28,7 +28,7 @@ const COPY: Record<Lang, {
   },
   en: {
     eyebrow: "About Ônix", title: "Discover Búzios your way.",
-    intro: "This website brings together tours and packages from Ônix Turismo Búzios, so you can explore available experiences and choose what fits your trip.",
+    intro: "Here you'll find tours and packages from Ônix Turismo Búzios. Explore the options and choose what suits your trip.",
     explore: "Explore tours", packages: "View packages", contact: "Talk to the team",
     toursTitle: "Tours", toursText: "Visit each experience page for information, photos, prices and booking conditions.",
     packagesTitle: "Packages", packagesText: "Compare combinations of experiences available in Búzios and the Lakes Region.",
@@ -36,7 +36,7 @@ const COPY: Record<Lang, {
   },
   fr: {
     eyebrow: "À propos d’Ônix", title: "Découvrez Búzios à votre façon.",
-    intro: "Ce site réunit les excursions et forfaits d’Ônix Turismo Búzios afin que vous puissiez découvrir les expériences disponibles et choisir celles qui vous conviennent.",
+    intro: "Retrouvez ici les excursions et forfaits d’Ônix Turismo Búzios. Parcourez les options et choisissez celles qui vous conviennent.",
     explore: "Voir les excursions", packages: "Voir les forfaits", contact: "Contacter l’équipe",
     toursTitle: "Excursions", toursText: "Consultez chaque expérience pour connaître les informations, les photos, les prix et les conditions de réservation.",
     packagesTitle: "Forfaits", packagesText: "Comparez les combinaisons d’expériences disponibles à Búzios et dans la Région des Lacs.",
@@ -44,7 +44,7 @@ const COPY: Record<Lang, {
   },
   it: {
     eyebrow: "Chi siamo · Ônix", title: "Scopri Búzios a modo tuo.",
-    intro: "Questo sito raccoglie tour e pacchetti di Ônix Turismo Búzios, così puoi conoscere le esperienze disponibili e scegliere quelle più adatte al tuo viaggio.",
+    intro: "Qui trovi tour e pacchetti di Ônix Turismo Búzios. Scopri le opzioni e scegli quelle più adatte al tuo viaggio.",
     explore: "Esplora i tour", packages: "Vedi i pacchetti", contact: "Parla con il team",
     toursTitle: "Tour", toursText: "Consulta ogni esperienza per informazioni, foto, prezzi e condizioni di prenotazione.",
     packagesTitle: "Pacchetti", packagesText: "Confronta le combinazioni di esperienze disponibili a Búzios e nella Regione dei Laghi.",

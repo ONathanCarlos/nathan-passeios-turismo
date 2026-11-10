@@ -13,6 +13,7 @@ import {
   isAdminMode,
   hasHolidayActiveToday,
   isWelcomeBlockedForPhone,
+  isWelcomeCouponEnabled,
 } from "@/lib/promo";
 import { loadQrPromoForTour, subscribeQrPromo, urlIsExactRoot } from "@/lib/qrPromo";
 import { subscribeCmsCache } from "@/lib/cmsCache";
@@ -40,6 +41,7 @@ const T: Record<Lang, {
   errName: string; errWhats: string;
   successTitle: string; couponLabel: string; copy: string; copied: string;
   alert24: string; alertLast: string; usedTitle: string; usedDesc: string;
+  syncError?: string; submitting?: string;
 }> = {
   pt: {
     banner: "🎟️ Ganhe desconto exclusivo no seu primeiro passeio",
@@ -65,6 +67,8 @@ const T: Record<Lang, {
     alertLast: "⏳ Último dia para reservar",
     usedTitle: "Cupom já utilizado",
     usedDesc: "Você já utilizou este cupom promocional.",
+    syncError: "Não foi possível ativar seu cupom agora. Confira sua conexão e tente novamente.",
+    submitting: "Ativando cupom…",
   },
   es: {
     banner: "🎟️ Gana descuento exclusivo en tu primer paseo",
@@ -90,6 +94,8 @@ const T: Record<Lang, {
     alertLast: "⏳ Último día para reservar",
     usedTitle: "Cupón ya utilizado",
     usedDesc: "Ya has utilizado este cupón promocional.",
+    syncError: "No pudimos activar tu cupón ahora. Comprueba tu conexión e inténtalo de nuevo.",
+    submitting: "Activando cupón…",
   },
   en: {
     banner: "🎟️ Get an exclusive discount on your first tour",
@@ -115,6 +121,8 @@ const T: Record<Lang, {
     alertLast: "⏳ Last day to book",
     usedTitle: "Coupon already used",
     usedDesc: "You have already used this promotional coupon.",
+    syncError: "We couldn't activate your coupon right now. Check your connection and try again.",
+    submitting: "Activating coupon…",
   },
   fr: {
     banner: "🎟️ Gagnez une réduction exclusive sur votre première excursion",
@@ -140,6 +148,8 @@ const T: Record<Lang, {
     alertLast: "⏳ Dernier jour pour réserver",
     usedTitle: "Coupon déjà utilisé",
     usedDesc: "Vous avez déjà utilisé ce coupon promotionnel.",
+    syncError: "Impossible d'activer votre coupon pour le moment. Vérifiez votre connexion et réessayez.",
+    submitting: "Activation du coupon…",
   },
   it: {
     banner: "🎟️ Ottieni uno sconto esclusivo sul tuo primo tour",
@@ -165,6 +175,8 @@ const T: Record<Lang, {
     alertLast: "⏳ Ultimo giorno per prenotare",
     usedTitle: "Coupon già utilizzato",
     usedDesc: "Hai già utilizzato questo coupon promozionale.",
+    syncError: "Non è stato possibile attivare il coupon. Controlla la connessione e riprova.",
+    submitting: "Attivazione del coupon…",
   },
 };
 
@@ -284,7 +296,7 @@ export const PromoBanner = ({ lang, tourKey, forceOpen, onForceOpenChange, onPro
                 🎟 {loadQrPromoForTour(tourKey)?.percent}% OFF aplicado via QR Code
               </span>
             </div>
-          ) : !holidayActive && urlIsExactRoot() ? (
+          ) : !holidayActive && urlIsExactRoot() && isWelcomeCouponEnabled() ? (
             <>
               <div className="flex items-center gap-2 min-w-0">
                 <Gift className="h-4 w-4 text-turquoise-glow shrink-0" />
@@ -378,6 +390,7 @@ const PromoModal = ({ lang, open, onOpenChange, existing, onCreated }: ModalProp
   const [email, setEmail] = useState("");
   const [aceita, setAceita] = useState(false);
   const [errors, setErrors] = useState<{ nome?: string; whats?: string }>({});
+  const [submitting, setSubmitting] = useState(false);
 
   // BR DDD válido: 11..99 (sem 0 ou 1 inicial); número 10 ou 11 dígitos.
   const validBrPhone = (digits: string) => {
@@ -387,7 +400,8 @@ const PromoModal = ({ lang, open, onOpenChange, existing, onCreated }: ModalProp
     return ddd >= 11 && ddd <= 99;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (submitting) return;
     const e: typeof errors = {};
     if (nome.trim().length < 3) e.nome = t.errName;
     if (!validBrPhone(phone.number)) e.whats = t.errWhats;
@@ -406,19 +420,39 @@ const PromoModal = ({ lang, open, onOpenChange, existing, onCreated }: ModalProp
       email: email.trim(),
       aceitaLembretes: aceita,
     });
-    savePromo(created);
-    // Persistência no Lovable Cloud (best-effort)
-    syncLead({ nome: created.nome, telefone: created.whatsapp, email: created.email, origem: "welcome_modal" });
-    syncWelcomeCoupon({
-      telefone: created.whatsapp,
-      email: created.email,
-      codigo: created.cupom,
-      desconto_percentual: created.percentualDesconto,
-      expira_em: created.expiraEm,
-    });
-    onCreated(created);
-    toast.success(`${t.successTitle} ${created.cupom}`);
-    onOpenChange(false);
+    setSubmitting(true);
+    try {
+      const saved = await syncWelcomeCoupon({
+        telefone: created.whatsapp,
+        email: created.email,
+        codigo: created.cupom,
+        desconto_percentual: created.percentualDesconto,
+        expira_em: created.expiraEm,
+      });
+      const savedPercent = Number(saved?.desconto_percentual);
+      if (!saved?.codigo || !saved.expira_em || !Number.isFinite(savedPercent) || savedPercent < 1 || savedPercent > 90) {
+        toast.error(t.syncError || "Could not activate your coupon. Please try again.");
+        return;
+      }
+      const confirmed: PromoData = {
+        ...created,
+        cupom: saved.codigo,
+        percentualDesconto: savedPercent,
+        expiraEm: saved.expira_em,
+        dataCadastro: saved.criado_em || created.dataCadastro,
+        cupomUsado: saved.usado === true,
+      };
+      // Só guardar no navegador e anunciar após o mesmo código estar no banco.
+      savePromo(confirmed);
+      void syncLead({ nome: confirmed.nome, telefone: confirmed.whatsapp, email: confirmed.email, origem: "welcome_modal" });
+      onCreated(confirmed);
+      toast.success(`${t.successTitle} ${confirmed.cupom}`);
+      onOpenChange(false);
+    } catch {
+      toast.error(t.syncError || "Could not activate your coupon. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Se já existe e foi usado: aviso
@@ -489,11 +523,12 @@ const PromoModal = ({ lang, open, onOpenChange, existing, onCreated }: ModalProp
 
           <button
             type="button"
-            onClick={handleSubmit}
-            className="rgb-border w-full block"
+            onClick={() => void handleSubmit()}
+            disabled={submitting}
+            className="rgb-border w-full block disabled:cursor-wait disabled:opacity-70"
           >
             <span className="flex items-center justify-center w-full h-12 rounded-[0.6rem] bg-gradient-to-r from-turquoise to-turquoise-glow text-night font-bold text-sm">
-              {t.submit}
+              {submitting ? (t.submitting || "Activating…") : t.submit}
             </span>
           </button>
         </div>

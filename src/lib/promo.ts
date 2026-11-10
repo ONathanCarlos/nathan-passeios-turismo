@@ -4,7 +4,7 @@
 // localStorage aqui guarda apenas estado per-usuário (cupom
 // emitido, bloqueios por telefone, cupons especiais já usados).
 // ============================================================
-import { getAllCachedModais, type ModalCache } from "./cmsCache";
+import { getAllCachedModais, getCachedConfig, isCmsConfigReady, type ModalCache } from "./cmsCache";
 import { isQrActive } from "./qrPromo";
 import { isVerifiedAdmin } from "./adminAuth";
 
@@ -17,10 +17,23 @@ export const PROMO_VALIDITY_DAYS_DEFAULT = 3;
 export const PROMO_DISCOUNT = PROMO_DISCOUNT_DEFAULT;
 export const PROMO_VALIDITY_DAYS = PROMO_VALIDITY_DAYS_DEFAULT;
 
-// Defaults estáticos. Sem leitura de localStorage para configuração.
-const getWelcomePercent = () => PROMO_DISCOUNT_DEFAULT;
-const getWelcomeDays = () => PROMO_VALIDITY_DAYS_DEFAULT;
-const getWelcomeEnabled = () => !isQrActive();
+// O CMS pode personalizar desconto, validade e ativação do cupom.
+// Se essas chaves ainda não existirem, o sistema mantém os valores atuais.
+const getWelcomePercent = () => {
+  const configured = Number(getCachedConfig("desconto_padrao"));
+  return Number.isFinite(configured) && configured >= 1 && configured <= 90
+    ? Math.round(configured)
+    : PROMO_DISCOUNT_DEFAULT;
+};
+const getWelcomeDays = () => {
+  const configured = Number(getCachedConfig("validade_cupom_boas_vindas_dias"));
+  return Number.isFinite(configured) && configured >= 1 && configured <= 365
+    ? Math.round(configured)
+    : PROMO_VALIDITY_DAYS_DEFAULT;
+};
+const getWelcomeEnabled = () => isCmsConfigReady()
+  && getCachedConfig("cupom_boas_vindas_ativo") !== "false"
+  && !isQrActive();
 const getRecoveryEnabled = () => !isQrActive();
 const getHolidayEnabled = () => true;
 
