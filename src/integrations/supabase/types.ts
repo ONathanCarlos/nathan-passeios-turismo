@@ -98,6 +98,81 @@ export type Database = {
           },
         ]
       }
+      booking_terms_acceptances: {
+        Row: {
+          accepted_at: string
+          context: string
+          id: string
+          language: string
+          payload_hash: string | null
+          request_id: string
+          reserva_id: string | null
+          reserva_reference: string | null
+          tour_keys: Json
+          version: string
+        }
+        Insert: {
+          accepted_at?: string
+          context: string
+          id?: string
+          language: string
+          payload_hash?: string | null
+          request_id: string
+          reserva_id?: string | null
+          reserva_reference?: string | null
+          tour_keys: Json
+          version: string
+        }
+        Update: {
+          accepted_at?: string
+          context?: string
+          id?: string
+          language?: string
+          payload_hash?: string | null
+          request_id?: string
+          reserva_id?: string | null
+          reserva_reference?: string | null
+          tour_keys?: Json
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_terms_acceptances_reserva_id_fkey"
+            columns: ["reserva_id"]
+            isOneToOne: false
+            referencedRelation: "reservas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_terms_acceptances_version_fkey"
+            columns: ["version"]
+            isOneToOne: false
+            referencedRelation: "booking_terms_versions"
+            referencedColumns: ["version"]
+          },
+        ]
+      }
+      booking_terms_versions: {
+        Row: {
+          content: string
+          content_sha256: string
+          created_at: string
+          version: string
+        }
+        Insert: {
+          content: string
+          content_sha256: string
+          created_at?: string
+          version: string
+        }
+        Update: {
+          content?: string
+          content_sha256?: string
+          created_at?: string
+          version?: string
+        }
+        Relationships: []
+      }
       config_global: {
         Row: {
           chave: string
@@ -817,6 +892,10 @@ export type Database = {
           p_valor_com_desconto: number
           p_valor_original: number
         }
+        Returns: string
+      }
+      create_reserva_with_terms: {
+        Args: { p_reserva: Json; p_terms: Json; p_voucher?: Json }
         Returns: string
       }
       issue_reserva_vouchers: {
