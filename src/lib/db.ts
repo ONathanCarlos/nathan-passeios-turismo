@@ -169,6 +169,20 @@ export async function markCouponUsedInDb(codigo: string) {
 }
 
 // ---------------- RESERVAS ----------------
+export interface BookingTermsAcceptance {
+  accepted: true;
+  version: string;
+  request_id: string;
+  tour_keys: string[];
+  language: Lang;
+  package_key?: string;
+}
+
+export async function acceptCmsBookingTerms(terms: BookingTermsAcceptance): Promise<boolean> {
+  const result = await callPublic<{ ok: boolean; recorded?: boolean }>("accept_cms_terms", { terms_acceptance: terms });
+  return result?.ok === true && result.recorded === true;
+}
+
 export interface NewReserva {
   nome: string;
   telefone: string;
@@ -179,6 +193,7 @@ export interface NewReserva {
   cupom_aplicado?: string | null;
   valor_original?: number | null;
   valor_com_desconto?: number | null;
+  terms_acceptance?: BookingTermsAcceptance;
 }
 
 export interface Reserva {
@@ -196,13 +211,14 @@ export interface Reserva {
   created_at: string;
   codigo_reserva?: string | null;
   voucher_items?: Array<{ name: string; code: string }>;
+  terms_acceptance?: { version: string; accepted_at: string } | null;
 }
 
 export async function createReservaInDb(
   r: NewReserva,
 ): Promise<string | null> {
   try {
-    const res = await callPublic<{ id: string | null }>("create_reserva", {
+    const res = await callPublic<{ id: string | null }>(r.terms_acceptance ? "create_reserva_terms" : "create_reserva", {
       nome: r.nome,
       telefone: onlyDigits(r.telefone),
       email: r.email || null,
@@ -212,6 +228,7 @@ export async function createReservaInDb(
       cupom_aplicado: r.cupom_aplicado || null,
       valor_original: r.valor_original ?? null,
       valor_com_desconto: r.valor_com_desconto ?? null,
+      ...(r.terms_acceptance ? { terms_acceptance: r.terms_acceptance } : {}),
     });
     return res?.id ?? null;
   } catch (e) {
@@ -229,7 +246,7 @@ export interface VoucherReservaRequest {
 
 /** Cria a reserva e o desafio privado de voucher em uma única operação idempotente. */
 export async function createReservaVoucherInDb(reserva: NewReserva, voucher: VoucherReservaRequest): Promise<string> {
-  const result = await callPublic<{ ok: boolean; id?: string; error?: string }>("create_reserva_voucher", {
+  const result = await callPublic<{ ok: boolean; id?: string; error?: string }>(reserva.terms_acceptance ? "create_reserva_terms" : "create_reserva_voucher", {
     nome: reserva.nome,
     telefone: onlyDigits(reserva.telefone),
     email: reserva.email || null,
@@ -243,6 +260,10 @@ export async function createReservaVoucherInDb(reserva: NewReserva, voucher: Vou
     request_proof: voucher.requestProof,
     idioma: voucher.idioma,
     total_pessoas: voucher.totalPessoas,
+    ...(reserva.terms_acceptance ? {
+      terms_acceptance: reserva.terms_acceptance,
+      voucher_request: { request_id: voucher.requestId, request_proof: voucher.requestProof, idioma: voucher.idioma, total_pessoas: voucher.totalPessoas },
+    } : {}),
   });
   if (!result?.ok || !result.id) throw new Error(result?.error || "reservation_save_failed");
   return result.id;

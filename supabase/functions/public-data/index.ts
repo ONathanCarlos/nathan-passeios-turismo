@@ -1,6 +1,7 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { handleVoucherAction, VOUCHER_ACTIONS } from "../_shared/vouchers.ts";
+import { BOOKING_TERMS_ACTIONS, handleBookingTermsAction } from "../_shared/bookingTerms.ts";
 
 // ============================================================
 // public-data — operações públicas seguras (sem PII em massa).
@@ -33,6 +34,9 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = body?.action;
 
+    if (typeof action === "string" && BOOKING_TERMS_ACTIONS.has(action)) {
+      return await handleBookingTermsAction(action, body as Record<string, unknown>, supabase);
+    }
     if (typeof action === "string" && VOUCHER_ACTIONS.has(action)) {
       return await handleVoucherAction(action, body as Record<string, unknown>, supabase);
     }

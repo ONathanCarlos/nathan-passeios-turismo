@@ -17,6 +17,7 @@ const Pacotes = lazy(() => import("./pages/Pacotes.tsx"));
 const PacoteDetalhes = lazy(() => import("./pages/PacoteDetalhes.tsx"));
 const CruiseCalendar = lazy(() => import("./pages/CruiseCalendar.tsx"));
 const Vouchers = lazy(() => import("./pages/Vouchers.tsx"));
+const BookingTerms = lazy(() => import("./pages/BookingTerms.tsx"));
 import NotFound from "./pages/NotFound.tsx";
 import { ScrollToTopFab } from "@/components/ScrollToTopFab";
 import { GlobalFloatingActions } from "@/components/GlobalFloatingActions";
@@ -93,6 +94,7 @@ const App = () => (
               <Route path="/calendario-cruzeiros-2026-2027" element={<CruiseCalendar />} />
               <Route path="/v" element={<Vouchers />} />
               <Route path="/vouchers" element={<Vouchers />} />
+              <Route path="/termos-de-uso" element={<BookingTerms />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

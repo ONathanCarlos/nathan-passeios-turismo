@@ -67,12 +67,13 @@ export const ReservasSection = () => {
               <TableHead>Cupom</TableHead>
               <TableHead>Valor</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Aceite dos termos</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="py-6 text-center text-muted-foreground">
+                <TableCell colSpan={10} className="py-6 text-center text-muted-foreground">
                   <CalendarCheck2 className="mr-2 inline h-4 w-4" /> Nenhuma reserva ainda
                 </TableCell>
               </TableRow>
@@ -115,6 +116,12 @@ export const ReservasSection = () => {
                       {isDone ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
                       {isDone ? "Concluída" : "Pendente"}
                     </button>
+                  </TableCell>
+                  <TableCell className="min-w-40 text-[10px]">
+                    {reservation.terms_acceptance ? <>
+                      <div className="font-semibold text-turquoise">{reservation.terms_acceptance.version}</div>
+                      <time dateTime={reservation.terms_acceptance.accepted_at}>{new Date(reservation.terms_acceptance.accepted_at).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })} (Brasília)</time>
+                    </> : "Sem registro / não aplicável"}
                   </TableCell>
                 </TableRow>
               );
