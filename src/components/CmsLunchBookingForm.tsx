@@ -26,11 +26,19 @@ const TEXT: Record<Lang, {
   required: string; invalidCount: string; invalidAge: string; invalidGuest: string;
   subtotal: string; creditFee: string; total: string; creditNotice: string; payment: string;
 }> = {
-  pt: { responsible: "Nome completo do responsável", phone: "Telefone / WhatsApp do responsável", date: "Data do almoço", dinerCount: "Quantas pessoas vão almoçar?", participants: "Dados de cada pessoa", responsibleGuest: "Responsável · pessoa 1", companion: "Pessoa", name: "Nome completo", age: "Idade", countHelp: "Informe de 1 a 8 pessoas. Inclua o responsável na quantidade.", required: "Preencha este campo.", invalidCount: "Informe uma quantidade inteira entre 1 e 8.", invalidAge: "Informe uma idade válida entre 0 e 120 anos.", invalidGuest: "Informe o nome completo desta pessoa.", subtotal: "Subtotal do almoço", creditFee: "Preço unitário no cartão (+10%)", total: "Total a pagar", creditNotice: "O preço no cartão de crédito ou débito é 10% maior que em dinheiro ou Pix; o total abaixo já considera o método escolhido.", payment: "Forma de pagamento" },
-  es: { responsible: "Nombre completo del responsable", phone: "Teléfono / WhatsApp del responsable", date: "Fecha del almuerzo", dinerCount: "¿Cuántas personas almorzarán?", participants: "Datos de cada persona", responsibleGuest: "Responsable · persona 1", companion: "Persona", name: "Nombre completo", age: "Edad", countHelp: "Indique de 1 a 8 personas. Incluya al responsable en la cantidad.", required: "Complete este campo.", invalidCount: "Indique una cantidad entera entre 1 y 8.", invalidAge: "Indique una edad válida entre 0 y 120 años.", invalidGuest: "Indique el nombre completo de esta persona.", subtotal: "Subtotal del almuerzo", creditFee: "Precio unitario con tarjeta (+10%)", total: "Total a pagar", creditNotice: "El precio con tarjeta de crédito o débito es un 10% superior al precio en efectivo o Pix; el total de abajo ya considera el método elegido.", payment: "Forma de pago" },
-  en: { responsible: "Full name of the person in charge", phone: "Contact phone / WhatsApp", date: "Lunch date", dinerCount: "How many people will have lunch?", participants: "Details for each person", responsibleGuest: "Person in charge · guest 1", companion: "Guest", name: "Full name", age: "Age", countHelp: "Enter 1 to 8 people. Include the person in charge in the count.", required: "This field is required.", invalidCount: "Enter a whole number from 1 to 8.", invalidAge: "Enter a valid age from 0 to 120.", invalidGuest: "Enter this person's full name.", subtotal: "Lunch subtotal", creditFee: "Card unit price (+10%)", total: "Total due", creditNotice: "The credit or debit card price is 10% higher than the cash or Pix price; the total below already reflects the selected method.", payment: "Payment method" },
-  fr: { responsible: "Nom complet du responsable", phone: "Téléphone / WhatsApp du responsable", date: "Date du déjeuner", dinerCount: "Combien de personnes déjeuneront ?", participants: "Données de chaque personne", responsibleGuest: "Responsable · personne 1", companion: "Personne", name: "Nom complet", age: "Âge", countHelp: "Indiquez de 1 à 8 personnes. Incluez le responsable dans le nombre.", required: "Champ obligatoire.", invalidCount: "Indiquez un nombre entier entre 1 et 8.", invalidAge: "Indiquez un âge valide entre 0 et 120 ans.", invalidGuest: "Indiquez le nom complet de cette personne.", subtotal: "Sous-total du déjeuner", creditFee: "Prix unitaire par carte (+10 %)", total: "Total à payer", creditNotice: "Le prix par carte de crédit ou de débit est supérieur de 10 % au prix en espèces ou Pix ; le total ci-dessous tient déjà compte du mode choisi.", payment: "Mode de paiement" },
-  it: { responsible: "Nome completo del responsabile", phone: "Telefono / WhatsApp", date: "Data del pranzo", dinerCount: "Quante persone pranzeranno?", participants: "Dati di ogni persona", responsibleGuest: "Responsabile · persona 1", companion: "Persona", name: "Nome completo", age: "Età", countHelp: "Inserisci da 1 a 8 persone. Includi il responsabile nel totale.", required: "Campo obbligatorio.", invalidCount: "Inserisci un numero intero da 1 a 8.", invalidAge: "Inserisci un'età valida da 0 a 120 anni.", invalidGuest: "Inserisci il nome completo di questa persona.", subtotal: "Subtotale del pranzo", creditFee: "Prezzo unitario con carta (+10%)", total: "Totale da pagare", creditNotice: "Il prezzo con carta di credito o debito è superiore del 10% rispetto al prezzo in contanti o Pix; il totale qui sotto considera già il metodo scelto.", payment: "Metodo di pagamento" },
+  pt: { responsible: "Nome completo do responsável", phone: "Telefone / WhatsApp do responsável", date: "Data do almoço", dinerCount: "Quantas pessoas vão almoçar?", participants: "Dados de cada pessoa", responsibleGuest: "Responsável · pessoa 1", companion: "Pessoa", name: "Nome completo", age: "Idade", countHelp: "Informe de 1 a 8 pessoas. Inclua o responsável na quantidade.", required: "Preencha este campo.", invalidCount: "Informe uma quantidade inteira entre 1 e 8.", invalidAge: "Informe uma idade válida entre 0 e 120 anos.", invalidGuest: "Informe o nome completo desta pessoa.", subtotal: "Subtotal do almoço", creditFee: "Preço unitário no cartão", total: "Total a pagar", creditNotice: "O preço no cartão de crédito ou débito é apresentado separadamente; o total abaixo já considera o método escolhido.", payment: "Forma de pagamento" },
+  es: { responsible: "Nombre completo del responsable", phone: "Teléfono / WhatsApp del responsable", date: "Fecha del almuerzo", dinerCount: "¿Cuántas personas almorzarán?", participants: "Datos de cada persona", responsibleGuest: "Responsable · persona 1", companion: "Persona", name: "Nombre completo", age: "Edad", countHelp: "Indique de 1 a 8 personas. Incluya al responsable en la cantidad.", required: "Complete este campo.", invalidCount: "Indique una cantidad entera entre 1 y 8.", invalidAge: "Indique una edad válida entre 0 y 120 años.", invalidGuest: "Indique el nombre completo de esta persona.", subtotal: "Subtotal del almuerzo", creditFee: "Precio unitario con tarjeta", total: "Total a pagar", creditNotice: "El precio con tarjeta de crédito o débito se muestra por separado; el total de abajo ya considera el método elegido.", payment: "Forma de pago" },
+  en: { responsible: "Full name of the person in charge", phone: "Contact phone / WhatsApp", date: "Lunch date", dinerCount: "How many people will have lunch?", participants: "Details for each person", responsibleGuest: "Person in charge · guest 1", companion: "Guest", name: "Full name", age: "Age", countHelp: "Enter 1 to 8 people. Include the person in charge in the count.", required: "This field is required.", invalidCount: "Enter a whole number from 1 to 8.", invalidAge: "Enter a valid age from 0 to 120.", invalidGuest: "Enter this person's full name.", subtotal: "Lunch subtotal", creditFee: "Card unit price", total: "Total due", creditNotice: "The credit or debit card price is shown separately; the total below already reflects the selected method.", payment: "Payment method" },
+  fr: { responsible: "Nom complet du responsable", phone: "Téléphone / WhatsApp du responsable", date: "Date du déjeuner", dinerCount: "Combien de personnes déjeuneront ?", participants: "Données de chaque personne", responsibleGuest: "Responsable · personne 1", companion: "Personne", name: "Nom complet", age: "Âge", countHelp: "Indiquez de 1 à 8 personnes. Incluez le responsable dans le nombre.", required: "Champ obligatoire.", invalidCount: "Indiquez un nombre entier entre 1 et 8.", invalidAge: "Indiquez un âge valide entre 0 et 120 ans.", invalidGuest: "Indiquez le nom complet de cette personne.", subtotal: "Sous-total du déjeuner", creditFee: "Prix unitaire par carte", total: "Total à payer", creditNotice: "Le prix par carte de crédit ou de débit est affiché séparément ; le total ci-dessous tient déjà compte du mode choisi.", payment: "Mode de paiement" },
+  it: { responsible: "Nome completo del responsabile", phone: "Telefono / WhatsApp", date: "Data del pranzo", dinerCount: "Quante persone pranzeranno?", participants: "Dati di ogni persona", responsibleGuest: "Responsabile · persona 1", companion: "Persona", name: "Nome completo", age: "Età", countHelp: "Inserisci da 1 a 8 persone. Includi il responsabile nel totale.", required: "Campo obbligatorio.", invalidCount: "Inserisci un numero intero da 1 a 8.", invalidAge: "Inserisci un'età valida da 0 a 120 anni.", invalidGuest: "Inserisci il nome completo di questa persona.", subtotal: "Subtotale del pranzo", creditFee: "Prezzo unitario con carta", total: "Totale da pagare", creditNotice: "Il prezzo con carta di credito o debito è mostrato separatamente; il totale qui sotto considera già il metodo scelto.", payment: "Metodo di pagamento" },
+};
+
+const LUNCH_SHELL_COPY: Record<Lang, { formTitle: string; formSubtitle: string; reviewTitle: string; reviewSubtitle: string; summaryTitle: string; unitPrice: string; summaryEmpty: string }> = {
+  pt: { formTitle: "Reserve seu almoço", formSubtitle: "Informe os dados do responsável e de cada comensal. O resumo acompanha as informações e a forma de pagamento escolhida.", reviewTitle: "Confira sua reserva", reviewSubtitle: "Revise a lista de comensais e os valores antes de enviar pelo WhatsApp.", summaryTitle: "Resumo do almoço", unitPrice: "Valor por pessoa", summaryEmpty: "Informe a quantidade de pessoas e a forma de pagamento para visualizar o resumo." },
+  es: { formTitle: "Reserva tu almuerzo", formSubtitle: "Indica los datos del responsable y de cada comensal. El resumen se actualiza con la información y el método de pago elegido.", reviewTitle: "Revisa tu reserva", reviewSubtitle: "Revisa la lista de comensales y los valores antes de enviar por WhatsApp.", summaryTitle: "Resumen del almuerzo", unitPrice: "Precio por persona", summaryEmpty: "Indica la cantidad de personas y el método de pago para ver el resumen." },
+  en: { formTitle: "Book your lunch", formSubtitle: "Enter the person in charge and each guest's details. The summary reflects the details and payment method selected.", reviewTitle: "Review your booking", reviewSubtitle: "Review the guest list and prices before sending via WhatsApp.", summaryTitle: "Lunch summary", unitPrice: "Price per person", summaryEmpty: "Enter the number of guests and payment method to see the summary." },
+  fr: { formTitle: "Réservez votre déjeuner", formSubtitle: "Indiquez le responsable et les données de chaque convive. Le récapitulatif suit les informations et le mode de paiement choisi.", reviewTitle: "Vérifiez votre réservation", reviewSubtitle: "Vérifiez la liste des convives et les tarifs avant l'envoi par WhatsApp.", summaryTitle: "Récapitulatif du déjeuner", unitPrice: "Prix par personne", summaryEmpty: "Indiquez le nombre de personnes et le mode de paiement pour afficher le récapitulatif." },
+  it: { formTitle: "Prenota il pranzo", formSubtitle: "Inserisci i dati del responsabile e di ogni ospite. Il riepilogo riflette le informazioni e il metodo di pagamento scelto.", reviewTitle: "Controlla la prenotazione", reviewSubtitle: "Controlla l'elenco degli ospiti e i prezzi prima dell'invio su WhatsApp.", summaryTitle: "Riepilogo del pranzo", unitPrice: "Prezzo per persona", summaryEmpty: "Inserisci il numero di ospiti e il metodo di pagamento per visualizzare il riepilogo." },
 };
 
 const PAYMENT_PT: Record<PaymentMethod, string> = {
@@ -171,11 +179,11 @@ export const CmsLunchBookingForm = ({ tour, lang, onLangChange, onBack }: Props)
       amounts: finalAmounts,
     });
     const labels: Record<Lang, { responsible: string; phone: string; date: string; diners: string; payment: string; meal: string; surcharge: string; total: string }> = {
-      pt: { responsible: "Responsável", phone: "Telefone", date: "Data do almoço", diners: "Comensais", payment: "Forma de pagamento", meal: "Subtotal do almoço", surcharge: "Preço unitário no cartão (+10%)", total: "Total a pagar" },
-      es: { responsible: "Responsable", phone: "Teléfono", date: "Fecha del almuerzo", diners: "Comensales", payment: "Forma de pago", meal: "Subtotal del almuerzo", surcharge: "Precio unitario con tarjeta (+10%)", total: "Total a pagar" },
-      en: { responsible: "Person in charge", phone: "Phone", date: "Lunch date", diners: "Guests", payment: "Payment method", meal: "Lunch subtotal", surcharge: "Card unit price (+10%)", total: "Total due" },
-      fr: { responsible: "Responsable", phone: "Téléphone", date: "Date du déjeuner", diners: "Personnes", payment: "Mode de paiement", meal: "Sous-total du déjeuner", surcharge: "Prix unitaire par carte (+10 %)", total: "Total à payer" },
-      it: { responsible: "Responsabile", phone: "Telefono", date: "Data del pranzo", diners: "Persone", payment: "Metodo di pagamento", meal: "Subtotale del pranzo", surcharge: "Prezzo unitario con carta (+10%)", total: "Totale da pagare" },
+      pt: { responsible: "Responsável", phone: "Telefone", date: "Data do almoço", diners: "Comensais", payment: "Forma de pagamento", meal: "Subtotal do almoço", surcharge: "Preço unitário no cartão", total: "Total a pagar" },
+      es: { responsible: "Responsable", phone: "Teléfono", date: "Fecha del almuerzo", diners: "Comensales", payment: "Forma de pago", meal: "Subtotal del almuerzo", surcharge: "Precio unitario con tarjeta", total: "Total a pagar" },
+      en: { responsible: "Person in charge", phone: "Phone", date: "Lunch date", diners: "Guests", payment: "Payment method", meal: "Lunch subtotal", surcharge: "Card unit price", total: "Total due" },
+      fr: { responsible: "Responsable", phone: "Téléphone", date: "Date du déjeuner", diners: "Personnes", payment: "Mode de paiement", meal: "Sous-total du déjeuner", surcharge: "Prix unitaire par carte", total: "Total à payer" },
+      it: { responsible: "Responsabile", phone: "Telefono", date: "Data del pranzo", diners: "Persone", payment: "Metodo di pagamento", meal: "Subtotale del pranzo", surcharge: "Prezzo unitario con carta", total: "Totale da pagare" },
     };
     const l = labels[lang];
     const rows = [
@@ -312,15 +320,17 @@ export const CmsLunchBookingForm = ({ tour, lang, onLangChange, onBack }: Props)
 
   if (output) {
     return (
-      <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={tour.imagem_url || undefined}>
-        <SummaryOutput text={output.text} rows={output.rows} tourTitle={title} lang={lang} onReset={() => { setOutput(null); setPendingVoucher(null); voucherCredentials.current = null; }} onSend={handleSent} voucherWarning={output.voucherWarning} onRetryVoucher={pendingVoucher ? retryVoucherIssue : undefined} retryingVoucher={retryingVoucher} />
+      <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={tour.imagem_url || undefined} wide step={3} heading={LUNCH_SHELL_COPY[lang].reviewTitle} subheading={LUNCH_SHELL_COPY[lang].reviewSubtitle}>
+        <SummaryOutput text={output.text} rows={output.rows} tourTitle={title} lang={lang} onReset={onBack} totalRowLabel={TEXT[lang].total} onSend={handleSent} voucherWarning={output.voucherWarning} onRetryVoucher={pendingVoucher ? retryVoucherIssue : undefined} retryingVoucher={retryingVoucher} />
       </PageShell>
     );
   }
 
   return (
-    <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={tour.imagem_url || undefined}>
-      <p className="mb-5 rounded-xl border border-turquoise/20 bg-night/55 p-3 text-sm leading-relaxed text-foreground/90">
+    <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={tour.imagem_url || undefined} wide step={2} heading={LUNCH_SHELL_COPY[lang].formTitle} subheading={LUNCH_SHELL_COPY[lang].formSubtitle}>
+      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(22rem,.85fr)]">
+      <div className="min-w-0">
+      <p className="mb-5 rounded-xl border border-turquoise/20 bg-[#0a2030]/70 p-4 text-sm leading-relaxed text-foreground/90">
         {lang === "pt" ? "Preencha os dados do responsável e de todas as pessoas que vão almoçar. O responsável deve estar incluído na quantidade." : lang === "es" ? "Complete los datos del responsable y de todas las personas que almorzarán. Incluya al responsable en la cantidad." : lang === "fr" ? "Renseignez le responsable et toutes les personnes qui déjeuneront. Le responsable doit être inclus dans le nombre." : lang === "it" ? "Inserisci i dati del responsabile e di tutte le persone che pranzeranno. Il responsabile va incluso nel numero." : "Enter the person in charge and everyone who will have lunch. Include the person in charge in the count."}
       </p>
 
@@ -376,8 +386,9 @@ export const CmsLunchBookingForm = ({ tour, lang, onLangChange, onBack }: Props)
           {isCardPayment(payment) && <p className="mt-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-300">{copy.creditNotice}</p>}
         </Field>
 
-        {countIsValid && tour.preco > 0 && (
-          <section aria-live="polite" className="rounded-2xl border border-turquoise/25 bg-card/50 p-4 space-y-2 text-sm">
+        {countIsValid && payment && tour.preco > 0 && (
+          <section aria-live="polite" className="rounded-2xl border border-turquoise/25 bg-gradient-to-br from-[#102b3b] to-[#091d2a] p-4 space-y-2 text-sm xl:hidden">
+            <h2 className="mb-3 text-[10px] font-extrabold uppercase tracking-[.15em] text-turquoise-glow">{LUNCH_SHELL_COPY[lang].summaryTitle}</h2>
             {isCardPayment(payment) && <div className="flex justify-between gap-4 text-muted-foreground"><span>{copy.creditFee}</span><span>{formatBRL(amounts.unitPriceForPayment)}</span></div>}
             <div className="flex justify-between gap-4 border-t border-turquoise/30 pt-2 text-base font-bold"><span>{copy.total}</span><span>{formatBRL(amounts.total)}</span></div>
           </section>
@@ -392,6 +403,33 @@ export const CmsLunchBookingForm = ({ tour, lang, onLangChange, onBack }: Props)
         <Button type="button" onClick={() => void handleGenerate()} disabled={saving || tour.preco <= 0} className="rgb-border w-full h-14 bg-gradient-to-r from-turquoise to-turquoise-glow text-base font-bold text-night disabled:opacity-70">
           {saving ? (lang === "pt" ? "Salvando reserva…" : "Saving booking…") : t.generate}
         </Button>
+      </div>
+      </div>
+
+      <aside aria-label={LUNCH_SHELL_COPY[lang].summaryTitle} className="hidden xl:sticky xl:top-5 xl:block">
+        <section aria-live="polite" className="overflow-hidden rounded-3xl border border-turquoise/20 bg-gradient-to-br from-[#102b3b] via-[#0b1f2d] to-[#071722] shadow-[0_22px_55px_rgba(0,0,0,.3)]">
+          <header className="border-b border-white/10 bg-[#0c2533]/75 px-5 py-4">
+            <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-turquoise-glow">{LUNCH_SHELL_COPY[lang].summaryTitle}</p>
+            <h2 className="mt-1 text-lg font-bold text-foreground">{title}</h2>
+          </header>
+          <div className="flex items-center gap-3 border-b border-white/[0.08] px-5 py-4">
+            {tour.imagem_url ? <img src={tour.imagem_url} alt="" className="h-14 w-20 shrink-0 rounded-xl object-cover" /> : <div className="grid h-14 w-20 shrink-0 place-items-center rounded-xl bg-[#0a2030] text-xs text-muted-foreground">{title}</div>}
+            <div className="min-w-0 space-y-1 text-xs">
+              <p className="truncate text-foreground"><span className="text-muted-foreground">{copy.date}: </span>{dateLabel || "—"}</p>
+              <p className="text-foreground"><span className="text-muted-foreground">{copy.dinerCount}: </span>{countIsValid ? parsedCount : "—"}</p>
+              <p className="text-foreground"><span className="text-muted-foreground">{copy.payment}: </span>{payment ? paymentLabelLocalized(payment as PaymentMethod, lang) : "—"}</p>
+            </div>
+          </div>
+          <div className="space-y-3 px-5 py-4">
+            {countIsValid && payment && tour.preco > 0 ? (
+              <>
+                <div className="flex items-start justify-between gap-4 text-sm text-foreground/85"><span>{LUNCH_SHELL_COPY[lang].unitPrice}</span><span className="shrink-0 font-semibold">{formatBRL(isCardPayment(payment) ? amounts.unitPriceForPayment : amounts.unitPrice)}</span></div>
+                <div className="flex items-start justify-between gap-4 border-t border-turquoise/30 pt-3 text-base font-extrabold text-turquoise-glow"><span>{copy.total}</span><span className="shrink-0 text-right">{formatBRL(amounts.total)}</span></div>
+              </>
+            ) : <p className="text-sm leading-relaxed text-muted-foreground">{LUNCH_SHELL_COPY[lang].summaryEmpty}</p>}
+          </div>
+        </section>
+      </aside>
       </div>
     </PageShell>
   );

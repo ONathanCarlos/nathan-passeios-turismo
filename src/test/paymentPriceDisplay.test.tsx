@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { PaymentPriceDisplay } from "@/components/PaymentPriceDisplay";
 
 describe("exibição de preços por modalidade", () => {
-  it("mostra o preço base em dinheiro/Pix e o cartão com 10% a mais", () => {
+  it("mostra os dois preços e identifica as modalidades sem exibir percentuais", () => {
     render(<PaymentPriceDisplay cashPixPrice={100} lang="pt" />);
 
     expect(screen.getByText("em dinheiro ou Pix")).toBeInTheDocument();
@@ -11,5 +11,6 @@ describe("exibição de preços por modalidade", () => {
     const content = screen.getByTestId("payment-price-display").textContent?.replace(/\u00a0/g, " ") ?? "";
     expect(content).toContain("R$ 100");
     expect(content).toContain("R$ 110");
+    expect(content).not.toMatch(/10\s?%|\+10/i);
   });
 });

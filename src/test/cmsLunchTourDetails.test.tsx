@@ -20,7 +20,7 @@ describe("CMS lunch tour details", () => {
       </MemoryRouter>,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /reservar/i }));
+    fireEvent.click(screen.getAllByRole("button", { name: /reservar/i })[0]);
 
     expect(screen.getByText("Quantas pessoas vão almoçar?")).toBeInTheDocument();
     expect(screen.getByText("Forma de pagamento")).toBeInTheDocument();

@@ -54,7 +54,7 @@ describe("CMS lunch booking", () => {
     expect(message).toContain("2. João Lima — 12 anos");
     expect(message).toContain("Data: 27/10/2026");
     const normalizedMessage = message.replace(/\u00a0/g, " ");
-    expect(normalizedMessage).toContain("Preço unitário do almoço no cartão (+10%): R$ 71,50");
+    expect(normalizedMessage).toContain("Preço unitário do almoço no cartão: R$ 71,50");
     expect(normalizedMessage).toContain("TOTAL A PAGAR: R$ 143,00");
     expect(normalizedMessage).toContain("Forma de pagamento: Cartão de crédito");
     expect(normalizedMessage).not.toMatch(/taxa do cartão|5%/i);
@@ -76,7 +76,7 @@ describe("CMS lunch booking", () => {
     });
 
     const normalizedMessage = message.replace(/\u00a0/g, " ");
-    expect(normalizedMessage).toContain("Preço unitário do almoço no cartão (+10%): R$ 71,50");
+    expect(normalizedMessage).toContain("Preço unitário do almoço no cartão: R$ 71,50");
     expect(normalizedMessage).toContain("TOTAL A PAGAR: R$ 143,00");
     expect(normalizedMessage).toContain("Forma de pagamento: Cartão de débito");
     expect(normalizedMessage).not.toMatch(/taxa do cartão|5%/i);

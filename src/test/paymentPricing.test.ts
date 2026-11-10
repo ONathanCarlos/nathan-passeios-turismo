@@ -21,9 +21,11 @@ describe("preços por modalidade de pagamento", () => {
     expect(calculateCardPrice(66.67)).toBe(73.34);
   });
 
-  it("fornece rótulos de preço do cartão em todos os idiomas do site", () => {
+  it("fornece rótulos por modalidade sem revelar percentual de acréscimo", () => {
     for (const lang of ["pt", "es", "en", "fr", "it"] as const) {
-      expect(PAYMENT_PRICE_LABELS[lang].cardNotice).toContain("10");
+      expect(PAYMENT_PRICE_LABELS[lang].cardNotice).not.toMatch(/10\s?%|\+10/i);
+      expect(PAYMENT_PRICE_LABELS[lang].cardPrice).not.toMatch(/10\s?%|\+10/i);
+      expect(PAYMENT_PRICE_LABELS[lang].tourFareCard).not.toMatch(/10\s?%|\+10/i);
       expect(PAYMENT_PRICE_LABELS[lang].cashPixPrice).toBeTruthy();
       expect(PAYMENT_PRICE_LABELS[lang].card).toBeTruthy();
       expect(PAYMENT_PRICE_LABELS[lang].unitPrice).toBeTruthy();

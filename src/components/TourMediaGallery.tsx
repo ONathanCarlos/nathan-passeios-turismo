@@ -11,10 +11,11 @@ interface Props {
   className?: string;
   showMobileControls?: boolean;
   mobileAspect?: boolean;
+  aspect?: "default" | "wide";
   catalogLabels?: { desktop: string; mobile: string };
 }
 
-export const TourMediaGallery = ({ images, alt, className = "", showMobileControls = false, mobileAspect = false, catalogLabels }: Props) => {
+export const TourMediaGallery = ({ images, alt, className = "", showMobileControls = false, mobileAspect = false, aspect = "default", catalogLabels }: Props) => {
   const [index, setIndex] = useState(0);
   const safeImages = tourPhotos(images);
   const [viewportRef, carousel] = useEmblaCarousel({ loop: true });
@@ -22,7 +23,7 @@ export const TourMediaGallery = ({ images, alt, className = "", showMobileContro
   const [paused, setPaused] = useState(false);
   const [element, setElement] = useState<HTMLDivElement | null>(null);
   const multiple = safeImages.length > 1;
-  const aspectClass = mobileAspect ? "aspect-[16/10] sm:aspect-[4/3]" : "aspect-[4/3]";
+  const aspectClass = aspect === "wide" ? "aspect-[16/10]" : mobileAspect ? "aspect-[16/10] sm:aspect-[4/3]" : "aspect-[4/3]";
 
   useEffect(() => {
     if (!carousel) return;

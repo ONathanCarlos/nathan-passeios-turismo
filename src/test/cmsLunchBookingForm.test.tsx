@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import { CmsLunchBookingForm } from "@/components/CmsLunchBookingForm";
 import type { CmsTour } from "@/lib/cms";
@@ -13,7 +14,7 @@ const lunchTour: CmsTour = {
 
 describe("CMS lunch booking form", () => {
   it("renders one responsible diner by default and adds name-and-age fields for each added diner", () => {
-    render(<CmsLunchBookingForm tour={lunchTour} lang="pt" onLangChange={vi.fn()} onBack={vi.fn()} />);
+    render(<MemoryRouter><CmsLunchBookingForm tour={lunchTour} lang="pt" onLangChange={vi.fn()} onBack={vi.fn()} /></MemoryRouter>);
 
     expect(screen.getByRole("heading", { name: "Responsável · pessoa 1" })).toBeInTheDocument();
     expect(screen.getAllByText("Idade")).toHaveLength(1);

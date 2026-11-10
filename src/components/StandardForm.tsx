@@ -27,7 +27,7 @@ import {
 import { createReservaInDb, createReservaVoucherInDb, issueReservaVouchers, saveVoucherMessageInDb, markCouponUsedInDb, syncLead } from "@/lib/db";
 import { buildBookingPriceBreakdown } from "@/lib/bookingPriceBreakdown";
 import { calculateRegionalBookingFees, JARDINEIRA_FEE_PER_PERSON, REGIONAL_EMBARKATION_FEE_PER_PERSON } from "@/lib/regionalBookingFees";
-import { Tag, ExternalLink, X } from "lucide-react";
+import { Tag, ExternalLink, X, Info } from "lucide-react";
 import {
   calculateBookingAmounts,
   calculateEmbarkationFee,
@@ -122,6 +122,22 @@ const CRUISE_CALENDAR_LINK: Record<Lang, string> = {
   en: "View the city cruise-call calendar",
   fr: "Consulter le calendrier municipal des escales",
   it: "Consulta il calendario comunale degli scali",
+};
+
+const BOOKING_COPY: Record<Lang, {
+  intro: string;
+  formTitle: string;
+  formSubtitle: string;
+  reviewTitle: string;
+  reviewSubtitle: string;
+  summaryTitle: string;
+  summaryEmpty: string;
+}> = {
+  pt: { intro: "Informe os dados do responsável e os detalhes do passeio para continuar.", formTitle: "Finalize sua reserva", formSubtitle: "Preencha os dados abaixo; o resumo será atualizado com a data, o pagamento e as taxas aplicáveis.", reviewTitle: "Confira sua reserva", reviewSubtitle: "Revise passeio, data, pagamento e valores antes de enviar pelo WhatsApp.", summaryTitle: "Resumo atualizado", summaryEmpty: "Informe a data, a quantidade de passageiros e a forma de pagamento para visualizar o total." },
+  es: { intro: "Introduce los datos del responsable y los detalles del paseo para continuar.", formTitle: "Completa tu reserva", formSubtitle: "Completa los datos; el resumen se actualizará con la fecha, el pago y las tasas aplicables.", reviewTitle: "Revisa tu reserva", reviewSubtitle: "Revisa el paseo, la fecha, el pago y los valores antes de enviar por WhatsApp.", summaryTitle: "Resumen actualizado", summaryEmpty: "Introduce la fecha, la cantidad de pasajeros y el método de pago para ver el total." },
+  en: { intro: "Enter the booking lead's details and tour information to continue.", formTitle: "Complete your booking", formSubtitle: "Fill in the details; the summary updates with the date, payment method, and applicable fees.", reviewTitle: "Review your booking", reviewSubtitle: "Review the tour, date, payment method, and prices before sending via WhatsApp.", summaryTitle: "Updated summary", summaryEmpty: "Enter the date, number of passengers, and payment method to see the total." },
+  fr: { intro: "Indiquez les coordonnées du responsable et les détails de l'excursion pour continuer.", formTitle: "Finalisez votre réservation", formSubtitle: "Renseignez les données ; le récapitulatif sera actualisé avec la date, le paiement et les frais applicables.", reviewTitle: "Vérifiez votre réservation", reviewSubtitle: "Vérifiez l'excursion, la date, le paiement et les tarifs avant l'envoi par WhatsApp.", summaryTitle: "Récapitulatif actualisé", summaryEmpty: "Indiquez la date, le nombre de passagers et le mode de paiement pour afficher le total." },
+  it: { intro: "Inserisci i dati del responsabile e i dettagli del tour per continuare.", formTitle: "Completa la prenotazione", formSubtitle: "Inserisci i dati; il riepilogo si aggiornerà con data, pagamento ed eventuali costi applicabili.", reviewTitle: "Controlla la prenotazione", reviewSubtitle: "Controlla tour, data, pagamento e prezzi prima dell'invio su WhatsApp.", summaryTitle: "Riepilogo aggiornato", summaryEmpty: "Inserisci la data, il numero di passeggeri e il metodo di pagamento per visualizzare il totale." },
 };
 
 interface Props {
@@ -398,6 +414,19 @@ export const StandardForm = ({
     : isPackage && packageIncludesCruiseFeeTour(packageTourKeys) && isCruiseDate(date);
   const cruiseCalendarLinkVisible = tourKey === "escuna" || tourKey === "catamara"
     || (isPackage && packageIncludesCruiseFeeTour(packageTourKeys));
+  const livePriceRows = useMemo(() => {
+    if (!priceInfo || !payment) return [];
+    const itemizeFare = priceInfo.embarkationFee > 0 || priceInfo.localEmbarkationFee > 0 || priceInfo.jardineiraFee > 0;
+    const rows: { label: string; value: string; total?: boolean }[] = itemizeFare ? [{
+      label: isCardPayment(payment) ? PAYMENT_PRICE_LABELS[lang].tourFareCard : PAYMENT_PRICE_LABELS[lang].tourFareCashPix,
+      value: formatBRL(priceInfo.fareForPayment),
+    }] : [];
+    if (priceInfo.embarkationFee > 0) rows.push({ label: `${LABELS[lang].embarkationFee} (${priceInfo.embarkationPassengerCount} ${LABELS[lang].feePerPassenger} × ${formatBRL(priceInfo.embarkationFeePerPerson)})`, value: formatBRL(priceInfo.embarkationFee) });
+    if (priceInfo.localEmbarkationFee > 0) rows.push({ label: `${LABELS[lang].localEmbarkationFee} (${priceInfo.regionalFeePassengerCount} ${LABELS[lang].passengerUnit} × ${formatBRL(REGIONAL_EMBARKATION_FEE_PER_PERSON)})`, value: formatBRL(priceInfo.localEmbarkationFee) });
+    if (priceInfo.jardineiraFee > 0) rows.push({ label: `${LABELS[lang].jardineiraFee} (${priceInfo.regionalFeePassengerCount} ${LABELS[lang].passengerUnit} × ${formatBRL(JARDINEIRA_FEE_PER_PERSON)})`, value: formatBRL(priceInfo.jardineiraFee) });
+    rows.push({ label: LABELS[lang].totalDue, value: formatBRL(priceInfo.final), total: true });
+    return rows;
+  }, [priceInfo, payment, lang]);
 
   useEffect(() => {
     if (output) {
@@ -507,6 +536,7 @@ export const StandardForm = ({
     const dateStr = date!.toLocaleDateString(lang === "pt" ? "pt-BR" : lang === "es" ? "es-ES" : lang === "fr" ? "fr-FR" : lang === "it" ? "it-IT" : "en-GB");
     const rows: { label: string; value: string }[] = [];
     const priceLines = priceInfo ? buildBookingPriceBreakdown(priceInfo, effectiveCoupon) : [];
+    const itemizeFare = !!priceInfo && (priceInfo.embarkationFee > 0 || priceInfo.localEmbarkationFee > 0 || priceInfo.jardineiraFee > 0);
     rows.push({ label: t.sumName, value: name });
     if (requireCpf) rows.push({ label: "CPF", value: cpf });
     rows.push({ label: t.sumPhone, value: fullPhone(phone) });
@@ -533,7 +563,7 @@ export const StandardForm = ({
     for (const item of priceLines) {
       if (item.kind === "coupon") rows.push({ label: "Cupom", value: `${item.code} (-${item.percent}%)` });
       if (item.kind === "qr") rows.push({ label: "Desconto QR Code", value: `-${item.percent}%` });
-      if (item.kind === "fare") rows.push({ label: isCardPayment(payment) ? PAYMENT_PRICE_LABELS[lang].tourFareCard : PAYMENT_PRICE_LABELS[lang].tourFareCashPix, value: formatBRL(item.amount) });
+      if (item.kind === "fare" && itemizeFare) rows.push({ label: isCardPayment(payment) ? PAYMENT_PRICE_LABELS[lang].tourFareCard : PAYMENT_PRICE_LABELS[lang].tourFareCashPix, value: formatBRL(item.amount) });
       if (item.kind === "embarkation") {
         rows.push({
           label: `${LABELS[lang].embarkationFee} (${item.passengers} ${LABELS[lang].feePerPassenger} × ${formatBRL(priceInfo.embarkationFeePerPerson)})`,
@@ -595,7 +625,7 @@ export const StandardForm = ({
       for (const item of priceLines) {
         if (item.kind === "coupon") lines.push(`Cupom aplicado: ${item.code} (−${item.percent}%)`);
         if (item.kind === "qr") lines.push(`Desconto QR Code: −${item.percent}%`);
-        if (item.kind === "fare") lines.push(`Passeio (${isCardPayment(payment) ? "preço no cartão +10%" : "dinheiro/Pix"}, após descontos): ${formatBRL(item.amount)}`);
+        if (item.kind === "fare" && itemizeFare) lines.push(`Passeio (${isCardPayment(payment) ? "no cartão" : "dinheiro/Pix"}, após descontos): ${formatBRL(item.amount)}`);
         if (item.kind === "embarkation") {
           lines.push(`Taxa de embarque (${item.passengers} pessoa(s) × ${formatBRL(priceInfo.embarkationFeePerPerson)}): ${formatBRL(item.amount)}`);
         }
@@ -792,8 +822,8 @@ export const StandardForm = ({
         {!adminOn && <QrPromoBoot lang={lang} />}
         {!adminOn && <PromoBanner lang={lang} tourKey={tourKey} />}
         <div className={adminOn ? "" : "pt-12"}>
-          <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage}>
-            <SummaryOutput text={output.text} rows={output.rows} tourTitle={title} lang={lang} onReset={onBack} onSend={handleReservationSent} voucherWarning={output.voucherWarning} onRetryVoucher={pendingVoucher ? retryVoucherIssue : undefined} retryingVoucher={retryingVoucher} />
+          <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage} wide step={3} heading={BOOKING_COPY[lang].reviewTitle} subheading={BOOKING_COPY[lang].reviewSubtitle} showPublicHeader={!adminOn}>
+            <SummaryOutput text={output.text} rows={output.rows} tourTitle={title} lang={lang} onReset={onBack} totalRowLabel={LABELS[lang].totalDue} onSend={handleReservationSent} voucherWarning={output.voucherWarning} onRetryVoucher={pendingVoucher ? retryVoucherIssue : undefined} retryingVoucher={retryingVoucher} />
           </PageShell>
         </div>
       </>
@@ -822,11 +852,13 @@ export const StandardForm = ({
         />
       )}
       <div className={adminOn ? "" : "pt-12"}>
-      <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage}>
-        <p className="text-foreground bg-night/50 backdrop-blur-sm rounded-lg p-3 mb-4 text-sm leading-relaxed font-medium">{t.intro}</p>
+      <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage} wide step={2} heading={BOOKING_COPY[lang].formTitle} subheading={BOOKING_COPY[lang].formSubtitle} showPublicHeader={!adminOn}>
+        <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(22rem,.85fr)]">
+        <div className="min-w-0">
+        <p className="mb-4 rounded-xl border border-turquoise/15 bg-[#0a2030]/70 p-4 text-sm leading-relaxed text-foreground/90">{BOOKING_COPY[lang].intro}</p>
         {notice && (
           <div className="mb-4 flex items-start gap-2 rounded-md border border-amber-400/30 bg-amber-500/5 px-3 py-2">
-            <span className="text-sm opacity-80 mt-0.5">{adultsOnly ? "🔞" : "ℹ️"}</span>
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-200" aria-hidden="true" />
             <p className="text-xs font-normal text-amber-200/90 italic leading-relaxed">
               {notice}
             </p>
@@ -848,7 +880,7 @@ export const StandardForm = ({
                         {formatBRL(priceInfo.qrApplied ? priceInfo.meta.value : priceInfo.unitPriceBeforeCoupon)}
                       </div>
                     )}
-                    <PaymentPriceDisplay cashPixPrice={priceInfo.unitPriceCashPix} from={!!priceInfo.meta.from} lang={lang} size="md" />
+                    <PaymentPriceDisplay cashPixPrice={priceInfo.unitPriceCashPix} from={!!priceInfo.meta.from} lang={lang} size="md" variant="cards" />
                     {effectiveCoupon && <div className="mt-1 text-[11px] text-emerald-300 font-semibold">{effectiveCoupon.code} · -{effectiveCoupon.percent}%</div>}
                     {priceInfo.qrApplied && <div className="mt-1 text-[11px] text-emerald-300 font-semibold">-{priceInfo.qrPercent}% via QR Code</div>}
                   </>
@@ -919,12 +951,12 @@ export const StandardForm = ({
         )}
 
         <div className="space-y-5" key={shake}>
-          <Field label={`✍️ ${t.fullName}`} error={errors.name} errorMsg={requiredMsg}>
+          <Field label={t.fullName} error={errors.name} errorMsg={requiredMsg}>
             <Input value={name} onChange={(e) => { setName(e.target.value); clearErr("name"); }} className={fieldClass} />
           </Field>
 
           {requireCpf && (
-            <Field label={`🪪 ${t.cpfResponsible}`} error={errors.cpf} errorMsg={requiredMsg}>
+            <Field label={t.cpfResponsible} error={errors.cpf} errorMsg={requiredMsg}>
               <Input
                 value={cpf}
                 onChange={(e) => { setCpf(e.target.value); clearErr("cpf"); }}
@@ -934,15 +966,15 @@ export const StandardForm = ({
             </Field>
           )}
 
-          <Field label={`📞 ${t.phone}`} error={errors.phone} errorMsg={requiredMsg}>
+          <Field label={t.phone} error={errors.phone} errorMsg={requiredMsg}>
             <PhoneInput value={phone} onChange={(v) => { setPhone(v); if (v.number) clearErr("phone"); }} inputClassName={fieldClass} />
           </Field>
-          <Field label={`👥 ${t.passengers}`} error={errors.pax} errorMsg={requiredMsg}>
+          <Field label={t.passengers} error={errors.pax} errorMsg={requiredMsg}>
             <Input value={pax} onChange={(e) => { setPax(e.target.value); clearErr("pax"); }} type="number" min={1} className={fieldClass} />
             <p className="text-[11px] text-foreground/60 italic">{t.adultNote}</p>
           </Field>
 
-          <Field label={`📅 ${t.tourDate}`} error={errors.date} errorMsg={requiredMsg}>
+          <Field label={t.tourDate} error={errors.date} errorMsg={requiredMsg}>
             <TourDatePicker
               lang={lang}
               value={date}
@@ -964,13 +996,13 @@ export const StandardForm = ({
 
           {requirePousada && (
             <>
-              <Field label={`🛌 ${t.pousadaName}`} error={errors.pousada} errorMsg={requiredMsg}>
+              <Field label={t.pousadaName} error={errors.pousada} errorMsg={requiredMsg}>
                 <Input value={pousada} onChange={(e) => { setPousada(e.target.value); clearErr("pousada"); }} className={fieldClass} />
               </Field>
-              <Field label={`🔢 ${t.roomNumber}`} error={errors.room} errorMsg={requiredMsg}>
+              <Field label={t.roomNumber} error={errors.room} errorMsg={requiredMsg}>
                 <Input value={room} onChange={(e) => { setRoom(e.target.value); clearErr("room"); }} className={fieldClass} />
               </Field>
-              <Field label={`📍 ${t.pousadaAddress}`} error={errors.address} errorMsg={requiredMsg}>
+              <Field label={t.pousadaAddress} error={errors.address} errorMsg={requiredMsg}>
                 <Input value={address} onChange={(e) => { setAddress(e.target.value); clearErr("address"); }} className={fieldClass} />
               </Field>
             </>
@@ -1057,35 +1089,13 @@ export const StandardForm = ({
           </Field>
 
           {priceInfo && payment && (
-            <section aria-live="polite" className="rounded-2xl border border-turquoise/25 bg-card/50 p-4 space-y-2 text-sm">
-              {(priceInfo.embarkationFee > 0 || priceInfo.localEmbarkationFee > 0 || priceInfo.jardineiraFee > 0) && (
-                <div className="flex justify-between gap-4">
-                  <span>{isCardPayment(payment) ? PAYMENT_PRICE_LABELS[lang].tourFareCard : PAYMENT_PRICE_LABELS[lang].tourFareCashPix}</span>
-                  <span>{formatBRL(priceInfo.fareForPayment)}</span>
+            <section aria-live="polite" className="space-y-2 rounded-2xl border border-turquoise/25 bg-gradient-to-br from-[#102b3b] to-[#091d2a] p-4 text-sm xl:hidden">
+              <h2 className="mb-3 text-[10px] font-extrabold uppercase tracking-[.15em] text-turquoise-glow">{BOOKING_COPY[lang].summaryTitle}</h2>
+              {livePriceRows.map((row, index) => (
+                <div key={`${row.label}-${index}`} className={`flex items-start justify-between gap-4 ${row.total ? "mt-3 border-t border-turquoise/30 pt-3 text-base font-extrabold text-turquoise-glow" : "text-foreground/85"}`}>
+                  <span>{row.label}</span><span className="shrink-0 text-right">{row.value}</span>
                 </div>
-              )}
-              {priceInfo.embarkationFee > 0 && (
-                <div className="flex justify-between gap-4">
-                  <span>{LABELS[lang].embarkationFee} ({priceInfo.embarkationPassengerCount} {LABELS[lang].feePerPassenger} × {formatBRL(priceInfo.embarkationFeePerPerson)})</span>
-                  <span>{formatBRL(priceInfo.embarkationFee)}</span>
-                </div>
-              )}
-              {priceInfo.localEmbarkationFee > 0 && (
-                <div className="flex justify-between gap-4">
-                  <span>{LABELS[lang].localEmbarkationFee} ({priceInfo.regionalFeePassengerCount} {LABELS[lang].passengerUnit} × {formatBRL(REGIONAL_EMBARKATION_FEE_PER_PERSON)})</span>
-                  <span>{formatBRL(priceInfo.localEmbarkationFee)}</span>
-                </div>
-              )}
-              {priceInfo.jardineiraFee > 0 && (
-                <div className="flex justify-between gap-4">
-                  <span>{LABELS[lang].jardineiraFee} ({priceInfo.regionalFeePassengerCount} {LABELS[lang].passengerUnit} × {formatBRL(JARDINEIRA_FEE_PER_PERSON)})</span>
-                  <span>{formatBRL(priceInfo.jardineiraFee)}</span>
-                </div>
-              )}
-              <div className="flex justify-between gap-4 border-t border-turquoise/30 pt-2 font-bold text-base">
-                <span>{LABELS[lang].totalDue}</span>
-                <span>{formatBRL(priceInfo.final)}</span>
-              </div>
+              ))}
             </section>
           )}
 
@@ -1100,6 +1110,40 @@ export const StandardForm = ({
               {savingReservation ? "Salvando reserva…" : t.generate}
             </span>
           </button>
+        </div>
+        </div>
+
+        <aside aria-label={BOOKING_COPY[lang].summaryTitle} className="hidden xl:sticky xl:top-5 xl:block">
+          <section aria-live="polite" className="overflow-hidden rounded-3xl border border-turquoise/20 bg-gradient-to-br from-[#102b3b] via-[#0b1f2d] to-[#071722] shadow-[0_22px_55px_rgba(0,0,0,.3)]">
+            <header className="border-b border-white/10 bg-[#0c2533]/75 px-5 py-4">
+              <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-turquoise-glow">{BOOKING_COPY[lang].summaryTitle}</p>
+              <h2 className="mt-1 text-lg font-bold text-foreground">{title}</h2>
+            </header>
+            <div className="flex items-center gap-3 border-b border-white/[0.08] px-5 py-4">
+              <img src={backgroundImage} alt="" className="h-14 w-20 shrink-0 rounded-xl object-cover" />
+              <div className="min-w-0 space-y-1 text-xs">
+                <p className="truncate text-foreground"><span className="text-muted-foreground">{t.tourDate}: </span>{date ? date.toLocaleDateString(lang === "pt" ? "pt-BR" : lang === "es" ? "es-ES" : lang === "fr" ? "fr-FR" : lang === "it" ? "it-IT" : "en-GB") : t.pickDate}</p>
+                <p className="text-foreground"><span className="text-muted-foreground">{t.passengers}: </span>{pax || "—"}</p>
+                {kidsN > 0 && <p className="text-foreground"><span className="text-muted-foreground">{t.sumChildren}: </span>{kidsN}</p>}
+                <p className="text-foreground"><span className="text-muted-foreground">{t.payment}: </span>{payment ? paymentLabel(payment as PaymentMethod) : "—"}</p>
+              </div>
+            </div>
+            <div className="space-y-3 px-5 py-4">
+              {livePriceRows.length > 0 ? livePriceRows.map((row, index) => (
+                <div key={`${row.label}-${index}`} className={`flex items-start justify-between gap-4 text-sm ${row.total ? "mt-4 border-t border-turquoise/30 pt-4 text-base font-extrabold text-turquoise-glow" : "text-foreground/85"}`}>
+                  <span className="leading-relaxed">{row.label}</span><span className="shrink-0 text-right font-semibold">{row.value}</span>
+                </div>
+              )) : (
+                <p className="text-sm leading-relaxed text-muted-foreground">{BOOKING_COPY[lang].summaryEmpty}</p>
+              )}
+            </div>
+            {cruiseFeeActive && (
+              <p className="mx-5 mb-5 rounded-xl border border-amber-300/30 bg-amber-300/10 p-3 text-xs leading-relaxed text-amber-100">
+                {CRUISE_FEE_BOOKING_NOTICE[lang](cruiseFeePerPerson)}
+              </p>
+            )}
+          </section>
+        </aside>
         </div>
       </PageShell>
       </div>
