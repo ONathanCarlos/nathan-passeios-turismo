@@ -7,7 +7,7 @@ import { StandardForm } from "@/components/StandardForm";
 import { TourDetails } from "@/components/TourDetails";
 import { PaymentPriceDisplay } from "@/components/PaymentPriceDisplay";
 import { TourKey } from "@/lib/tours";
-import { Tag } from "lucide-react";
+import { ArrowRight, Tag, Waves } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { TourBadge, UrgencyTag } from "@/components/TourBadge";
 import { PageTransition } from "@/components/PageTransition";
@@ -43,6 +43,41 @@ const FEATURED_BADGES: Partial<Record<TourKey, "destaque_mais_vendido" | "mais_p
   escuna: "destaque_mais_vendido",
   arraial: "mais_procurado",
 };
+
+const CATALOG_COPY: Record<Lang, { intro: string; couponLabel: string; qrPromoApplied: string }> = {
+  pt: {
+    intro: "Escolha seu passeio e veja fotos, detalhes e valores por forma de pagamento.",
+    couponLabel: "Cupom de desconto disponível",
+    qrPromoApplied: "Desconto promocional aplicado via QR Code",
+  },
+  es: {
+    intro: "Elige tu paseo y consulta fotos, detalles y precios según el método de pago.",
+    couponLabel: "Cupón de descuento disponible",
+    qrPromoApplied: "Descuento promocional aplicado por QR Code",
+  },
+  en: {
+    intro: "Choose a tour and explore photos, details, and prices by payment method.",
+    couponLabel: "Discount coupon available",
+    qrPromoApplied: "Promotional QR Code discount applied",
+  },
+  fr: {
+    intro: "Choisissez une excursion et consultez les photos, les détails et les tarifs selon le mode de paiement.",
+    couponLabel: "Coupon de réduction disponible",
+    qrPromoApplied: "Réduction promotionnelle appliquée via QR Code",
+  },
+  it: {
+    intro: "Scegli un tour e consulta foto, dettagli e prezzi in base al metodo di pagamento.",
+    couponLabel: "Coupon sconto disponibile",
+    qrPromoApplied: "Sconto promozionale applicato tramite QR Code",
+  },
+};
+
+const EMOJI_RE = /[\p{Extended_Pictographic}\p{Emoji_Modifier}\p{Regional_Indicator}\uFE0F\u200D]/gu;
+const cleanTourDescription = (description: string) => description
+  .replace(EMOJI_RE, "")
+  .replace(/\s+/g, " ")
+  .replace(/\s+([,.;!?])/g, "$1")
+  .trim();
 
 
 
@@ -225,28 +260,39 @@ const Index = () => {
       {/* Fundo estático ondulatório: gradiente azul-turquesa → azul escuro */}
       <div aria-hidden="true" className="ocean-static-bg pointer-events-none fixed inset-0 z-0" />
 
-      <div className="relative z-10 mx-auto max-w-6xl">
-        {/* Tours */}
-        <section id="tours">
-          <div className="flex items-center gap-2 mb-6">
-            <span className="text-turquoise text-xl">≋</span>
-            <h2 className="text-2xl font-bold text-foreground">{t.ourTours}</h2>
+      <div className="relative z-10 mx-auto max-w-7xl">
+        <section id="tours" aria-labelledby="tour-list-heading">
+          <div className="mb-6 border-b border-turquoise/15 pb-5 sm:mb-8">
+            <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-turquoise-glow sm:text-sm">
+              {t.footerRegion}
+            </p>
+            <div className="mt-2 flex items-center gap-3">
+              <Waves className="h-6 w-6 shrink-0 text-turquoise-glow" aria-hidden="true" />
+              <h1 id="tour-list-heading" className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                {t.ourTours}
+              </h1>
+            </div>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+              {CATALOG_COPY[lang].intro}
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
             {options.map((opt, i) => (
               <article
                 key={opt.key}
                 style={{ animationDelay: `${i * 70}ms`, order: cmsByKey.get(opt.key)?.ordem ?? 999 }}
-                className="group glass-card rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:border-turquoise/60 hover:-translate-y-1 hover:turquoise-glow animate-in fade-in slide-in-from-bottom-3 fill-mode-both"
+                className="group glass-card flex flex-col overflow-hidden rounded-2xl border border-turquoise/15 bg-gradient-to-b from-night/65 to-night shadow-[0_18px_42px_rgba(0,0,0,0.2)] transition-all duration-300 hover:-translate-y-1 hover:border-turquoise/45 hover:shadow-[0_24px_50px_rgba(0,0,0,0.28)] animate-in fade-in slide-in-from-bottom-3 fill-mode-both"
               >
                 {/* Image */}
                 <div className="relative overflow-hidden">
                   <TourMediaGallery
                     images={[opt.image, ...(cmsByKey.get(opt.key)?.gallery_imagens ?? [])]}
                     alt={opt.title}
+                    showMobileControls
+                    mobileAspect
                   />
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night/85 via-night/10 to-transparent" />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night/30 via-transparent to-transparent" />
                   {FEATURED_BADGES[opt.key] && (
                     <TourBadge
                       type={FEATURED_BADGES[opt.key]}
@@ -267,17 +313,20 @@ const Index = () => {
                       </div>
                     ) : null;
                   })()}
-                  {COUPON_ELIGIBLE.has(opt.key) && (
-                    <span className="absolute bottom-3 left-3 inline-flex items-center gap-1 rounded-md bg-amber-400/95 px-2 py-0.5 text-[10px] font-extrabold text-night uppercase tracking-wider shadow-lg">
-                      <Tag className="w-3 h-3" /> Cupom de desconto aplicável!!
-                    </span>
-                  )}
                 </div>
 
                 {/* Content */}
                 <div className="p-4 flex flex-col flex-1">
+                  <div className="mb-2 flex min-h-6 flex-wrap items-center gap-2">
+                    {COUPON_ELIGIBLE.has(opt.key) && (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/40 bg-amber-400/10 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-amber-200">
+                        <Tag className="h-3 w-3 shrink-0" aria-hidden="true" />
+                        {CATALOG_COPY[lang].couponLabel}
+                      </span>
+                    )}
+                  </div>
                   <h3 className="text-lg font-bold text-foreground leading-tight">{opt.title}</h3>
-                  <p className="mt-1.5 text-sm text-muted-foreground leading-snug flex-1">{opt.desc}</p>
+                  <p className="mt-1.5 text-sm text-muted-foreground leading-snug flex-1">{cleanTourDescription(opt.desc)}</p>
 
                   {getCmsTourPriceStatus(opt.key) === "ready" ? (() => {
                     const tourQr = qrPromoForTour(qr, opt.key);
@@ -299,8 +348,8 @@ const Index = () => {
                           {meta.from ? `A partir de ${formatBRL(orig)}` : formatBRL(orig)}
                         </div>
                         <PaymentPriceDisplay cashPixPrice={disc} from={meta.from} lang={lang} size="sm" />
-                        <div className="text-[10px] font-bold text-emerald-300">
-                          -{tourQr.percent}% via QR Code
+                        <div className="mt-1 text-[10px] font-bold text-emerald-300">
+                          {CATALOG_COPY[lang].qrPromoApplied}
                         </div>
                       </div>
                     );
@@ -320,11 +369,11 @@ const Index = () => {
                     return c?.urgencia ? <UrgencyTag text={c.urgencia} className="mt-2" /> : null;
                   })()}
 
-                  <div className="mt-4 flex flex-col gap-2">
+                  <div className="mt-4 grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => openDetails(opt.key)}
-                      className="w-full rounded-xl border border-turquoise/40 bg-turquoise/10 px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-turquoise/20 hover:border-turquoise/70 transition-colors"
+                      className="min-h-10 w-full rounded-xl border border-turquoise/35 bg-night/55 px-2 py-2 text-xs font-semibold text-foreground transition-colors hover:border-turquoise/70 hover:bg-turquoise/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turquoise sm:text-sm"
                     >
                       {t.viewDetails}
                     </button>
@@ -332,11 +381,12 @@ const Index = () => {
                       type="button"
                       onClick={() => openForm(opt.key)}
                       disabled={getCmsTourPriceStatus(opt.key) !== "ready"}
-                      className="rgb-border w-full block disabled:cursor-not-allowed disabled:opacity-50"
+                      className="rgb-border block w-full disabled:cursor-not-allowed disabled:opacity-50"
                       aria-label={`${t.bookNowBtn} — ${opt.title}`}
                     >
-                      <span className="flex items-center justify-center gap-1.5 rounded-[0.65rem] bg-gradient-to-r from-deep-blue to-night px-4 py-2.5 text-sm font-bold text-foreground">
-                        ✨ {t.bookNowBtn}
+                      <span className="flex min-h-10 items-center justify-center gap-1 rounded-[0.65rem] bg-gradient-to-r from-turquoise to-[#24b7b5] px-2 py-2 text-xs font-bold text-night transition-all hover:brightness-110 sm:text-sm">
+                        {t.bookNowBtn}
+                        <ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                       </span>
                     </button>
                   </div>
@@ -346,28 +396,28 @@ const Index = () => {
             {(cmsTours || []).filter((c) => c.ativo && !isTourKey(c.key)).map((c) => {
               const title = pickLang(c, "nome", lang) || c.nome_pt;
               return (
-                <article key={c.key} style={{ order: c.ordem }} className="group glass-card rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:border-turquoise/60 hover:-translate-y-1">
+                <article key={c.key} style={{ order: c.ordem }} className="group glass-card flex flex-col overflow-hidden rounded-2xl border border-turquoise/15 bg-gradient-to-b from-night/65 to-night shadow-[0_18px_42px_rgba(0,0,0,0.2)] transition-all duration-300 hover:-translate-y-1 hover:border-turquoise/45 hover:shadow-[0_24px_50px_rgba(0,0,0,0.28)]">
                   <div className="relative overflow-hidden">
-                    <TourMediaGallery images={[c.imagem_url, ...c.gallery_imagens].filter((u): u is string => !!u)} alt={title} />
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night/85 via-night/10 to-transparent" />
+                    <TourMediaGallery images={[c.imagem_url, ...c.gallery_imagens].filter((u): u is string => !!u)} alt={title} showMobileControls mobileAspect />
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night/30 via-transparent to-transparent" />
                     {c.badge && <div className="absolute top-3 right-12"><TourBadge type={c.badge} lang={lang} /></div>}
                   </div>
                   <div className="p-4 flex flex-col flex-1">
                     <h3 className="text-lg font-bold text-foreground leading-tight">{title}</h3>
-                    <p className="mt-1.5 text-sm text-muted-foreground leading-snug flex-1">{pickLang(c, "descricao", lang)}</p>
+                    <p className="mt-1.5 text-sm text-muted-foreground leading-snug flex-1">{cleanTourDescription(pickLang(c, "descricao", lang))}</p>
                     {c.preco > 0 && <PaymentPriceDisplay cashPixPrice={c.preco} lang={lang} size="sm" className="mt-3" />}
                     {c.urgencia && <UrgencyTag text={c.urgencia} className="mt-2" />}
-                    <div className="mt-4 flex flex-col gap-2">
-                      <button type="button" onClick={() => routeNavigate(`/passeios/${c.key}`)} className="w-full rounded-xl border border-turquoise/40 bg-turquoise/10 px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-turquoise/20 transition-colors">
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      <button type="button" onClick={() => routeNavigate(`/passeios/${c.key}`)} className="min-h-10 w-full rounded-xl border border-turquoise/35 bg-night/55 px-2 py-2 text-xs font-semibold text-foreground transition-colors hover:border-turquoise/70 hover:bg-turquoise/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turquoise sm:text-sm">
                         {t.viewDetails}
                       </button>
                       {isLunchCmsTour(c) ? (
-                        <button type="button" onClick={() => routeNavigate(`/passeios/${c.key}?reservar=1`)} className="rgb-border w-full block" aria-label={`${t.bookNowBtn} — ${title}`}>
-                          <span className="flex items-center justify-center gap-1.5 rounded-[0.65rem] bg-gradient-to-r from-deep-blue to-night px-4 py-2.5 text-sm font-bold text-foreground">✨ {t.bookNowBtn}</span>
+                      <button type="button" onClick={() => routeNavigate(`/passeios/${c.key}?reservar=1`)} className="rgb-border block w-full" aria-label={`${t.bookNowBtn} — ${title}`}>
+                          <span className="flex min-h-10 items-center justify-center gap-1 rounded-[0.65rem] bg-gradient-to-r from-turquoise to-[#24b7b5] px-2 py-2 text-xs font-bold text-night transition-all hover:brightness-110 sm:text-sm">{t.bookNowBtn}<ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /></span>
                         </button>
                       ) : (
-                        <CmsBookingTermsLink href={cmsTourWhatsAppUrl(c)} tourKey={c.key} lang={lang} className="rgb-border w-full block" ariaLabel={`${t.bookNowBtn} — ${title}`}>
-                          <span className="flex items-center justify-center gap-1.5 rounded-[0.65rem] bg-gradient-to-r from-deep-blue to-night px-4 py-2.5 text-sm font-bold text-foreground">✨ {t.bookNowBtn}</span>
+                        <CmsBookingTermsLink href={cmsTourWhatsAppUrl(c)} tourKey={c.key} lang={lang} className="rgb-border block w-full" ariaLabel={`${t.bookNowBtn} — ${title}`}>
+                          <span className="flex min-h-10 items-center justify-center gap-1 rounded-[0.65rem] bg-gradient-to-r from-turquoise to-[#24b7b5] px-2 py-2 text-xs font-bold text-night transition-all hover:brightness-110 sm:text-sm">{t.bookNowBtn}<ArrowRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /></span>
                         </CmsBookingTermsLink>
                       )}
                     </div>
