@@ -81,7 +81,7 @@ export const buildLunchBookingMessage = (input: LunchBookingMessageInput): strin
   ];
 
   if (input.amounts.cardPriceAdjustment > 0) {
-    lines.push(`Preço unitário do almoço no cartão (+10%): ${money(input.amounts.unitPriceForPayment)}`);
+    lines.push(`Preço unitário do almoço no cartão: ${money(input.amounts.unitPriceForPayment)}`);
   }
   lines.push(
     `💰 TOTAL A PAGAR: ${money(input.amounts.total)}`,
