@@ -6,7 +6,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lang, dict, loadLang, saveLang } from "@/lib/i18n";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { PublicSiteHeader } from "@/components/PublicSiteHeader";
 import { usePacotes, pickPacoteLang } from "@/lib/pacotes";
 import { useTours } from "@/lib/cms";
 import { TOUR_PRICES } from "@/lib/prices";
@@ -14,7 +14,7 @@ import { getCmsTourPriceStatus, subscribeCmsCache } from "@/lib/cmsCache";
 import { PackageCover } from "@/components/PackageCover";
 import { PriceWithDiscount } from "@/components/SavingsBox";
 import { TourBadge, UrgencyTag } from "@/components/TourBadge";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import type { TourKey } from "@/lib/tours";
 import { runNavigationTransition } from "@/lib/viewTransition";
 
@@ -79,21 +79,12 @@ const Pacotes = () => {
   };
 
   return (
-    <main className="relative min-h-screen px-4 pt-10 pb-16 overflow-hidden">
+    <main className="relative min-h-screen overflow-hidden pb-16">
       <div aria-hidden className="ocean-static-bg pointer-events-none fixed inset-0 z-0" />
-      <div className="relative z-10 mx-auto max-w-5xl">
-        {/* Topbar */}
-        <div className="flex items-center justify-between mb-6">
-          <button
-            type="button"
-            onClick={() => runNavigationTransition(() => nav("/"))}
-            className="inline-flex items-center gap-1 text-sm text-foreground/80 hover:text-turquoise-glow transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {L.back[lang]}
-          </button>
-          <LanguageSwitcher lang={lang} onChange={setLang} />
-        </div>
+      <div className="relative z-10">
+        <PublicSiteHeader lang={lang} onLangChange={setLang} />
+      </div>
+      <div className="relative z-10 mx-auto max-w-5xl px-4 pt-8">
 
         {/* Hero */}
         <header className="text-center mb-8 animate-in fade-in slide-in-from-top-3 duration-700">

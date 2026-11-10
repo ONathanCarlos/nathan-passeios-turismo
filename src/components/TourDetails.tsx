@@ -1,6 +1,6 @@
 import { Lang } from "@/lib/i18n";
 import { TourKey, getTour, sectionLabels } from "@/lib/tours";
-import { LanguageSwitcher } from "./LanguageSwitcher";
+import { PublicSiteHeader } from "@/components/PublicSiteHeader";
 import { Button } from "./ui/button";
 import { ArrowLeft, Clock, MapPin, Users, Check, AlertCircle, ExternalLink } from "lucide-react";
 import { dict } from "@/lib/i18n";
@@ -55,9 +55,10 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embed
       )}
 
       <div className="relative z-10">
+        {!embedded && <PublicSiteHeader lang={lang} onLangChange={onLangChange} />}
         {/* Top bar */}
         {!embedded && (
-          <header className="px-4 pt-5 pb-3 flex items-center justify-between">
+          <header className="px-4 pt-4 pb-3">
             <Button
               variant="ghost"
               size="sm"
@@ -67,7 +68,6 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embed
               <ArrowLeft className="h-4 w-4 mr-1" />
               {t.back}
             </Button>
-            <LanguageSwitcher lang={lang} onChange={onLangChange} />
           </header>
         )}
 

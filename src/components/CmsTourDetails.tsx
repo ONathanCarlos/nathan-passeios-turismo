@@ -5,7 +5,7 @@ import type { CmsTour } from "@/lib/cms";
 import { pickLang } from "@/lib/cms";
 import type { Lang } from "@/lib/i18n";
 import { dict } from "@/lib/i18n";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { PublicSiteHeader } from "@/components/PublicSiteHeader";
 import { TourMediaGallery } from "@/components/TourMediaGallery";
 import { PaymentPriceDisplay } from "@/components/PaymentPriceDisplay";
 import { isLunchCmsTour } from "@/lib/cmsLunchBooking";
@@ -47,6 +47,8 @@ export function CmsTourDetails({ tour, lang, onLangChange, onBack }: {
   }
 
   return (
+    <>
+    <PublicSiteHeader lang={lang} onLangChange={onLangChange} />
     <main className="relative min-h-screen px-4 pt-4 pb-10">
       <div aria-hidden="true" className="ocean-static-bg pointer-events-none fixed inset-0 z-0" />
       <div className="relative z-10 mx-auto max-w-3xl">
@@ -54,7 +56,6 @@ export function CmsTourDetails({ tour, lang, onLangChange, onBack }: {
           <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 rounded-full border border-turquoise/40 bg-night/60 px-3 py-1.5 text-xs font-semibold text-foreground">
             <ArrowLeft className="h-3.5 w-3.5" /> {BACK[lang]}
           </button>
-          <LanguageSwitcher lang={lang} onChange={onLangChange} />
         </div>
         <article className="glass-card rounded-2xl overflow-hidden">
           {images.length > 0 && <TourMediaGallery images={images} alt={title} className="lg:mx-auto lg:w-4/5" />}
@@ -93,5 +94,6 @@ export function CmsTourDetails({ tour, lang, onLangChange, onBack }: {
         </article>
       </div>
     </main>
+    </>
   );
 }
