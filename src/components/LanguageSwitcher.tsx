@@ -11,6 +11,7 @@ import { Globe } from "lucide-react";
 interface Props {
   lang: Lang;
   onChange: (l: Lang) => void;
+  compact?: boolean;
 }
 
 const ROTATION_ORDER: Lang[] = ["pt", "es", "en", "fr", "it"];
@@ -24,20 +25,21 @@ const SELECT_HINT: Record<Lang, string> = {
   it: "Seleziona la tua lingua",
 };
 
-export const LanguageSwitcher = ({ lang, onChange }: Props) => {
+export const LanguageSwitcher = ({ lang, onChange, compact = false }: Props) => {
   const [hintIdx, setHintIdx] = useState(0);
 
   useEffect(() => {
+    if (compact) return;
     const id = setInterval(() => {
       setHintIdx((i) => (i + 1) % ROTATION_ORDER.length);
     }, 3000);
     return () => clearInterval(id);
-  }, []);
+  }, [compact]);
 
   const hintLang = ROTATION_ORDER[hintIdx];
 
   return (
-    <div className="flex flex-col items-end gap-1.5">
+    <div className={compact ? "flex items-center" : "flex flex-col items-end gap-1.5"}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
@@ -69,12 +71,14 @@ export const LanguageSwitcher = ({ lang, onChange }: Props) => {
           })}
         </DropdownMenuContent>
       </DropdownMenu>
-      <span
-        key={hintLang}
-        className="text-[11px] sm:text-xs text-foreground/85 font-medium tracking-wide animate-in fade-in slide-in-from-top-1 duration-500"
-      >
-        {LANG_LABELS[hintLang].flag} {SELECT_HINT[hintLang]}
-      </span>
+      {!compact && (
+        <span
+          key={hintLang}
+          className="text-[11px] sm:text-xs text-foreground/85 font-medium tracking-wide animate-in fade-in slide-in-from-top-1 duration-500"
+        >
+          {LANG_LABELS[hintLang].flag} {SELECT_HINT[hintLang]}
+        </span>
+      )}
     </div>
   );
 };

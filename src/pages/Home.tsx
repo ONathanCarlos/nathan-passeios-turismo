@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Lang, dict, loadLang, saveLang } from "@/lib/i18n";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { PublicSiteHeader } from "@/components/PublicSiteHeader";
 import { useTours } from "@/lib/cms";
 import { ChevronRight, Sparkles } from "lucide-react";
 import { isQrActive, urlHasPromoParam, subscribeQrPromo } from "@/lib/qrPromo";
@@ -115,24 +115,15 @@ const Home = () => {
   const pacotesImgs = ["catamara", "cabofrio", "lancha", "jardineira"].map(imgOf);
 
   return (
-    <main className="relative min-h-screen px-4 pt-10 pb-16 overflow-hidden">
+    <main className="relative min-h-screen px-4 pt-3 pb-16 overflow-hidden">
       {!admin && <QrPromoBoot lang={lang} />}
       {!admin && <CampaignPromoModal lang={lang} />}
       <div aria-hidden className="ocean-static-bg pointer-events-none fixed inset-0 z-0" />
-      <div className="relative z-10 mx-auto max-w-3xl">
-        {/* Topbar */}
-        <div className="brand-topbar flex items-center justify-between mb-10">
-          <div className="flex items-center gap-3">
-            <div className="relative w-11 h-11 rounded-full overflow-hidden border border-turquoise/40 shadow-[0_0_12px_hsl(var(--turquoise)/0.4)]">
-              <img src={onyxLogo.url} alt="Ônix Turismo Búzios" loading="eager" decoding="async" className="w-full h-full object-contain" />
-            </div>
-            <div className="leading-tight">
-              <div className="text-sm font-bold text-foreground">Ônix Turismo Búzios</div>
-            </div>
-          </div>
-          <LanguageSwitcher lang={lang} onChange={setLang} />
-        </div>
+      <div className="relative z-10 -mx-4 -mt-3">
+        <PublicSiteHeader lang={lang} onLangChange={setLang} />
+      </div>
 
+      <div className="relative z-10 mx-auto max-w-3xl">
         {/* Institutional header */}
         <header className="text-center mb-12 animate-in fade-in slide-in-from-top-3 duration-700">
           <div className="relative inline-flex items-center justify-center mb-8">

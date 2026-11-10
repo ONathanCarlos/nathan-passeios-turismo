@@ -7,7 +7,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Lang, dict, loadLang, saveLang } from "@/lib/i18n";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { PublicSiteHeader } from "@/components/PublicSiteHeader";
 import { TourDetails } from "@/components/TourDetails";
 import { StandardForm } from "@/components/StandardForm";
 import { PackageCover } from "@/components/PackageCover";
@@ -141,10 +141,13 @@ const PacoteDetalhes = () => {
   }
 
   return (
-    <main className="relative min-h-screen px-4 pt-8 pb-16 overflow-hidden">
+    <main className="relative min-h-screen overflow-hidden pb-16">
       <div aria-hidden className="ocean-static-bg pointer-events-none fixed inset-0 z-0" />
-      <div className="relative z-10 mx-auto max-w-3xl">
-        <div className="flex items-center justify-between mb-4">
+      <div className="relative z-10">
+        <PublicSiteHeader lang={lang} onLangChange={setLang} />
+      </div>
+      <div className="relative z-10 mx-auto max-w-3xl px-4 pt-6 sm:pt-8">
+        <div className="mb-4">
           <button
             type="button"
             onClick={() => runNavigationTransition(() => nav("/pacotes"))}
@@ -152,7 +155,6 @@ const PacoteDetalhes = () => {
           >
             <ArrowLeft className="w-4 h-4" /> {L.back[lang]}
           </button>
-          <LanguageSwitcher lang={lang} onChange={setLang} />
         </div>
 
         {/* Hero do pacote */}

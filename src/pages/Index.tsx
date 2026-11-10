@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { Lang, dict, loadLang, saveLang } from "@/lib/i18n";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { PublicSiteHeader } from "@/components/PublicSiteHeader";
 
 
 import { StandardForm } from "@/components/StandardForm";
 import { TourDetails } from "@/components/TourDetails";
 import { PaymentPriceDisplay } from "@/components/PaymentPriceDisplay";
 import { TourKey } from "@/lib/tours";
-import { Tag, ArrowLeft } from "lucide-react";
+import { Tag } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { TourBadge, UrgencyTag } from "@/components/TourBadge";
 import { PageTransition } from "@/components/PageTransition";
@@ -134,17 +134,15 @@ const Index = () => {
         {!admin && <SpanishLangModal lang={lang} />}
         {!admin && <CampaignPromoModal lang={lang} />}
         {!admin && <PromoBanner lang={lang} tourKey={screen.details} />}
-        <div className={admin ? "" : "pt-12"}>
-          <PageTransition key={`details-${screen.details}`}>
-            <TourDetails
-              tourKey={screen.details}
-              lang={lang}
-              onLangChange={setLang}
-              onBack={back}
-              onBook={() => openForm(screen.details)}
-            />
-          </PageTransition>
-        </div>
+        <PageTransition key={`details-${screen.details}`}>
+          <TourDetails
+            tourKey={screen.details}
+            lang={lang}
+            onLangChange={setLang}
+            onBack={back}
+            onBook={() => openForm(screen.details)}
+          />
+        </PageTransition>
         </>
     );
   }
@@ -222,28 +220,12 @@ const Index = () => {
     {!admin && <SpanishLangModal lang={lang} />}
     {!admin && <CampaignPromoModal lang={lang} />}
     {!admin && <PromoBanner lang={lang} />}
-    <PageTransition key="menu"><main className={`relative min-h-screen px-4 ${admin ? "pt-4" : "pt-14 sm:pt-16"} pb-6 sm:pb-10 overflow-hidden`}>
+    <PublicSiteHeader lang={lang} onLangChange={setLang} />
+    <PageTransition key="menu"><main className={`relative min-h-screen px-4 ${admin ? "pt-4" : "pt-6 sm:pt-8"} pb-6 sm:pb-10 overflow-hidden`}>
       {/* Fundo estático ondulatório: gradiente azul-turquesa → azul escuro */}
       <div aria-hidden="true" className="ocean-static-bg pointer-events-none fixed inset-0 z-0" />
 
       <div className="relative z-10 mx-auto max-w-6xl">
-        {/* Top bar */}
-        <div className="brand-topbar flex items-center justify-between mb-4 gap-2">
-          <Link
-            to="/"
-            onClick={(event) => {
-              event.preventDefault();
-              runNavigationTransition(() => routeNavigate("/"));
-            }}
-            aria-label="Voltar"
-            className="inline-flex items-center gap-1.5 rounded-full border border-turquoise/40 bg-night/60 backdrop-blur px-3 py-1.5 text-xs font-semibold text-foreground hover:border-turquoise/70 hover:bg-night/80 transition-colors"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            {({ pt: "Voltar", es: "Volver", en: "Back", fr: "Retour", it: "Indietro" } as Record<Lang,string>)[lang]}
-          </Link>
-          <LanguageSwitcher lang={lang} onChange={setLang} />
-        </div>
-
         {/* Tours */}
         <section id="tours">
           <div className="flex items-center gap-2 mb-6">
