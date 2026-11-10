@@ -11,6 +11,7 @@ import { PaymentPriceDisplay } from "@/components/PaymentPriceDisplay";
 import { isLunchCmsTour } from "@/lib/cmsLunchBooking";
 import { CmsLunchBookingForm } from "@/components/CmsLunchBookingForm";
 import { cmsTourWhatsAppUrl } from "@/lib/cmsTourWhatsApp";
+import { CmsBookingTermsLink } from "@/components/CmsBookingTermsLink";
 
 const BACK: Record<Lang, string> = { pt: "Voltar", es: "Volver", en: "Back", fr: "Retour", it: "Indietro" };
 
@@ -82,11 +83,11 @@ export function CmsTourDetails({ tour, lang, onLangChange, onBack }: {
                 </span>
               </button>
             ) : (
-              <a href={cmsTourWhatsAppUrl(tour)} target="_blank" rel="noopener noreferrer" className="rgb-border w-full block">
+              <CmsBookingTermsLink href={cmsTourWhatsAppUrl(tour)} tourKey={tour.key} lang={lang} className="rgb-border w-full block">
                 <span className="flex items-center justify-center rounded-[0.65rem] bg-gradient-to-r from-deep-blue to-night px-4 py-3 text-sm font-bold text-foreground">
                   ✨ {t.bookNowBtn}
                 </span>
-              </a>
+              </CmsBookingTermsLink>
             )}
           </div>
         </article>

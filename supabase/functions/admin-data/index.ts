@@ -108,6 +108,18 @@ Deno.serve(async (req) => {
       if (!rows.length) return json({ ok: true, rows });
 
       const reservationIds = rows.map((row: { id: string }) => row.id);
+      const { data: acceptances, error: acceptanceError } = await supabase
+        .from("booking_terms_acceptances")
+        .select("reserva_id,version,accepted_at")
+        .in("reserva_id", reservationIds)
+        .eq("context", "reservation")
+        .order("accepted_at", { ascending: false }).limit(limit);
+      const acceptanceByReservation = new Map<string, { version: string; accepted_at: string }>();
+      if (!acceptanceError) {
+        (acceptances || []).forEach((item: { reserva_id: string; version: string; accepted_at: string }) => {
+          if (!acceptanceByReservation.has(item.reserva_id)) acceptanceByReservation.set(item.reserva_id, item);
+        });
+      }
       const { data: issuances, error: issuanceError } = await supabase
         .from("reserva_voucher_emissoes")
         .select("id,reserva_id,codigo_reserva")
@@ -141,6 +153,7 @@ Deno.serve(async (req) => {
           ...row,
           codigo_reserva: issue?.codigo_reserva ?? null,
           voucher_items: issue ? itemsByIssuance.get(issue.id) || [] : [],
+          terms_acceptance: acceptanceByReservation.get(row.id) ?? null,
         };
       }) });
     }

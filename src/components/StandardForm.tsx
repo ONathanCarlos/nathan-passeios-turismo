@@ -46,6 +46,9 @@ import { isCardPayment, type PaymentMethod } from "@/lib/payment";
 import { PAYMENT_PRICE_LABELS } from "@/lib/paymentPricing";
 import { randomVoucherAccessToken, randomVoucherSecret } from "@/lib/vouchers";
 import { formatArraialPassengerSummary } from "@/lib/arraialPassengerSummary";
+import { BookingTermsConsent } from "@/components/BookingTermsConsent";
+import { BOOKING_TERMS_VERSION } from "@/lib/bookingTerms";
+import type { BookingTermsAcceptance } from "@/lib/db";
 
 /** Rótulos de pagamento em PT fixo para a mensagem do WhatsApp. */
 const PAYMENT_PT: Record<PaymentMethod, string> = {
@@ -196,6 +199,10 @@ export const StandardForm = ({
   const [savingReservation, setSavingReservation] = useState(false);
   const [pendingVoucher, setPendingVoucher] = useState<PendingVoucherRequest | null>(null);
   const [retryingVoucher, setRetryingVoucher] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const termsRequest = useRef<{ fingerprint: string; id: string } | null>(null);
+  const termsTourKeys = packageTourKeys?.length ? packageTourKeys : tourKey ? [tourKey] : [];
+  const termsRequired = termsTourKeys.some(key => key !== "almoco");
   const voucherCredentials = useRef<{ requestId: string; requestProof: string; fingerprint: string } | null>(null);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [shake, setShake] = useState(0);
@@ -414,6 +421,7 @@ export const StandardForm = ({
       setDate(undefined); setPousada(""); setRoom(""); setAddress("");
       setHasKids(""); setKidsCount(""); setAges([]); setPayment(""); setManualCode("");
       setAppliedCoupon(null); setAppliedSpecial(null); setErrors({});
+      setTermsAccepted(false); termsRequest.current = null;
       toast.info(lang === "pt" ? "Os dados da reserva expiraram após 10 minutos. Preencha novamente." : "Booking details expired after 10 minutes. Please fill them in again.");
     }, BOOKING_DRAFT_TTL_MS);
     return () => window.clearTimeout(expiry);
@@ -453,6 +461,7 @@ export const StandardForm = ({
     ({ cash: t.cash, debit: t.debit, credit: t.credit, pix: t.pix }[p]);
 
   const handleGenerate = async () => {
+    if (savingReservation) return;
     if (tourKey && priceStatus !== "ready") {
       toast.error(tourPriceStatusText(priceStatus, lang));
       if (priceStatus === "error") void forceRefreshCms.tours();
@@ -480,6 +489,7 @@ export const StandardForm = ({
       }
     }
     if (!payment) newErrors.payment = true;
+    if (termsRequired && !termsAccepted) newErrors.terms = true;
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -620,6 +630,15 @@ export const StandardForm = ({
       valor_original: priceInfo?.original ?? null,
       valor_com_desconto: priceInfo ? priceInfo.final : null,
     };
+    const termsFingerprint = JSON.stringify({ reservationData, termsTourKeys, packageKey, lang, version: BOOKING_TERMS_VERSION });
+    if (termsRequired && termsRequest.current?.fingerprint !== termsFingerprint) {
+      termsRequest.current = { fingerprint: termsFingerprint, id: crypto.randomUUID() };
+    }
+    const termsAcceptance: BookingTermsAcceptance | undefined = termsRequired ? {
+      accepted: true, version: BOOKING_TERMS_VERSION, request_id: termsRequest.current!.id,
+      tour_keys: termsTourKeys, language: lang, package_key: packageKey,
+    } : undefined;
+    const reservationWithTerms = { ...reservationData, terms_acceptance: termsAcceptance };
     const voucherFingerprint = JSON.stringify({ reservationData, totalPeople, idioma: lang, tourKeys: voucherTourKeys, packageKey });
     if (date && voucherTourKeys.length > 0 && voucherCredentials.current?.fingerprint !== voucherFingerprint) {
       voucherCredentials.current = {
@@ -639,23 +658,23 @@ export const StandardForm = ({
     for (let attempt = 0; attempt < 3 && !savedId; attempt += 1) {
       try {
         savedId = voucherRequest
-          ? await createReservaVoucherInDb(reservationData, {
+          ? await createReservaVoucherInDb(reservationWithTerms, {
               ...voucherRequest,
               idioma: lang,
               totalPessoas: totalPeople,
             })
-          : await createReservaInDb(reservationData);
+          : await createReservaInDb(reservationWithTerms);
       } catch {
         savedId = null;
       }
       if (!savedId && attempt < 2) await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
     }
     if (!savedId && voucherRequest) {
-      // Compatibilidade com versões do backend ainda sem a migration/ação de vouchers.
-      // A reserva legada continua funcionando; nenhum link fictício é anexado.
+      // Contorna indisponibilidade de vouchers, mas exige registro do aceite.
+      // Nunca salva sem aceite quando o backend de termos está indisponível.
       voucherUnavailable = true;
       for (let attempt = 0; attempt < 3 && !savedId; attempt += 1) {
-        savedId = await createReservaInDb(reservationData);
+        savedId = await createReservaInDb(reservationWithTerms);
         if (!savedId && attempt < 2) await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
       }
     }
@@ -763,6 +782,7 @@ export const StandardForm = ({
     setAppliedCoupon(null); setAppliedSpecial(null);
     setHasKids(""); setKidsCount(""); setAges([]); setPayment(""); setOutput(null);
     setPendingVoucher(null); voucherCredentials.current = null;
+    setTermsAccepted(false); termsRequest.current = null;
   };
 
   if (output) {
@@ -1069,6 +1089,7 @@ export const StandardForm = ({
             </section>
           )}
 
+          {termsRequired && <BookingTermsConsent checked={termsAccepted} onChange={(checked) => { setTermsAccepted(checked); clearErr("terms"); }} error={errors.terms} lang={lang} disabled={savingReservation} />}
           <button
             type="button"
             onClick={handleGenerate}

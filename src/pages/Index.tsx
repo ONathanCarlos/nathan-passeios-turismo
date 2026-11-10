@@ -26,7 +26,7 @@ import { TourMediaGallery } from "@/components/TourMediaGallery";
 import { CmsTourDetails } from "@/components/CmsTourDetails";
 import { isLunchCmsTour } from "@/lib/cmsLunchBooking";
 import { cmsTourWhatsAppUrl } from "@/lib/cmsTourWhatsApp";
-
+import { CmsBookingTermsLink } from "@/components/CmsBookingTermsLink";
 import arraialImg from "@/assets/arraial-do-cabo.jpg";
 import escunaImg from "@/assets/escuna.jpg";
 import buggyImg from "@/assets/buggy.jpg";
@@ -384,9 +384,9 @@ const Index = () => {
                           <span className="flex items-center justify-center gap-1.5 rounded-[0.65rem] bg-gradient-to-r from-deep-blue to-night px-4 py-2.5 text-sm font-bold text-foreground">✨ {t.bookNowBtn}</span>
                         </button>
                       ) : (
-                        <a href={cmsTourWhatsAppUrl(c)} target="_blank" rel="noopener noreferrer" className="rgb-border w-full block" aria-label={`${t.bookNowBtn} — ${title}`}>
+                        <CmsBookingTermsLink href={cmsTourWhatsAppUrl(c)} tourKey={c.key} lang={lang} className="rgb-border w-full block" ariaLabel={`${t.bookNowBtn} — ${title}`}>
                           <span className="flex items-center justify-center gap-1.5 rounded-[0.65rem] bg-gradient-to-r from-deep-blue to-night px-4 py-2.5 text-sm font-bold text-foreground">✨ {t.bookNowBtn}</span>
-                        </a>
+                        </CmsBookingTermsLink>
                       )}
                     </div>
                   </div>
