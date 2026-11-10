@@ -11,9 +11,10 @@ interface Props {
   className?: string;
   showMobileControls?: boolean;
   mobileAspect?: boolean;
+  catalogLabels?: { desktop: string; mobile: string };
 }
 
-export const TourMediaGallery = ({ images, alt, className = "", showMobileControls = false, mobileAspect = false }: Props) => {
+export const TourMediaGallery = ({ images, alt, className = "", showMobileControls = false, mobileAspect = false, catalogLabels }: Props) => {
   const [index, setIndex] = useState(0);
   const safeImages = tourPhotos(images);
   const [viewportRef, carousel] = useEmblaCarousel({ loop: true });
@@ -100,22 +101,47 @@ export const TourMediaGallery = ({ images, alt, className = "", showMobileContro
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <div className={`absolute top-2 right-2 z-20 flex rounded-full bg-background/65 p-1 backdrop-blur-sm ${showMobileControls ? "hidden sm:flex" : ""}`} aria-label={`Foto ${index + 1} de ${safeImages.length}`}>
-            {safeImages.map((src, dotIndex) => (
-              <Button variant="ghost" size="icon"
-                key={`${src}-dot-${dotIndex}`}
-                type="button"
-                aria-label={`Ir para foto ${dotIndex + 1}`}
-                aria-current={dotIndex === index ? "true" : undefined}
-                onClick={(event) => { event.stopPropagation(); carousel?.scrollTo(dotIndex); }}
-                className="h-6 w-6 rounded-full hover:bg-foreground/15"
-              ><span className={`h-1.5 w-1.5 rounded-full ${dotIndex === index ? "bg-foreground" : "bg-foreground/45"}`} /></Button>
-            ))}
-          </div>
-          {showMobileControls && (
+          {catalogLabels ? (
+            <span aria-label={`Foto ${index + 1} de ${safeImages.length}`} className="absolute right-2 top-2 z-20 rounded-full border border-foreground/15 bg-background/75 px-2.5 py-1 text-[10px] font-bold text-foreground backdrop-blur-sm">
+              {index + 1} / {safeImages.length}
+            </span>
+          ) : showMobileControls && (
             <span className="absolute right-2 top-2 z-20 rounded-full border border-foreground/15 bg-background/75 px-2.5 py-1 text-xs font-bold text-foreground backdrop-blur-sm sm:hidden">
               {index + 1} / {safeImages.length}
             </span>
+          )}
+          {catalogLabels ? (
+            <>
+              <div aria-label={`Foto ${index + 1} de ${safeImages.length}`} className="absolute bottom-2 left-2 z-20 flex items-center gap-0.5 rounded-full bg-background/55 px-1 py-0.5 backdrop-blur-sm">
+                {safeImages.map((src, dotIndex) => (
+                  <Button variant="ghost" size="icon"
+                    key={`${src}-dot-${dotIndex}`}
+                    type="button"
+                    aria-label={`Ir para foto ${dotIndex + 1}`}
+                    aria-current={dotIndex === index ? "true" : undefined}
+                    onClick={(event) => { event.stopPropagation(); carousel?.scrollTo(dotIndex); }}
+                    className="h-5 w-5 rounded-full hover:bg-foreground/15"
+                  ><span className={`h-1.5 w-1.5 rounded-full ${dotIndex === index ? "bg-turquoise" : "bg-foreground/45"}`} /></Button>
+                ))}
+              </div>
+              <span className="absolute bottom-3 right-3 z-20 text-[10px] font-semibold text-foreground drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
+                <span className="hidden sm:inline">{catalogLabels.desktop}</span>
+                <span className="sm:hidden">{catalogLabels.mobile}</span>
+              </span>
+            </>
+          ) : (
+            <div className="absolute top-2 right-2 z-20 flex rounded-full bg-background/65 p-1 backdrop-blur-sm" aria-label={`Foto ${index + 1} de ${safeImages.length}`}>
+              {safeImages.map((src, dotIndex) => (
+                <Button variant="ghost" size="icon"
+                  key={`${src}-dot-${dotIndex}`}
+                  type="button"
+                  aria-label={`Ir para foto ${dotIndex + 1}`}
+                  aria-current={dotIndex === index ? "true" : undefined}
+                  onClick={(event) => { event.stopPropagation(); carousel?.scrollTo(dotIndex); }}
+                  className="h-6 w-6 rounded-full hover:bg-foreground/15"
+                ><span className={`h-1.5 w-1.5 rounded-full ${dotIndex === index ? "bg-foreground" : "bg-foreground/45"}`} /></Button>
+              ))}
+            </div>
           )}
         </>
       )}

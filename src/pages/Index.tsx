@@ -7,7 +7,7 @@ import { StandardForm } from "@/components/StandardForm";
 import { TourDetails } from "@/components/TourDetails";
 import { PaymentPriceDisplay } from "@/components/PaymentPriceDisplay";
 import { TourKey } from "@/lib/tours";
-import { ArrowRight, Tag, Waves } from "lucide-react";
+import { ArrowLeftRight, ArrowRight, Sparkles, Tag } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { TourBadge, UrgencyTag } from "@/components/TourBadge";
 import { PageTransition } from "@/components/PageTransition";
@@ -44,31 +44,59 @@ const FEATURED_BADGES: Partial<Record<TourKey, "destaque_mais_vendido" | "mais_p
   arraial: "mais_procurado",
 };
 
-const CATALOG_COPY: Record<Lang, { intro: string; couponLabel: string; qrPromoApplied: string }> = {
+const CATALOG_COPY: Record<Lang, {
+  intro: string;
+  galleryHint: string;
+  galleryCaptionDesktop: string;
+  galleryCaptionMobile: string;
+  paymentHeading: string;
+  couponLabel: string;
+  promotionLabel: string;
+}> = {
   pt: {
     intro: "Escolha seu passeio e veja fotos, detalhes e valores por forma de pagamento.",
-    couponLabel: "Cupom de desconto disponível",
-    qrPromoApplied: "Desconto promocional aplicado via QR Code",
+    galleryHint: "Deslize as fotos para ver cada passeio de outro ângulo",
+    galleryCaptionDesktop: "Fotos do passeio",
+    galleryCaptionMobile: "Deslize para ver mais fotos",
+    paymentHeading: "Escolha a forma de pagamento",
+    couponLabel: "Cupom de desconto aplicável",
+    promotionLabel: "Promoção",
   },
   es: {
     intro: "Elige tu paseo y consulta fotos, detalles y precios según el método de pago.",
-    couponLabel: "Cupón de descuento disponible",
-    qrPromoApplied: "Descuento promocional aplicado por QR Code",
+    galleryHint: "Desliza las fotos para ver cada paseo desde otro ángulo",
+    galleryCaptionDesktop: "Fotos del paseo",
+    galleryCaptionMobile: "Desliza para ver más fotos",
+    paymentHeading: "Elige la forma de pago",
+    couponLabel: "Cupón de descuento aplicable",
+    promotionLabel: "Promoción",
   },
   en: {
     intro: "Choose a tour and explore photos, details, and prices by payment method.",
-    couponLabel: "Discount coupon available",
-    qrPromoApplied: "Promotional QR Code discount applied",
+    galleryHint: "Swipe through the photos to see each tour from another angle",
+    galleryCaptionDesktop: "Tour photos",
+    galleryCaptionMobile: "Swipe to see more photos",
+    paymentHeading: "Choose a payment method",
+    couponLabel: "Discount coupon applicable",
+    promotionLabel: "Promotion",
   },
   fr: {
     intro: "Choisissez une excursion et consultez les photos, les détails et les tarifs selon le mode de paiement.",
-    couponLabel: "Coupon de réduction disponible",
-    qrPromoApplied: "Réduction promotionnelle appliquée via QR Code",
+    galleryHint: "Faites défiler les photos pour découvrir chaque excursion sous un autre angle",
+    galleryCaptionDesktop: "Photos de l'excursion",
+    galleryCaptionMobile: "Faites défiler pour voir plus de photos",
+    paymentHeading: "Choisissez un mode de paiement",
+    couponLabel: "Coupon de réduction applicable",
+    promotionLabel: "Promotion",
   },
   it: {
     intro: "Scegli un tour e consulta foto, dettagli e prezzi in base al metodo di pagamento.",
-    couponLabel: "Coupon sconto disponibile",
-    qrPromoApplied: "Sconto promozionale applicato tramite QR Code",
+    galleryHint: "Scorri le foto per vedere ogni tour da un'altra angolazione",
+    galleryCaptionDesktop: "Foto del tour",
+    galleryCaptionMobile: "Scorri per vedere altre foto",
+    paymentHeading: "Scegli il metodo di pagamento",
+    couponLabel: "Coupon sconto applicabile",
+    promotionLabel: "Promozione",
   },
 };
 
@@ -262,19 +290,24 @@ const Index = () => {
 
       <div className="relative z-10 mx-auto max-w-7xl">
         <section id="tours" aria-labelledby="tour-list-heading">
-          <div className="mb-6 border-b border-turquoise/15 pb-5 sm:mb-8">
-            <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-turquoise-glow sm:text-sm">
-              {t.footerRegion}
-            </p>
-            <div className="mt-2 flex items-center gap-3">
-              <Waves className="h-6 w-6 shrink-0 text-turquoise-glow" aria-hidden="true" />
-              <h1 id="tour-list-heading" className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-                {t.ourTours}
-              </h1>
+          <div className="mb-6 sm:mb-8">
+            <div className="flex min-h-0 items-start justify-between gap-4 sm:min-h-[8.5rem]">
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-turquoise-glow sm:text-sm">
+                  {t.footerRegion}
+                </p>
+                <h1 id="tour-list-heading" className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:sr-only">
+                  {t.ourTours}
+                </h1>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:hidden">
+                  {CATALOG_COPY[lang].intro}
+                </p>
+              </div>
+              <aside className="hidden max-w-[380px] items-center gap-3 rounded-xl border border-turquoise/20 bg-night/40 px-4 py-3 text-sm leading-relaxed text-muted-foreground sm:mt-12 sm:flex">
+                <span>{CATALOG_COPY[lang].galleryHint}</span>
+                <ArrowLeftRight className="h-4 w-4 shrink-0 text-turquoise-glow" aria-hidden="true" />
+              </aside>
             </div>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-              {CATALOG_COPY[lang].intro}
-            </p>
           </div>
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
@@ -291,35 +324,31 @@ const Index = () => {
                     alt={opt.title}
                     showMobileControls
                     mobileAspect
+                    catalogLabels={{
+                      desktop: CATALOG_COPY[lang].galleryCaptionDesktop,
+                      mobile: CATALOG_COPY[lang].galleryCaptionMobile,
+                    }}
                   />
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night/30 via-transparent to-transparent" />
-                  {FEATURED_BADGES[opt.key] && (
-                    <TourBadge
-                      type={FEATURED_BADGES[opt.key]}
-                      lang={lang}
-                      className="absolute top-3 left-3 z-10 max-w-[calc(100%-5.5rem)]"
-                    />
-                  )}
-                  {opt.adultsOnly && (
-                    <span className="absolute top-3 left-3 inline-flex items-center rounded-md bg-rose-500/90 px-2 py-0.5 text-[11px] font-bold text-white shadow">
-                      +18
-                    </span>
-                  )}
-                  {(() => {
-                    const c = cmsByKey.get(opt.key);
-                    return c?.badge && !FEATURED_BADGES[opt.key] ? (
-                      <div className="absolute top-3 right-12">
-                        <TourBadge type={c.badge} lang={lang} />
-                      </div>
-                    ) : null;
-                  })()}
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night/65 via-night/10 to-transparent" />
                 </div>
 
                 {/* Content */}
                 <div className="p-4 flex flex-col flex-1">
-                  <div className="mb-2 flex min-h-6 flex-wrap items-center gap-2">
+                  <div className="mb-3 flex min-h-6 flex-wrap items-center gap-2">
+                    {FEATURED_BADGES[opt.key] && (
+                      <TourBadge type={FEATURED_BADGES[opt.key]} lang={lang} />
+                    )}
+                    {opt.adultsOnly && (
+                      <span className="inline-flex items-center rounded-md bg-rose-500/90 px-2 py-0.5 text-[10px] font-bold text-white shadow">
+                        +18
+                      </span>
+                    )}
+                    {(() => {
+                      const c = cmsByKey.get(opt.key);
+                      return c?.badge && !FEATURED_BADGES[opt.key] ? <TourBadge type={c.badge} lang={lang} /> : null;
+                    })()}
                     {COUPON_ELIGIBLE.has(opt.key) && (
-                      <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/40 bg-amber-400/10 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-amber-200">
+                      <span className="inline-flex items-center gap-1 rounded-md border border-amber-400/40 bg-amber-400/10 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-amber-200">
                         <Tag className="h-3 w-3 shrink-0" aria-hidden="true" />
                         {CATALOG_COPY[lang].couponLabel}
                       </span>
@@ -331,25 +360,34 @@ const Index = () => {
                   {getCmsTourPriceStatus(opt.key) === "ready" ? (() => {
                     const tourQr = qrPromoForTour(qr, opt.key);
                     if (!tourQr) return (
-                      <PaymentPriceDisplay
-                        cashPixPrice={TOUR_PRICES[opt.key].value}
-                        from={TOUR_PRICES[opt.key].from}
-                        lang={lang}
-                        size="sm"
-                        className="mt-3"
-                      />
+                      <div className="mt-4">
+                        <p className="mb-2 text-[9px] font-extrabold uppercase tracking-[0.14em] text-muted-foreground">
+                          {CATALOG_COPY[lang].paymentHeading}
+                        </p>
+                        <PaymentPriceDisplay
+                          cashPixPrice={TOUR_PRICES[opt.key].value}
+                          from={TOUR_PRICES[opt.key].from}
+                          lang={lang}
+                          size="sm"
+                          variant="cards"
+                        />
+                      </div>
                     );
                     const meta = TOUR_PRICES[opt.key];
                     const orig = meta.value;
                     const disc = orig - (orig * tourQr.percent) / 100;
                     return (
-                      <div className="mt-3">
-                        <div className="text-xs text-muted-foreground line-through leading-none">
+                      <div className="mt-4">
+                        <p className="mb-2 text-[9px] font-extrabold uppercase tracking-[0.14em] text-muted-foreground">
+                          {CATALOG_COPY[lang].paymentHeading}
+                        </p>
+                        <div className="mb-2 text-[10px] text-muted-foreground line-through leading-none">
                           {meta.from ? `A partir de ${formatBRL(orig)}` : formatBRL(orig)}
                         </div>
-                        <PaymentPriceDisplay cashPixPrice={disc} from={meta.from} lang={lang} size="sm" />
-                        <div className="mt-1 text-[10px] font-bold text-emerald-300">
-                          {CATALOG_COPY[lang].qrPromoApplied}
+                        <PaymentPriceDisplay cashPixPrice={disc} from={meta.from} lang={lang} size="sm" variant="cards" />
+                        <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold text-amber-200">
+                          <Sparkles className="h-3 w-3" aria-hidden="true" />
+                          {CATALOG_COPY[lang].promotionLabel}
                         </div>
                       </div>
                     );
@@ -398,14 +436,34 @@ const Index = () => {
               return (
                 <article key={c.key} style={{ order: c.ordem }} className="group glass-card flex flex-col overflow-hidden rounded-2xl border border-turquoise/15 bg-gradient-to-b from-night/65 to-night shadow-[0_18px_42px_rgba(0,0,0,0.2)] transition-all duration-300 hover:-translate-y-1 hover:border-turquoise/45 hover:shadow-[0_24px_50px_rgba(0,0,0,0.28)]">
                   <div className="relative overflow-hidden">
-                    <TourMediaGallery images={[c.imagem_url, ...c.gallery_imagens].filter((u): u is string => !!u)} alt={title} showMobileControls mobileAspect />
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night/30 via-transparent to-transparent" />
-                    {c.badge && <div className="absolute top-3 right-12"><TourBadge type={c.badge} lang={lang} /></div>}
+                    <TourMediaGallery
+                      images={[c.imagem_url, ...c.gallery_imagens].filter((u): u is string => !!u)}
+                      alt={title}
+                      showMobileControls
+                      mobileAspect
+                      catalogLabels={{
+                        desktop: CATALOG_COPY[lang].galleryCaptionDesktop,
+                        mobile: CATALOG_COPY[lang].galleryCaptionMobile,
+                      }}
+                    />
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night/65 via-night/10 to-transparent" />
                   </div>
                   <div className="p-4 flex flex-col flex-1">
+                    {c.badge && (
+                      <div className="mb-3 flex min-h-6 flex-wrap items-center gap-2">
+                        <TourBadge type={c.badge} lang={lang} />
+                      </div>
+                    )}
                     <h3 className="text-lg font-bold text-foreground leading-tight">{title}</h3>
                     <p className="mt-1.5 text-sm text-muted-foreground leading-snug flex-1">{cleanTourDescription(pickLang(c, "descricao", lang))}</p>
-                    {c.preco > 0 && <PaymentPriceDisplay cashPixPrice={c.preco} lang={lang} size="sm" className="mt-3" />}
+                    {c.preco > 0 && (
+                      <div className="mt-4">
+                        <p className="mb-2 text-[9px] font-extrabold uppercase tracking-[0.14em] text-muted-foreground">
+                          {CATALOG_COPY[lang].paymentHeading}
+                        </p>
+                        <PaymentPriceDisplay cashPixPrice={c.preco} lang={lang} size="sm" variant="cards" />
+                      </div>
+                    )}
                     {c.urgencia && <UrgencyTag text={c.urgencia} className="mt-2" />}
                     <div className="mt-4 grid grid-cols-2 gap-2">
                       <button type="button" onClick={() => routeNavigate(`/passeios/${c.key}`)} className="min-h-10 w-full rounded-xl border border-turquoise/35 bg-night/55 px-2 py-2 text-xs font-semibold text-foreground transition-colors hover:border-turquoise/70 hover:bg-turquoise/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turquoise sm:text-sm">
