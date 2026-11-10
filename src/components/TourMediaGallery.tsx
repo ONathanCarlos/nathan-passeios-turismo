@@ -9,9 +9,11 @@ interface Props {
   images: string[];
   alt: string;
   className?: string;
+  showMobileControls?: boolean;
+  mobileAspect?: boolean;
 }
 
-export const TourMediaGallery = ({ images, alt, className = "" }: Props) => {
+export const TourMediaGallery = ({ images, alt, className = "", showMobileControls = false, mobileAspect = false }: Props) => {
   const [index, setIndex] = useState(0);
   const safeImages = tourPhotos(images);
   const [viewportRef, carousel] = useEmblaCarousel({ loop: true });
@@ -19,6 +21,7 @@ export const TourMediaGallery = ({ images, alt, className = "" }: Props) => {
   const [paused, setPaused] = useState(false);
   const [element, setElement] = useState<HTMLDivElement | null>(null);
   const multiple = safeImages.length > 1;
+  const aspectClass = mobileAspect ? "aspect-[16/10] sm:aspect-[4/3]" : "aspect-[4/3]";
 
   useEffect(() => {
     if (!carousel) return;
@@ -60,7 +63,7 @@ export const TourMediaGallery = ({ images, alt, className = "" }: Props) => {
   return (
     <div
       ref={setElement}
-      className={`relative aspect-[4/3] w-full overflow-hidden bg-background touch-pan-y ${className}`}
+      className={`relative ${aspectClass} w-full overflow-hidden bg-background touch-pan-y ${className}`}
       onPointerDown={() => setPaused(true)}
       onPointerUp={() => setPaused(false)}
       onPointerCancel={() => setPaused(false)}
@@ -85,7 +88,7 @@ export const TourMediaGallery = ({ images, alt, className = "" }: Props) => {
             type="button"
             aria-label="Foto anterior"
             onClick={(event) => { event.stopPropagation(); carousel?.scrollPrev(); }}
-            className="absolute z-20 left-2 top-1/2 hidden h-8 w-8 -translate-y-1/2 rounded-full bg-background/65 text-foreground backdrop-blur-sm hover:bg-background/85 sm:inline-flex"
+            className={`absolute z-20 left-2 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full bg-background/65 text-foreground backdrop-blur-sm hover:bg-background/85 ${showMobileControls ? "inline-flex" : "hidden sm:inline-flex"}`}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -93,11 +96,11 @@ export const TourMediaGallery = ({ images, alt, className = "" }: Props) => {
             type="button"
             aria-label="Próxima foto"
             onClick={(event) => { event.stopPropagation(); carousel?.scrollNext(); }}
-            className="absolute z-20 right-2 top-1/2 hidden h-8 w-8 -translate-y-1/2 rounded-full bg-background/65 text-foreground backdrop-blur-sm hover:bg-background/85 sm:inline-flex"
+            className={`absolute z-20 right-2 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full bg-background/65 text-foreground backdrop-blur-sm hover:bg-background/85 ${showMobileControls ? "inline-flex" : "hidden sm:inline-flex"}`}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <div className="absolute top-2 right-2 z-20 flex rounded-full bg-background/65 p-1 backdrop-blur-sm" aria-label={`Foto ${index + 1} de ${safeImages.length}`}>
+          <div className={`absolute top-2 right-2 z-20 flex rounded-full bg-background/65 p-1 backdrop-blur-sm ${showMobileControls ? "hidden sm:flex" : ""}`} aria-label={`Foto ${index + 1} de ${safeImages.length}`}>
             {safeImages.map((src, dotIndex) => (
               <Button variant="ghost" size="icon"
                 key={`${src}-dot-${dotIndex}`}
@@ -109,6 +112,11 @@ export const TourMediaGallery = ({ images, alt, className = "" }: Props) => {
               ><span className={`h-1.5 w-1.5 rounded-full ${dotIndex === index ? "bg-foreground" : "bg-foreground/45"}`} /></Button>
             ))}
           </div>
+          {showMobileControls && (
+            <span className="absolute right-2 top-2 z-20 rounded-full border border-foreground/15 bg-background/75 px-2.5 py-1 text-xs font-bold text-foreground backdrop-blur-sm sm:hidden">
+              {index + 1} / {safeImages.length}
+            </span>
+          )}
         </>
       )}
     </div>
