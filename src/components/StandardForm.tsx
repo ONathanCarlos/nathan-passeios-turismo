@@ -841,7 +841,7 @@ export const StandardForm = ({
       <>
         {!adminOn && <QrPromoBoot lang={lang} />}
         {!adminOn && <PromoBanner lang={lang} tourKey={tourKey} />}
-        <div className={adminOn ? "" : "pt-12"}>
+        <div>
           <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage} wide step={3} heading={BOOKING_COPY[lang].reviewTitle} subheading={BOOKING_COPY[lang].reviewSubtitle} showPublicHeader={!adminOn}>
             <SummaryOutput text={output.text} rows={output.rows} tourTitle={title} lang={lang} onReset={onBack} totalRowLabel={LABELS[lang].totalDue} onSend={handleReservationSent} voucherWarning={output.voucherWarning} onRetryVoucher={pendingVoucher ? retryVoucherIssue : undefined} retryingVoucher={retryingVoucher} />
           </PageShell>
@@ -872,7 +872,7 @@ export const StandardForm = ({
           }}
         />
       )}
-      <div className={adminOn ? "" : "pt-12"}>
+      <div>
       <PageShell title={title} lang={lang} onLangChange={onLangChange} onBack={onBack} backgroundImage={backgroundImage} wide step={2} heading={BOOKING_COPY[lang].formTitle} subheading={BOOKING_COPY[lang].formSubtitle} showPublicHeader={!adminOn}>
         <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(22rem,.85fr)]">
         <div className="min-w-0">
