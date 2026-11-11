@@ -254,12 +254,17 @@ export const PromoBanner = ({ lang, tourKey, forceOpen, onForceOpenChange, onPro
   const expired = promo ? isExpired(promo) : false;
   const used = promo?.cupomUsado ?? false;
   const holidayActive = hasHolidayActiveToday();
+  const showSpecialBanner = holidayActive && !!special;
+  const showWelcomeBanner = !!promo && !expired && !used && !holidayActive && !qrActive;
+  const showQrBanner = qrActive;
+  const showWelcomeSignup = !holidayActive && urlIsExactRoot() && isWelcomeCouponEnabled();
+  const showBanner = showSpecialBanner || showWelcomeBanner || showQrBanner || showWelcomeSignup;
 
   return (
     <>
-      {/* BANNER FIXO TOPO */}
-      <div className="fixed top-0 left-0 right-0 z-40 px-3 py-2 bg-gradient-to-r from-night via-deep-blue to-night border-b border-turquoise/30 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.6)] backdrop-blur-md">
-        <div className="mx-auto max-w-6xl flex items-center justify-between gap-3">
+      {showBanner && (
+      <div className="w-full px-3 py-2 sm:px-6 lg:px-10" data-testid="promo-banner">
+        <div className="mx-auto flex min-h-12 max-w-[1440px] items-center justify-between gap-3 rounded-xl border border-turquoise/25 bg-gradient-to-r from-night via-deep-blue to-night px-3 py-2 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.35)] backdrop-blur-md sm:px-4">
           {holidayActive && special ? (
             <>
               <div className="flex items-center gap-2 min-w-0">
@@ -319,6 +324,7 @@ export const PromoBanner = ({ lang, tourKey, forceOpen, onForceOpenChange, onPro
           )}
         </div>
       </div>
+      )}
 
       <PromoModal
         lang={lang}

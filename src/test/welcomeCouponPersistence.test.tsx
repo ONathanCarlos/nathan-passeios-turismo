@@ -86,6 +86,15 @@ describe("emissão do cupom de boas-vindas", () => {
     });
   });
 
+  it("mostra o cupom de boas-vindas sem fixar a faixa sobre o cabeçalho", () => {
+    mocks.loadPromo.mockReturnValue(mocks.promo);
+    render(<PromoBanner lang="pt" tourKey="escuna" />);
+
+    expect(screen.getByText(/Bem-vindo de volta/)).toBeInTheDocument();
+    expect(screen.getByTestId("promo-banner")).not.toHaveClass("fixed");
+    expect(screen.getByTestId("promo-banner")).not.toHaveClass("top-0");
+  });
+
   const fillForm = () => {
     fireEvent.change(screen.getAllByRole("textbox")[0], { target: { value: "Ana Costa" } });
     fireEvent.change(screen.getByPlaceholderText("DDD + seu telefone"), { target: { value: "22998001234" } });
