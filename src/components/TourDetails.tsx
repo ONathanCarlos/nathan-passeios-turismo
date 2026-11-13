@@ -4,6 +4,7 @@ import type { Lang } from "@/lib/i18n";
 import { dict } from "@/lib/i18n";
 import { TourKey, getTour, sectionLabels } from "@/lib/tours";
 import { PublicSiteHeader } from "@/components/PublicSiteHeader";
+import { SchoonerOperator } from "@/components/SocialAndPartners";
 import { Button } from "./ui/button";
 import { TOUR_PRICES, tourPriceStatusText, formatBRL, COUPON_ELIGIBLE } from "@/lib/prices";
 import { PaymentPriceDisplay } from "@/components/PaymentPriceDisplay";
@@ -239,6 +240,7 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embed
                   <Section key={`${section.title}-${index}`} title={cleanDescription(section.title)} items={section.items?.map(cleanDescription)} text={section.text ? cleanDescription(section.text) : undefined} />
                 ))}
                 {tour.childrenPolicy && <Section title={L.childPolicy} items={tour.childrenPolicy} />}
+                {tourKey === "escuna" && <SchoonerOperator lang={lang} />}
                 {tour.notice && (
                   <div className="flex items-start gap-3 rounded-2xl border border-amber-300/25 bg-amber-400/5 p-4 sm:col-span-2">
                     <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-200" aria-hidden="true" />
