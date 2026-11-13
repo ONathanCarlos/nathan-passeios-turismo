@@ -1,5 +1,6 @@
-import { ExternalLink, Handshake, Instagram, Ship } from "lucide-react";
+import { ExternalLink, Handshake, Instagram } from "lucide-react";
 import type { Lang } from "@/lib/i18n";
+import { PARTNER_LOGOS } from "@/components/partnerLogoAssets";
 
 export const INSTAGRAM_URL = "https://www.instagram.com/onixbuziosoficial/";
 export const INSTAGRAM_HANDLE = "@onixbuziosoficial";
@@ -91,11 +92,9 @@ export const InstagramHighlight = ({ lang }: { lang: Lang }) => {
   );
 };
 
-const PartnerCard = ({ name, role }: { name: string; role: string }) => (
+const PartnerCard = ({ name, role, logo }: { name: string; role: string; logo: string }) => (
   <li className="flex items-center gap-4 rounded-2xl border border-turquoise/15 bg-night/60 p-4">
-    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-turquoise/25 bg-turquoise/10 text-lg font-bold text-turquoise-glow" aria-hidden="true">
-      {name.charAt(0)}
-    </span>
+    <img src={logo} alt={`Logomarca da ${name}`} width={80} height={80} loading="lazy" className="h-20 w-20 shrink-0 rounded-full border border-turquoise/20 bg-white object-cover" />
     <div className="min-w-0">
       <p className="font-bold leading-tight text-foreground">{name}</p>
       <p className="mt-0.5 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{role}</p>
@@ -113,8 +112,8 @@ export const PartnersSection = ({ lang }: { lang: Lang }) => {
       </div>
       <p className="mt-1 text-sm text-muted-foreground">{c.partnersDesc}</p>
       <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <PartnerCard name="Interbúzios Turismo e Viagens" role={c.interbuziosRole} />
-        <PartnerCard name="Jubarte Turismo" role={c.jubarteRole} />
+        <PartnerCard name="Interbúzios Turismo e Viagens" role={c.interbuziosRole} logo={PARTNER_LOGOS.interbuzios} />
+        <PartnerCard name="Jubarte Turismo" role={c.jubarteRole} logo={PARTNER_LOGOS.jubarte} />
       </ul>
     </section>
   );
@@ -124,7 +123,7 @@ export const EscunaOperatorCard = ({ lang }: { lang: Lang }) => {
   const c = COPY[lang] ?? COPY.pt;
   return (
     <aside aria-label={c.operatorEyebrow} className="mt-4 flex items-start gap-3 rounded-2xl border border-turquoise/20 bg-turquoise/[0.06] p-4">
-      <Ship className="mt-0.5 h-5 w-5 shrink-0 text-turquoise-glow" aria-hidden="true" />
+      <img src={PARTNER_LOGOS.interbuzios} alt="Logomarca da Interbúzios Turismo e Viagens" width={96} height={96} loading="lazy" className="h-20 w-20 shrink-0 rounded-full border border-turquoise/20 bg-white object-cover sm:h-24 sm:w-24" />
       <div className="text-sm leading-relaxed">
         <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-turquoise-glow">{c.operatorEyebrow}</p>
         <p className="mt-1 text-foreground"><strong>{c.operatorText}</strong></p>
