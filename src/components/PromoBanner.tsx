@@ -263,7 +263,7 @@ export const PromoBanner = ({ lang, tourKey, forceOpen, onForceOpenChange, onPro
   return (
     <>
       {showBanner && (
-      <div className="w-full px-3 py-2 sm:px-6 lg:px-10" data-testid="promo-banner">
+      <div className="relative z-40 w-full px-3 py-2 sm:px-6 lg:px-10" data-testid="promo-banner">
         <div className="mx-auto flex min-h-12 max-w-[1440px] items-center justify-between gap-3 rounded-xl border border-turquoise/25 bg-gradient-to-r from-night via-deep-blue to-night px-3 py-2 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.35)] backdrop-blur-md sm:px-4">
           {holidayActive && special ? (
             <>

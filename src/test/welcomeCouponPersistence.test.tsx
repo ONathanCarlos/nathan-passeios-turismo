@@ -95,6 +95,17 @@ describe("emissão do cupom de boas-vindas", () => {
     expect(screen.getByTestId("promo-banner")).not.toHaveClass("top-0");
   });
 
+  it("empilha a faixa de cupom acima da camada de fundo da página", () => {
+    mocks.loadPromo.mockReturnValue(mocks.promo);
+    render(<PromoBanner lang="pt" tourKey="escuna" />);
+
+    // O PageShell pinta uma camada `fixed inset-0 z-0` sobre a tela inteira;
+    // sem posição e z-index próprios, a faixa do cupom fica abaixo dela.
+    const banner = screen.getByTestId("promo-banner");
+    expect(banner).toHaveClass("relative");
+    expect(banner).toHaveClass("z-40");
+  });
+
   const fillForm = () => {
     fireEvent.change(screen.getAllByRole("textbox")[0], { target: { value: "Ana Costa" } });
     fireEvent.change(screen.getByPlaceholderText("DDD + seu telefone"), { target: { value: "22998001234" } });
