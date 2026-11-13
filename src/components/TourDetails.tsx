@@ -1,3 +1,4 @@
+import { EscunaOperatorCard } from "@/components/Partners";
 import { useEffect, useState, type ReactNode } from "react";
 import { AlertCircle, ArrowLeft, Check, Clock, ExternalLink, MapPin, Users } from "lucide-react";
 import type { Lang } from "@/lib/i18n";
@@ -162,6 +163,7 @@ export const TourDetails = ({ tourKey, lang, onLangChange, onBack, onBook, embed
                     <RouteStat value="3" label={L.islands} />
                   </div>
                 )}
+                {tourKey === "escuna" && <EscunaOperatorCard lang={lang} />}
 
                 <div className="mt-5 rounded-2xl border border-white/10 bg-[#071a27]/75 p-4">
                   <div className="mb-3 text-[10px] font-extrabold uppercase tracking-[.16em] text-muted-foreground">{copy.pricePerPerson}</div>

@@ -3,6 +3,7 @@
 // ============================================================
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { InstagramHighlight, PartnersSection } from "@/components/Partners";
 import { Lang, dict, loadLang, saveLang } from "@/lib/i18n";
 import { PublicSiteHeader } from "@/components/PublicSiteHeader";
 import { useTours } from "@/lib/cms";
@@ -293,6 +294,9 @@ const Home = () => {
             badge={C.pacotesSlogan}
           />
         </section>
+
+        <InstagramHighlight lang={lang} />
+        <PartnersSection lang={lang} />
 
         <footer className="mt-10 text-center text-xs text-muted-foreground/70 sm:mt-12">
           © {t.brand} · {t.footerRegion}
