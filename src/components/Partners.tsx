@@ -14,7 +14,7 @@ const COPY: Record<Lang, {
     igDesc: "Fotos dos passeios, novidades e dicas de Búzios no nosso perfil oficial.",
     igCta: "Abrir Instagram", igAria: "Abrir o Instagram oficial da Ônix Turismo Búzios em nova aba",
     partnersTitle: "Nossos parceiros", partnersDesc: "Empresas que caminham com a gente para oferecer passeios com qualidade em Búzios.",
-    interbuziosRole: "Turismo e Viagens", jubarteRole: "Turismo",
+    interbuziosRole: "Proprietária e operadora da escuna", jubarteRole: "Parceira",
     operatorEyebrow: "Operação da escuna",
     operatorText: "A escuna é de propriedade e operada pela Interbúzios Turismo e Viagens.",
     operatorSales: "A Ônix Turismo Búzios comercializa as reservas deste passeio.",
@@ -24,7 +24,7 @@ const COPY: Record<Lang, {
     igDesc: "Fotos de los paseos, novedades y consejos de Búzios en nuestro perfil oficial.",
     igCta: "Abrir Instagram", igAria: "Abrir el Instagram oficial de Ônix Turismo Búzios en una nueva pestaña",
     partnersTitle: "Nuestros socios", partnersDesc: "Empresas que nos acompañan para ofrecer paseos de calidad en Búzios.",
-    interbuziosRole: "Turismo y Viajes", jubarteRole: "Turismo",
+    interbuziosRole: "Propietaria y operadora de la goleta", jubarteRole: "Socio",
     operatorEyebrow: "Operación de la goleta",
     operatorText: "La goleta es propiedad de Interbúzios Turismo e Viagens, que también la opera.",
     operatorSales: "Ônix Turismo Búzios comercializa las reservas de este paseo.",
@@ -34,7 +34,7 @@ const COPY: Record<Lang, {
     igDesc: "Tour photos, news and Búzios tips on our official profile.",
     igCta: "Open Instagram", igAria: "Open the official Ônix Turismo Búzios Instagram in a new tab",
     partnersTitle: "Our partners", partnersDesc: "Companies that work with us to offer quality tours in Búzios.",
-    interbuziosRole: "Tourism and Travel", jubarteRole: "Tourism",
+    interbuziosRole: "Schooner owner and operator", jubarteRole: "Partner",
     operatorEyebrow: "Schooner operation",
     operatorText: "The schooner is owned and operated by Interbúzios Turismo e Viagens.",
     operatorSales: "Ônix Turismo Búzios sells the bookings for this tour.",
@@ -44,7 +44,7 @@ const COPY: Record<Lang, {
     igDesc: "Photos des excursions, nouveautés et conseils sur Búzios sur notre profil officiel.",
     igCta: "Ouvrir Instagram", igAria: "Ouvrir l'Instagram officiel d'Ônix Turismo Búzios dans un nouvel onglet",
     partnersTitle: "Nos partenaires", partnersDesc: "Des entreprises qui nous accompagnent pour proposer des excursions de qualité à Búzios.",
-    interbuziosRole: "Tourisme et Voyages", jubarteRole: "Tourisme",
+    interbuziosRole: "Propriétaire et exploitant de la goélette", jubarteRole: "Partenaire",
     operatorEyebrow: "Exploitation de la goélette",
     operatorText: "La goélette appartient à Interbúzios Turismo e Viagens, qui l'exploite.",
     operatorSales: "Ônix Turismo Búzios commercialise les réservations de cette excursion.",
@@ -54,7 +54,7 @@ const COPY: Record<Lang, {
     igDesc: "Foto dei tour, novità e consigli su Búzios sul nostro profilo ufficiale.",
     igCta: "Apri Instagram", igAria: "Apri l'Instagram ufficiale di Ônix Turismo Búzios in una nuova scheda",
     partnersTitle: "I nostri partner", partnersDesc: "Aziende che ci accompagnano per offrire tour di qualità a Búzios.",
-    interbuziosRole: "Turismo e Viaggi", jubarteRole: "Turismo",
+    interbuziosRole: "Proprietaria e gestore della goletta", jubarteRole: "Partner",
     operatorEyebrow: "Gestione della goletta",
     operatorText: "La goletta è di proprietà di Interbúzios Turismo e Viagens, che la gestisce.",
     operatorSales: "Ônix Turismo Búzios commercializza le prenotazioni di questo tour.",
@@ -113,8 +113,8 @@ export const PartnersSection = ({ lang }: { lang: Lang }) => {
       </div>
       <p className="mt-1 text-sm text-muted-foreground">{c.partnersDesc}</p>
       <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <PartnerCard name="Interbúzios" role={c.interbuziosRole} />
-        <PartnerCard name="Jubarte" role={c.jubarteRole} />
+        <PartnerCard name="Interbúzios Turismo e Viagens" role={c.interbuziosRole} />
+        <PartnerCard name="Jubarte Turismo" role={c.jubarteRole} />
       </ul>
     </section>
   );
