@@ -1,4 +1,4 @@
-import { ExternalLink, Handshake, Instagram, Ship } from "lucide-react";
+import { ExternalLink, Handshake, Instagram } from "lucide-react";
 import type { Lang } from "@/lib/i18n";
 import { PARTNER_LOGOS } from "@/components/partnerLogoAssets";
 
