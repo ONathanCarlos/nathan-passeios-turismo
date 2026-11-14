@@ -14,11 +14,12 @@ export interface BookingPriceAmounts {
 
 export interface BookingCouponSummary {
   code: string;
-  percent: number;
+  percent?: number;
+  fixedAmount?: number;
 }
 
 export type BookingPriceLine =
-  | { kind: "coupon"; code: string; percent: number }
+  | { kind: "coupon"; code: string; percent?: number; fixedAmount?: number }
   | { kind: "qr"; percent: number }
   | { kind: "fare"; amount: number }
   | { kind: "embarkation"; amount: number; passengers: number }
@@ -35,7 +36,7 @@ export const buildBookingPriceBreakdown = (
   coupon?: BookingCouponSummary | null,
 ): BookingPriceLine[] => {
   const lines: BookingPriceLine[] = [];
-  if (coupon) lines.push({ kind: "coupon", code: coupon.code, percent: coupon.percent });
+  if (coupon) lines.push({ kind: "coupon", code: coupon.code, percent: coupon.percent, fixedAmount: coupon.fixedAmount });
   else if (price.qrApplied) lines.push({ kind: "qr", percent: price.qrPercent });
 
   const localEmbarkationFee = price.localEmbarkationFee ?? 0;
