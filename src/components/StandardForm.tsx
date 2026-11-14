@@ -46,6 +46,9 @@ import { formatArraialPassengerSummary } from "@/lib/arraialPassengerSummary";
 import { BookingTermsConsent } from "@/components/BookingTermsConsent";
 import { BOOKING_TERMS_VERSION } from "@/lib/bookingTerms";
 import type { BookingTermsAcceptance } from "@/lib/db";
+import { adminCouponAmount, applyFixedCoupon } from "@/lib/adminFixedCoupons";
+import { getAdminToken, refreshAdminStatus } from "@/lib/adminAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 /** Rótulos de pagamento em PT fixo para a mensagem do WhatsApp. */
 const PAYMENT_PT: Record<PaymentMethod, string> = {
@@ -221,6 +224,7 @@ export const StandardForm = ({
   const [shake, setShake] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState<PromoData | null>(null);
   const [appliedSpecial, setAppliedSpecial] = useState<SpecificCoupon | null>(null);
+  const [appliedAdmin, setAppliedAdmin] = useState<{ code: string; fixedAmount: number } | null>(null);
   const [manualCode, setManualCode] = useState(initialDraft?.manualCode ?? "");
   const [couponPromptOpen, setCouponPromptOpen] = useState(false);
   const [qrPromoVersion, setQrPromoVersion] = useState(0);
@@ -253,11 +257,13 @@ export const StandardForm = ({
   }, [output]);
 
   // Cupom efetivo (especial sobrescreve padrão)
-  const effectiveCoupon = useMemo(() => appliedSpecial
+  const effectiveCoupon = useMemo(() => appliedAdmin
+    ? { code: appliedAdmin.code, fixedAmount: appliedAdmin.fixedAmount }
+    : appliedSpecial
     ? { code: appliedSpecial.code, percent: appliedSpecial.percent }
     : appliedCoupon
     ? { code: appliedCoupon.cupom, percent: appliedCoupon.percentualDesconto }
-    : null, [appliedSpecial, appliedCoupon]);
+    : null, [appliedAdmin, appliedSpecial, appliedCoupon]);
   const kidsN = Math.min(8, Math.max(0, parseInt(kidsCount) || 0));
 
   // Autopreenchimento: nome, whatsapp, email do mini cadastro
@@ -280,6 +286,26 @@ export const StandardForm = ({
     const code = normalizeCoupon(rawCode).trim();
     if (!code) { toast.error(couponText.enter); return; }
     if (!eligible) { toast.error(ineligibleMsg); return; }
+    const fixedAmount = adminCouponAmount(code);
+    if (fixedAmount !== null || /^ADM\\d+$/i.test(code)) {
+      if (fixedAmount === null || !(await refreshAdminStatus())) {
+        toast.error(lang === "pt" ? "Cupom exclusivo do administrador. Entre no painel ADM para utilizá-lo." : "Admin-only coupon. Sign in as an administrator.");
+        return;
+      }
+      const { data, error } = await supabase.functions.invoke("admin-auth", {
+        body: { action: "validate_admin_coupon", code, token: getAdminToken() },
+      });
+      if (error || data?.ok !== true || data?.code !== code || data?.amount !== fixedAmount) {
+        toast.error(couponText.notFound);
+        return;
+      }
+      setAppliedAdmin({ code, fixedAmount });
+      setAppliedSpecial(null);
+      setAppliedCoupon(null);
+      setManualCode(code);
+      toast.success(`${couponText.applied}: ${code} · -${formatBRL(fixedAmount)}`);
+      return;
+    }
     const p = promoOverride ?? loadPromo();
 
     // Cupom de boas-vindas: o código só é aplicado se existir e estiver válido no banco.
@@ -312,6 +338,7 @@ export const StandardForm = ({
       setManualCode(confirmed.cupom);
       setAppliedCoupon(confirmed);
       setAppliedSpecial(null);
+      setAppliedAdmin(null);
       toast.success(`${couponText.applied}: ${confirmed.cupom} · -${confirmed.percentualDesconto}%`);
       return;
     }
@@ -327,6 +354,7 @@ export const StandardForm = ({
       return;
     }
     setAppliedSpecial(v.coupon!);
+    setAppliedAdmin(null);
     setAppliedCoupon(null); // especial substitui padrão
     toast.success(`${couponText.applied}: ${v.coupon!.code} · -${v.coupon!.percent}%`);
   };
@@ -394,10 +422,16 @@ export const StandardForm = ({
       : (paxN + adultKidsN) * meta.value + halfN * (meta.value / 2);
     const qr = loadQrPromoForTour(tourKey);
     const original = qr ? baseOriginal - (baseOriginal * qr.percent) / 100 : baseOriginal;
-    const discount = effectiveCoupon ? (original * effectiveCoupon.percent) / 100 : 0;
-    const fareFinal = original - discount;
+    const fixedDiscount = effectiveCoupon && "fixedAmount" in effectiveCoupon ? effectiveCoupon.fixedAmount : null;
+    const discount = fixedDiscount != null
+      ? applyFixedCoupon(original, fixedDiscount).discount
+      : effectiveCoupon && "percent" in effectiveCoupon ? (original * effectiveCoupon.percent) / 100 : 0;
+    const fareFinal = Math.max(0, original - discount);
     const unitPriceBeforeCoupon = qr ? meta.value - (meta.value * qr.percent) / 100 : meta.value;
-    const unitPriceCashPix = unitPriceBeforeCoupon - (unitPriceBeforeCoupon * (effectiveCoupon?.percent ?? 0)) / 100;
+    // Desconto ADM é sobre o total da reserva, não sobre cada passageiro.
+    const unitPriceCashPix = fixedDiscount != null
+      ? unitPriceBeforeCoupon
+      : unitPriceBeforeCoupon - (unitPriceBeforeCoupon * (effectiveCoupon && "percent" in effectiveCoupon ? effectiveCoupon.percent : 0)) / 100;
     const feeApplies = cruiseFeeApplies(tourKey, date);
     const feeChildAges = !adultsOnly && hasKids === "yes" ? ages.slice(0, kidsN) : [];
     const embarkation = calculateEmbarkationFee(
@@ -469,7 +503,7 @@ export const StandardForm = ({
       setName(""); setCpf(""); setPhone({ ddi: "+55", number: "" }); setPax("");
       setDate(undefined); setPousada(""); setRoom(""); setAddress("");
       setHasKids(""); setKidsCount(""); setAges([]); setPayment(""); setManualCode("");
-      setAppliedCoupon(null); setAppliedSpecial(null); setErrors({});
+      setAppliedCoupon(null); setAppliedSpecial(null); setAppliedAdmin(null); setErrors({});
       setTermsAccepted(false); termsRequest.current = null;
       toast.info(lang === "pt" ? "Os dados da reserva expiraram após 10 minutos. Preencha novamente." : "Booking details expired after 10 minutes. Please fill them in again.");
     }, BOOKING_DRAFT_TTL_MS);
@@ -581,7 +615,7 @@ export const StandardForm = ({
     rows.push({ label: t.sumPay, value: paymentLabel(payment as PaymentMethod) });
 
     for (const item of priceLines) {
-      if (item.kind === "coupon") rows.push({ label: "Cupom", value: `${item.code} (-${item.percent}%)` });
+      if (item.kind === "coupon") rows.push({ label: "Cupom", value: item.fixedAmount != null ? `${item.code} (-${formatBRL(Math.min(priceInfo.original, item.fixedAmount))})` : `${item.code} (-${item.percent}%)` });
       if (item.kind === "qr") rows.push({ label: "Desconto QR Code", value: `-${item.percent}%` });
       if (item.kind === "fare" && itemizeFare) rows.push({ label: isCardPayment(payment) ? PAYMENT_PRICE_LABELS[lang].tourFareCard : PAYMENT_PRICE_LABELS[lang].tourFareCashPix, value: formatBRL(item.amount) });
       if (item.kind === "embarkation") {
@@ -643,7 +677,7 @@ export const StandardForm = ({
     if (priceInfo) {
       lines.push("💰 VALORES DA RESERVA");
       for (const item of priceLines) {
-        if (item.kind === "coupon") lines.push(`Cupom aplicado: ${item.code} (−${item.percent}%)`);
+        if (item.kind === "coupon") lines.push(item.fixedAmount != null ? `Cupom aplicado: ${item.code} (−${formatBRL(Math.min(priceInfo.original, item.fixedAmount))})` : `Cupom aplicado: ${item.code} (−${item.percent}%)`);
         if (item.kind === "qr") lines.push(`Desconto QR Code: −${item.percent}%`);
         if (item.kind === "fare" && itemizeFare) lines.push(`Passeio (${isCardPayment(payment) ? "no cartão" : "dinheiro/Pix"}, após descontos): ${formatBRL(item.amount)}`);
         if (item.kind === "embarkation") {
@@ -819,7 +853,7 @@ export const StandardForm = ({
     if (appliedSpecial) markSpecialUsed(appliedSpecial.code, name, fullPhone(phone));
     if (appliedCoupon) markCouponUsed();
     const cupomAplicado = effectiveCoupon?.code ?? null;
-    if (cupomAplicado) markCouponUsedInDb(cupomAplicado);
+    if (cupomAplicado && !appliedAdmin) markCouponUsedInDb(cupomAplicado);
   };
 
   const clearErr = (k: string) => {
@@ -829,7 +863,7 @@ export const StandardForm = ({
   const reset = () => {
     setName(""); setCpf(""); setPhone({ ddi: "+55", number: "" }); setPax("");
     setDate(undefined); setPousada(""); setRoom(""); setAddress(""); setManualCode("");
-    setAppliedCoupon(null); setAppliedSpecial(null);
+    setAppliedCoupon(null); setAppliedSpecial(null); setAppliedAdmin(null);
     setHasKids(""); setKidsCount(""); setAges([]); setPayment(""); setOutput(null);
     setPendingVoucher(null); voucherCredentials.current = null;
     setTermsAccepted(false); termsRequest.current = null;
@@ -898,7 +932,7 @@ export const StandardForm = ({
                         {formatBRL(priceInfo.qrApplied ? priceInfo.meta.value : priceInfo.unitPriceBeforeCoupon)}
                       </div>
                     )}
-                    {effectiveCoupon && <div className="mt-1 text-[11px] text-emerald-300 font-semibold">{effectiveCoupon.code} · -{effectiveCoupon.percent}%</div>}
+                    {effectiveCoupon && <div className="mt-1 text-[11px] text-emerald-300 font-semibold">{effectiveCoupon.code} · {"fixedAmount" in effectiveCoupon ? `-${formatBRL(Math.min(priceInfo.original, effectiveCoupon.fixedAmount))}` : `-${effectiveCoupon.percent}%`}</div>}
                     {priceInfo.qrApplied && <div className="mt-1 text-[11px] text-emerald-300 font-semibold">-{priceInfo.qrPercent}% via QR Code</div>}
                   </>
                 ) : (
@@ -952,7 +986,7 @@ export const StandardForm = ({
                     type="button"
                     variant="ghost"
                     aria-label={lang === "pt" ? "Remover cupom" : lang === "es" ? "Quitar cupón" : lang === "fr" ? "Retirer le coupon" : lang === "it" ? "Rimuovi coupon" : "Remove coupon"}
-                    onClick={() => { setAppliedCoupon(null); setAppliedSpecial(null); setManualCode(""); }}
+                    onClick={() => { setAppliedCoupon(null); setAppliedSpecial(null); setAppliedAdmin(null); setManualCode(""); }}
                     className="h-10 px-3 text-emerald-300 hover:text-foreground"
                   >
                     <X className="h-4 w-4" />
