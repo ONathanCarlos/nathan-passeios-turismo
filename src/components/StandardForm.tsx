@@ -403,6 +403,8 @@ export const StandardForm = ({
         embarkationFeePerPerson: cruiseFeePerPerson,
         localEmbarkationFee: 0, jardineiraFee: 0, regionalFeePassengerCount: 0,
         ...amounts, final: amounts.total,
+        cashPixTotal: calculateBookingAmounts(original, embarkation.amount, false).total,
+        cardTotal: calculateBookingAmounts(original, embarkation.amount, true).total,
         meta: { value: packagePrice as number, from: false }, qrPercent: 0, qrApplied: false, baseOriginal: original,
       };
     }
