@@ -287,7 +287,7 @@ export const StandardForm = ({
     if (!code) { toast.error(couponText.enter); return; }
     if (!eligible) { toast.error(ineligibleMsg); return; }
     const fixedAmount = adminCouponAmount(code);
-    if (fixedAmount !== null || /^ADM\\d+$/i.test(code)) {
+    if (fixedAmount !== null || /^ADM\d+$/i.test(code)) {
       if (fixedAmount === null || !(await refreshAdminStatus())) {
         toast.error(lang === "pt" ? "Cupom exclusivo do administrador. Entre no painel ADM para utilizá-lo." : "Admin-only coupon. Sign in as an administrator.");
         return;
