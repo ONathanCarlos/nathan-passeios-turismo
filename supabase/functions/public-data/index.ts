@@ -34,6 +34,20 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = body?.action;
 
+    // ADM coupons must never be accepted on public reservation endpoints without
+    // a signed administrative session. This includes voucher/terms routes.
+    const adminCoupon = str(body?.cupom_aplicado, 60).trim().toUpperCase();
+    if (/^ADM(?:5|10|15|20|25|30)$/.test(adminCoupon)) {
+      const token = str(body?.admin_token, 3000);
+      const { data, error } = await supabase.functions.invoke("admin-auth", {
+        body: { action: "verify", token },
+      });
+      if (error || data?.valid !== true) return json({ ok: false, error: "admin_required" }, 403);
+    }
+    if (/^ADM\d+$/i.test(adminCoupon) && !/^ADM(?:5|10|15|20|25|30)$/.test(adminCoupon)) {
+      return json({ ok: false, error: "invalid_admin_coupon" }, 400);
+    }
+
     if (typeof action === "string" && BOOKING_TERMS_ACTIONS.has(action)) {
       return await handleBookingTermsAction(action, body as Record<string, unknown>, supabase);
     }
