@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
     if (action === "sync_welcome_coupon") {
       const telefone = onlyDigits(str(body?.telefone, 40));
       const codigo = str(body?.codigo, 60).trim().toUpperCase();
-      if (/^ADM\\d+$/i.test(codigo)) return json({ ok: false, error: "admin_only" }, 403);
+      if (/^ADM\d+$/i.test(codigo)) return json({ ok: false, error: "admin_only" }, 403);
       const expira_em = str(body?.expira_em, 60);
       const desconto = Math.max(1, Math.min(90, Number(body?.desconto_percentual) || 10));
       if (!telefone || !codigo || !expira_em) return json({ ok: false, error: "invalid_input" }, 400);
@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
 
     if (action === "validate_coupon") {
       const codigo = str(body?.codigo, 60).trim().toUpperCase();
-      if (/^ADM\\d+$/i.test(codigo)) return json({ ok: false, error: "admin_only" }, 403);
+      if (/^ADM\d+$/i.test(codigo)) return json({ ok: false, error: "admin_only" }, 403);
       const telefone = onlyDigits(str(body?.telefone, 40));
       if (!codigo) return json({ ok: false, reason: "not_found" });
 
@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
 
     if (action === "mark_coupon_used") {
       const codigo = str(body?.codigo, 60).trim().toUpperCase();
-      if (/^ADM\\d+$/i.test(codigo)) return json({ ok: false, error: "admin_only" }, 403);
+      if (/^ADM\d+$/i.test(codigo)) return json({ ok: false, error: "admin_only" }, 403);
       if (!codigo) return json({ ok: false, error: "invalid_input" }, 400);
       await supabase
         .from("cupons")
