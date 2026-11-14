@@ -111,8 +111,8 @@ export const PartnersSection = ({ lang }: { lang: Lang }) => {
       </div>
       <p className="mt-1 text-sm text-muted-foreground">{c.partnersDesc}</p>
       <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <PartnerCard name="Interbúzios Turismo e Viagens" role={c.interbuziosRole} logo={"/partners/interbuzios.jpg"} />
-        <PartnerCard name="Jubarte Turismo" role={c.jubarteRole} logo={"/partners/jubarte.jpg"} />
+        <PartnerCard name="Interbúzios Turismo e Viagens" role={c.interbuziosRole} logo={"/partners/interbuzios-v2.jpg"} />
+        <PartnerCard name="Turismo Jubarte" role={c.jubarteRole} logo={"/partners/jubarte.jpg"} />
       </ul>
     </section>
   );
@@ -122,7 +122,7 @@ export const EscunaOperatorCard = ({ lang }: { lang: Lang }) => {
   const c = COPY[lang] ?? COPY.pt;
   return (
     <aside aria-label={c.operatorEyebrow} className="mt-4 flex items-start gap-3 rounded-2xl border border-turquoise/20 bg-turquoise/[0.06] p-4">
-      <img src={"/partners/interbuzios.jpg"} alt="Logomarca da Interbúzios Turismo e Viagens" width={96} height={96} loading="lazy" className="h-20 w-20 shrink-0 rounded-full border border-turquoise/20 bg-white object-cover sm:h-24 sm:w-24" />
+      <img src={"/partners/interbuzios-v2.jpg"} alt="Logomarca da Interbúzios Turismo e Viagens" width={96} height={96} loading="lazy" className="h-20 w-20 shrink-0 rounded-full border border-turquoise/20 bg-white object-cover sm:h-24 sm:w-24" />
       <div className="text-sm leading-relaxed">
         <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-turquoise-glow">{c.operatorEyebrow}</p>
         <p className="mt-1 text-foreground"><strong>{c.operatorText}</strong></p>
