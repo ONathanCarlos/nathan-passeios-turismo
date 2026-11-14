@@ -91,12 +91,17 @@ export const InstagramHighlight = ({ lang }: { lang: Lang }) => {
   );
 };
 
-const PartnerCard = ({ name, role, logo }: { name: string; role: string; logo: string }) => (
+const PartnerCard = ({ name, role, logo, instagram }: { name: string; role: string; logo: string; instagram: string }) => (
   <li className="flex items-center gap-4 rounded-2xl border border-turquoise/15 bg-night/60 p-4">
     <img src={logo} alt={`Logomarca da ${name}`} width={80} height={80} loading="lazy" className="h-20 w-20 shrink-0 rounded-full border border-turquoise/20 bg-white object-cover" />
     <div className="min-w-0">
       <p className="font-bold leading-tight text-foreground">{name}</p>
       <p className="mt-0.5 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{role}</p>
+      <a href={`https://www.instagram.com/${instagram}/`} target="_blank" rel="noopener noreferrer" aria-label={`Abrir Instagram de ${name} em nova aba`} className="mt-2 inline-flex min-h-10 items-center gap-1.5 rounded-lg text-sm font-semibold text-turquoise-glow underline-offset-4 transition hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turquoise">
+        <Instagram className="h-4 w-4" aria-hidden="true" />
+        @{instagram}
+        <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+      </a>
     </div>
   </li>
 );
@@ -111,8 +116,8 @@ export const PartnersSection = ({ lang }: { lang: Lang }) => {
       </div>
       <p className="mt-1 text-sm text-muted-foreground">{c.partnersDesc}</p>
       <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <PartnerCard name="Interbúzios Turismo e Viagens" role={c.interbuziosRole} logo={"/partners/interbuzios-v2.jpg"} />
-        <PartnerCard name="Turismo Jubarte" role={c.jubarteRole} logo={"/partners/jubarte.jpg"} />
+        <PartnerCard name="Interbúzios Turismo e Viagens" role={c.interbuziosRole} logo={"/partners/interbuzios-v2.jpg"} instagram="interbuziosoficial" />
+        <PartnerCard name="Turismo Jubarte" role={c.jubarteRole} logo={"/partners/jubarte.jpg"} instagram="turismojubarterj" />
       </ul>
     </section>
   );
@@ -127,6 +132,7 @@ export const EscunaOperatorCard = ({ lang }: { lang: Lang }) => {
         <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-turquoise-glow">{c.operatorEyebrow}</p>
         <p className="mt-1 text-foreground"><strong>{c.operatorText}</strong></p>
         <p className="mt-1 text-muted-foreground">{c.operatorSales}</p>
+        <a href="https://www.instagram.com/interbuziosoficial/" target="_blank" rel="noopener noreferrer" aria-label="Abrir Instagram da Interbúzios em nova aba" className="mt-2 inline-flex min-h-10 items-center gap-1.5 text-sm font-semibold text-turquoise-glow underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-turquoise"><Instagram className="h-4 w-4" aria-hidden="true" />@interbuziosoficial<ExternalLink className="h-3.5 w-3.5" aria-hidden="true" /></a>
       </div>
     </aside>
   );
