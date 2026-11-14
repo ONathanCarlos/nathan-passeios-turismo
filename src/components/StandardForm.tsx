@@ -40,7 +40,7 @@ import {
 } from "@/lib/cruiseEmbarkation";
 import { bookingDraftKey, BOOKING_DRAFT_TTL_MS, clearBookingDraft, dateFromLocalKey, readBookingDraft, saveBookingDraft } from "@/lib/bookingDraft";
 import { isCardPayment, type PaymentMethod } from "@/lib/payment";
-import { PAYMENT_PRICE_LABELS } from "@/lib/paymentPricing";
+import { PAYMENT_PRICE_LABELS, roundMoney } from "@/lib/paymentPricing";
 import { randomVoucherAccessToken, randomVoucherSecret } from "@/lib/vouchers";
 import { formatArraialPassengerSummary } from "@/lib/arraialPassengerSummary";
 import { BookingTermsConsent } from "@/components/BookingTermsConsent";
@@ -446,13 +446,25 @@ export const StandardForm = ({
       Math.max(0, parseInt(pax) || 0),
       regionalFeeChildren,
     );
-    const amounts = calculateBookingAmounts(
-      fareFinal,
-      embarkation.amount + regionalFees.embarkationFee + regionalFees.jardineiraFee,
-      isCardPayment(payment),
-    );
+    const extraFees = embarkation.amount + regionalFees.embarkationFee + regionalFees.jardineiraFee;
+    // Cupons ADM descontam exatamente o valor nominal do total do passeio,
+    // inclusive no cartão. Taxas de embarque e jardineira não recebem desconto.
+    const amountsFor = (card: boolean) => {
+      const base = calculateBookingAmounts(fixedDiscount != null ? original : fareFinal, extraFees, card);
+      if (fixedDiscount == null) return base;
+      const applied = Math.min(base.fareForPayment, fixedDiscount);
+      return {
+        ...base,
+        fareForPayment: roundMoney(base.fareForPayment - applied),
+        subtotal: roundMoney(base.subtotal - Math.min(original, fixedDiscount)),
+        total: roundMoney(base.total - applied),
+      };
+    };
+    const amounts = amountsFor(isCardPayment(payment));
+    const cashPixTotal = amountsFor(false).total;
+    const cardTotal = amountsFor(true).total;
     return {
-      original, discount, fareFinal, unitPriceCashPix, unitPriceBeforeCoupon, ...amounts, final: amounts.total,
+      original, discount, fareFinal, unitPriceCashPix, unitPriceBeforeCoupon, cashPixTotal, cardTotal, ...amounts, final: amounts.total,
       embarkationPassengerCount: embarkation.passengerCount,
       embarkationFee: embarkation.amount,
       embarkationFeePerPerson: cruiseFeePerPerson,
@@ -1126,16 +1138,8 @@ export const StandardForm = ({
               payment={payment as PaymentMethod | ""}
               onChange={(method) => { setPayment(method); clearErr("payment"); }}
               cashPixUnitPrice={priceInfo?.unitPriceCashPix ?? null}
-              cashPixTotal={priceInfo ? calculateBookingAmounts(
-                priceInfo.fareFinal,
-                priceInfo.embarkationFee + priceInfo.localEmbarkationFee + priceInfo.jardineiraFee,
-                false,
-              ).total : null}
-              cardTotal={priceInfo ? calculateBookingAmounts(
-                priceInfo.fareFinal,
-                priceInfo.embarkationFee + priceInfo.localEmbarkationFee + priceInfo.jardineiraFee,
-                true,
-              ).total : null}
+              cashPixTotal={priceInfo?.cashPixTotal ?? null}
+              cardTotal={priceInfo?.cardTotal ?? null}
               fromPrice={!!priceInfo?.meta.from}
             />
           </Field>
