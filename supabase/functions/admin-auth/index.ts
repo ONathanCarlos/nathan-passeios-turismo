@@ -94,6 +94,15 @@ Deno.serve(async (req) => {
       return json({ ok: true, valid });
     }
 
+    if (action === "validate_admin_coupon") {
+      const token = typeof body?.token === "string" ? body.token : "";
+      if (!(await verifyToken(token))) return json({ ok: false, error: "unauthorized" }, 401);
+      const code = typeof body?.code === "string" ? body.code.trim().toUpperCase() : "";
+      const fixedDiscounts: Record<string, number> = { ADM5: 5, ADM10: 10, ADM15: 15, ADM20: 20, ADM25: 25, ADM30: 30 };
+      const amount = fixedDiscounts[code];
+      return amount ? json({ ok: true, code, amount }) : json({ ok: false, error: "invalid_coupon" }, 400);
+    }
+
     return json({ ok: false, error: "unknown_action" }, 400);
   } catch (_e) {
     return json({ ok: false, error: "bad_request" }, 400);
