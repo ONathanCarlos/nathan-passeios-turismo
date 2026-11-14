@@ -112,7 +112,7 @@ export const PartnersSection = ({ lang }: { lang: Lang }) => {
       <p className="mt-1 text-sm text-muted-foreground">{c.partnersDesc}</p>
       <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <PartnerCard name="Interbúzios Turismo e Viagens" role={c.interbuziosRole} logo={"/partners/interbuzios.jpg"} />
-        <PartnerCard name="Jubarte Turismo" role={c.jubarteRole} logo={"/partners/jubarte.jpg"} />
+        <PartnerCard name="Turismo Jubarte" role={c.jubarteRole} logo={"/partners/jubarte.jpg"} />
       </ul>
     </section>
   );
