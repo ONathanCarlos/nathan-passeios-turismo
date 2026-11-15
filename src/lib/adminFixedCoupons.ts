@@ -1,4 +1,4 @@
-/** Valores fixos por reserva (não por passageiro). A autorização é feita no servidor. */
+/** Valores fixos por reserva (não por passageiro). Cupons manuais aplicados no formulário, sem autenticação administrativa. */
 export const ADMIN_COUPON_AMOUNTS = {
   ADM5: 5,
   ADM10: 10,
