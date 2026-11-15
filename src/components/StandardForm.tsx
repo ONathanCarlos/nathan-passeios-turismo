@@ -416,13 +416,13 @@ export const StandardForm = ({
     const fixedDiscount = effectiveCoupon && "fixedAmount" in effectiveCoupon ? effectiveCoupon.fixedAmount : null;
     const discount = fixedDiscount != null
       ? applyFixedCoupon(original, fixedDiscount).discount
-      : effectiveCoupon && "percent" in effectiveCoupon ? (original * effectiveCoupon.percent) / 100 : 0;
+      : effectiveCoupon && "percent" in effectiveCoupon ? (original * (effectiveCoupon.percent ?? 0)) / 100 : 0;
     const fareFinal = Math.max(0, original - discount);
     const unitPriceBeforeCoupon = qr ? meta.value - (meta.value * qr.percent) / 100 : meta.value;
     // Desconto ADM é sobre o total da reserva, não sobre cada passageiro.
     const unitPriceCashPix = fixedDiscount != null
       ? unitPriceBeforeCoupon
-      : unitPriceBeforeCoupon - (unitPriceBeforeCoupon * (effectiveCoupon && "percent" in effectiveCoupon ? effectiveCoupon.percent : 0)) / 100;
+      : unitPriceBeforeCoupon - (unitPriceBeforeCoupon * (effectiveCoupon && "percent" in effectiveCoupon ? (effectiveCoupon.percent ?? 0) : 0)) / 100;
     const feeApplies = cruiseFeeApplies(tourKey, date);
     const feeChildAges = !adultsOnly && hasKids === "yes" ? ages.slice(0, kidsN) : [];
     const embarkation = calculateEmbarkationFee(
@@ -935,7 +935,7 @@ export const StandardForm = ({
                         {formatBRL(priceInfo.qrApplied ? priceInfo.meta.value : priceInfo.unitPriceBeforeCoupon)}
                       </div>
                     )}
-                    {effectiveCoupon && <div className="mt-1 text-[11px] text-emerald-300 font-semibold">{effectiveCoupon.code} · {"fixedAmount" in effectiveCoupon ? `-${formatBRL(Math.min(priceInfo.original, effectiveCoupon.fixedAmount))}` : `-${effectiveCoupon.percent}%`}</div>}
+                    {effectiveCoupon && <div className="mt-1 text-[11px] text-emerald-300 font-semibold">{effectiveCoupon.code} · {"fixedAmount" in effectiveCoupon ? `-${formatBRL(Math.min(priceInfo.original, effectiveCoupon.fixedAmount))}` : `-${effectiveCoupon.percent ?? 0}%`}</div>}
                     {priceInfo.qrApplied && <div className="mt-1 text-[11px] text-emerald-300 font-semibold">-{priceInfo.qrPercent}% via QR Code</div>}
                   </>
                 ) : (
