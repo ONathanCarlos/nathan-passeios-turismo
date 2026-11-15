@@ -34,20 +34,6 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = body?.action;
 
-    // ADM coupons must never be accepted on public reservation endpoints without
-    // a signed administrative session. This includes voucher/terms routes.
-    const adminCoupon = str(body?.cupom_aplicado, 60).trim().toUpperCase();
-    if (/^ADM(?:5|10|15|20|25|30)$/.test(adminCoupon)) {
-      const token = str(body?.admin_token, 3000);
-      const { data, error } = await supabase.functions.invoke("admin-auth", {
-        body: { action: "verify", token },
-      });
-      if (error || data?.valid !== true) return json({ ok: false, error: "admin_required" }, 403);
-    }
-    if (/^ADM\d+$/i.test(adminCoupon) && !/^ADM(?:5|10|15|20|25|30)$/.test(adminCoupon)) {
-      return json({ ok: false, error: "invalid_admin_coupon" }, 400);
-    }
-
     if (typeof action === "string" && BOOKING_TERMS_ACTIONS.has(action)) {
       return await handleBookingTermsAction(action, body as Record<string, unknown>, supabase);
     }
@@ -74,7 +60,6 @@ Deno.serve(async (req) => {
     if (action === "sync_welcome_coupon") {
       const telefone = onlyDigits(str(body?.telefone, 40));
       const codigo = str(body?.codigo, 60).trim().toUpperCase();
-      if (/^ADM\d+$/i.test(codigo)) return json({ ok: false, error: "admin_only" }, 403);
       const expira_em = str(body?.expira_em, 60);
       const desconto = Math.max(1, Math.min(90, Number(body?.desconto_percentual) || 10));
       if (!telefone || !codigo || !expira_em) return json({ ok: false, error: "invalid_input" }, 400);
@@ -107,7 +92,6 @@ Deno.serve(async (req) => {
 
     if (action === "validate_coupon") {
       const codigo = str(body?.codigo, 60).trim().toUpperCase();
-      if (/^ADM\d+$/i.test(codigo)) return json({ ok: false, error: "admin_only" }, 403);
       const telefone = onlyDigits(str(body?.telefone, 40));
       if (!codigo) return json({ ok: false, reason: "not_found" });
 
@@ -138,7 +122,6 @@ Deno.serve(async (req) => {
 
     if (action === "mark_coupon_used") {
       const codigo = str(body?.codigo, 60).trim().toUpperCase();
-      if (/^ADM\d+$/i.test(codigo)) return json({ ok: false, error: "admin_only" }, 403);
       if (!codigo) return json({ ok: false, error: "invalid_input" }, 400);
       await supabase
         .from("cupons")
