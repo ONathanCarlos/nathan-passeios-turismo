@@ -46,7 +46,7 @@ import { formatArraialPassengerSummary } from "@/lib/arraialPassengerSummary";
 import { BookingTermsConsent } from "@/components/BookingTermsConsent";
 import { BOOKING_TERMS_VERSION } from "@/lib/bookingTerms";
 import type { BookingTermsAcceptance } from "@/lib/db";
-import { adminCouponAmount, applyFixedCoupon } from "@/lib/adminFixedCoupons";
+import { adminCouponAmount } from "@/lib/adminFixedCoupons";
 
 /** Rótulos de pagamento em PT fixo para a mensagem do WhatsApp. */
 const PAYMENT_PT: Record<PaymentMethod, string> = {
@@ -414,14 +414,22 @@ export const StandardForm = ({
     const qr = loadQrPromoForTour(tourKey);
     const original = qr ? baseOriginal - (baseOriginal * qr.percent) / 100 : baseOriginal;
     const fixedDiscount = effectiveCoupon && "fixedAmount" in effectiveCoupon ? effectiveCoupon.fixedAmount : null;
+    // O desconto fixo é por passagem: inteira recebe o valor nominal,
+    // meia recebe metade e crianças gratuitas não recebem desconto.
+    // Passeios de preço fechado ("a partir de") recebem um único desconto.
+    const fullFareCount = meta.from ? 1 : paxN + adultKidsN;
+    const halfFareCount = meta.from ? 0 : halfN;
+    const fixedCouponDiscount = fixedDiscount == null ? 0 : roundMoney(
+      fullFareCount * Math.min(meta.value, fixedDiscount) +
+      halfFareCount * Math.min(meta.value / 2, fixedDiscount / 2)
+    );
     const discount = fixedDiscount != null
-      ? applyFixedCoupon(original, fixedDiscount).discount
+      ? Math.min(original, fixedCouponDiscount)
       : effectiveCoupon && "percent" in effectiveCoupon ? (original * (effectiveCoupon.percent ?? 0)) / 100 : 0;
-    const fareFinal = Math.max(0, original - discount);
+    const fareFinal = Math.max(0, roundMoney(original - discount));
     const unitPriceBeforeCoupon = qr ? meta.value - (meta.value * qr.percent) / 100 : meta.value;
-    // Desconto ADM é sobre o total da reserva, não sobre cada passageiro.
     const unitPriceCashPix = fixedDiscount != null
-      ? unitPriceBeforeCoupon
+      ? Math.max(0, roundMoney(unitPriceBeforeCoupon - fixedDiscount))
       : unitPriceBeforeCoupon - (unitPriceBeforeCoupon * (effectiveCoupon && "percent" in effectiveCoupon ? (effectiveCoupon.percent ?? 0) : 0)) / 100;
     const feeApplies = cruiseFeeApplies(tourKey, date);
     const feeChildAges = !adultsOnly && hasKids === "yes" ? ages.slice(0, kidsN) : [];
@@ -438,19 +446,9 @@ export const StandardForm = ({
       regionalFeeChildren,
     );
     const extraFees = embarkation.amount + regionalFees.embarkationFee + regionalFees.jardineiraFee;
-    // Cupons ADM descontam exatamente o valor nominal do total do passeio,
-    // inclusive no cartão. Taxas de embarque e jardineira não recebem desconto.
-    const amountsFor = (card: boolean) => {
-      const base = calculateBookingAmounts(fixedDiscount != null ? original : fareFinal, extraFees, card);
-      if (fixedDiscount == null) return base;
-      const applied = Math.min(base.fareForPayment, fixedDiscount);
-      return {
-        ...base,
-        fareForPayment: roundMoney(base.fareForPayment - applied),
-        subtotal: roundMoney(base.subtotal - Math.min(original, fixedDiscount)),
-        total: roundMoney(base.total - applied),
-      };
-    };
+    // O desconto por passagem também é refletido no cartão, sem alterar taxas.
+    const amountsFor = (card: boolean) =>
+      calculateBookingAmounts(fareFinal, extraFees, card);
     const amounts = amountsFor(isCardPayment(payment));
     const cashPixTotal = amountsFor(false).total;
     const cardTotal = amountsFor(true).total;
@@ -618,7 +616,7 @@ export const StandardForm = ({
     rows.push({ label: t.sumPay, value: paymentLabel(payment as PaymentMethod) });
 
     for (const item of priceLines) {
-      if (item.kind === "coupon") rows.push({ label: "Cupom", value: item.fixedAmount != null ? `${item.code} (-${formatBRL(Math.min(priceInfo.original, item.fixedAmount))})` : `${item.code} (-${item.percent}%)` });
+      if (item.kind === "coupon") rows.push({ label: "Cupom", value: item.fixedAmount != null ? `${item.code} (-${formatBRL(priceInfo.discount)})` : `${item.code} (-${item.percent}%)` });
       if (item.kind === "qr") rows.push({ label: "Desconto QR Code", value: `-${item.percent}%` });
       if (item.kind === "fare" && itemizeFare) rows.push({ label: isCardPayment(payment) ? PAYMENT_PRICE_LABELS[lang].tourFareCard : PAYMENT_PRICE_LABELS[lang].tourFareCashPix, value: formatBRL(item.amount) });
       if (item.kind === "embarkation") {
@@ -935,7 +933,7 @@ export const StandardForm = ({
                         {formatBRL(priceInfo.qrApplied ? priceInfo.meta.value : priceInfo.unitPriceBeforeCoupon)}
                       </div>
                     )}
-                    {effectiveCoupon && <div className="mt-1 text-[11px] text-emerald-300 font-semibold">{effectiveCoupon.code} · {"fixedAmount" in effectiveCoupon ? `-${formatBRL(Math.min(priceInfo.original, effectiveCoupon.fixedAmount))}` : `-${effectiveCoupon.percent ?? 0}%`}</div>}
+                    {effectiveCoupon && <div className="mt-1 text-[11px] text-emerald-300 font-semibold">{effectiveCoupon.code} · {"fixedAmount" in effectiveCoupon ? `-${formatBRL(priceInfo.discount)}` : `-${effectiveCoupon.percent ?? 0}%`}</div>}
                     {priceInfo.qrApplied && <div className="mt-1 text-[11px] text-emerald-300 font-semibold">-{priceInfo.qrPercent}% via QR Code</div>}
                   </>
                 ) : (
