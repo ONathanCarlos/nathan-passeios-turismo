@@ -40,12 +40,13 @@ import {
 } from "@/lib/cruiseEmbarkation";
 import { bookingDraftKey, BOOKING_DRAFT_TTL_MS, clearBookingDraft, dateFromLocalKey, readBookingDraft, saveBookingDraft } from "@/lib/bookingDraft";
 import { isCardPayment, type PaymentMethod } from "@/lib/payment";
-import { PAYMENT_PRICE_LABELS } from "@/lib/paymentPricing";
+import { PAYMENT_PRICE_LABELS, roundMoney } from "@/lib/paymentPricing";
 import { randomVoucherAccessToken, randomVoucherSecret } from "@/lib/vouchers";
 import { formatArraialPassengerSummary } from "@/lib/arraialPassengerSummary";
 import { BookingTermsConsent } from "@/components/BookingTermsConsent";
 import { BOOKING_TERMS_VERSION } from "@/lib/bookingTerms";
 import type { BookingTermsAcceptance } from "@/lib/db";
+import { adminCouponAmount, applyFixedCoupon } from "@/lib/adminFixedCoupons";
 
 /** Rótulos de pagamento em PT fixo para a mensagem do WhatsApp. */
 const PAYMENT_PT: Record<PaymentMethod, string> = {
@@ -221,6 +222,7 @@ export const StandardForm = ({
   const [shake, setShake] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState<PromoData | null>(null);
   const [appliedSpecial, setAppliedSpecial] = useState<SpecificCoupon | null>(null);
+  const [appliedAdmin, setAppliedAdmin] = useState<{ code: string; fixedAmount: number } | null>(null);
   const [manualCode, setManualCode] = useState(initialDraft?.manualCode ?? "");
   const [couponPromptOpen, setCouponPromptOpen] = useState(false);
   const [qrPromoVersion, setQrPromoVersion] = useState(0);
@@ -253,11 +255,13 @@ export const StandardForm = ({
   }, [output]);
 
   // Cupom efetivo (especial sobrescreve padrão)
-  const effectiveCoupon = useMemo(() => appliedSpecial
+  const effectiveCoupon = useMemo(() => appliedAdmin
+    ? { code: appliedAdmin.code, fixedAmount: appliedAdmin.fixedAmount }
+    : appliedSpecial
     ? { code: appliedSpecial.code, percent: appliedSpecial.percent }
     : appliedCoupon
     ? { code: appliedCoupon.cupom, percent: appliedCoupon.percentualDesconto }
-    : null, [appliedSpecial, appliedCoupon]);
+    : null, [appliedAdmin, appliedSpecial, appliedCoupon]);
   const kidsN = Math.min(8, Math.max(0, parseInt(kidsCount) || 0));
 
   // Autopreenchimento: nome, whatsapp, email do mini cadastro
@@ -280,6 +284,17 @@ export const StandardForm = ({
     const code = normalizeCoupon(rawCode).trim();
     if (!code) { toast.error(couponText.enter); return; }
     if (!eligible) { toast.error(ineligibleMsg); return; }
+    const fixedAmount = adminCouponAmount(code);
+    if (fixedAmount !== null || /^ADM\d+$/i.test(code)) {
+      if (fixedAmount === null) { toast.error(couponText.notFound); return; }
+      // Cupom manual de valor fixo: não depende de login ADM nem de Edge Functions.
+      setAppliedAdmin({ code, fixedAmount });
+      setAppliedSpecial(null);
+      setAppliedCoupon(null);
+      setManualCode(code);
+      toast.success(`${couponText.applied}: ${code} · -${formatBRL(fixedAmount)}`);
+      return;
+    }
     const p = promoOverride ?? loadPromo();
 
     // Cupom de boas-vindas: o código só é aplicado se existir e estiver válido no banco.
@@ -312,6 +327,7 @@ export const StandardForm = ({
       setManualCode(confirmed.cupom);
       setAppliedCoupon(confirmed);
       setAppliedSpecial(null);
+      setAppliedAdmin(null);
       toast.success(`${couponText.applied}: ${confirmed.cupom} · -${confirmed.percentualDesconto}%`);
       return;
     }
@@ -327,6 +343,7 @@ export const StandardForm = ({
       return;
     }
     setAppliedSpecial(v.coupon!);
+    setAppliedAdmin(null);
     setAppliedCoupon(null); // especial substitui padrão
     toast.success(`${couponText.applied}: ${v.coupon!.code} · -${v.coupon!.percent}%`);
   };
@@ -375,6 +392,8 @@ export const StandardForm = ({
         embarkationFeePerPerson: cruiseFeePerPerson,
         localEmbarkationFee: 0, jardineiraFee: 0, regionalFeePassengerCount: 0,
         ...amounts, final: amounts.total,
+        cashPixTotal: calculateBookingAmounts(original, embarkation.amount, false).total,
+        cardTotal: calculateBookingAmounts(original, embarkation.amount, true).total,
         meta: { value: packagePrice as number, from: false }, qrPercent: 0, qrApplied: false, baseOriginal: original,
       };
     }
@@ -394,10 +413,16 @@ export const StandardForm = ({
       : (paxN + adultKidsN) * meta.value + halfN * (meta.value / 2);
     const qr = loadQrPromoForTour(tourKey);
     const original = qr ? baseOriginal - (baseOriginal * qr.percent) / 100 : baseOriginal;
-    const discount = effectiveCoupon ? (original * effectiveCoupon.percent) / 100 : 0;
-    const fareFinal = original - discount;
+    const fixedDiscount = effectiveCoupon && "fixedAmount" in effectiveCoupon ? effectiveCoupon.fixedAmount : null;
+    const discount = fixedDiscount != null
+      ? applyFixedCoupon(original, fixedDiscount).discount
+      : effectiveCoupon && "percent" in effectiveCoupon ? (original * (effectiveCoupon.percent ?? 0)) / 100 : 0;
+    const fareFinal = Math.max(0, original - discount);
     const unitPriceBeforeCoupon = qr ? meta.value - (meta.value * qr.percent) / 100 : meta.value;
-    const unitPriceCashPix = unitPriceBeforeCoupon - (unitPriceBeforeCoupon * (effectiveCoupon?.percent ?? 0)) / 100;
+    // Desconto ADM é sobre o total da reserva, não sobre cada passageiro.
+    const unitPriceCashPix = fixedDiscount != null
+      ? unitPriceBeforeCoupon
+      : unitPriceBeforeCoupon - (unitPriceBeforeCoupon * (effectiveCoupon && "percent" in effectiveCoupon ? (effectiveCoupon.percent ?? 0) : 0)) / 100;
     const feeApplies = cruiseFeeApplies(tourKey, date);
     const feeChildAges = !adultsOnly && hasKids === "yes" ? ages.slice(0, kidsN) : [];
     const embarkation = calculateEmbarkationFee(
@@ -412,13 +437,25 @@ export const StandardForm = ({
       Math.max(0, parseInt(pax) || 0),
       regionalFeeChildren,
     );
-    const amounts = calculateBookingAmounts(
-      fareFinal,
-      embarkation.amount + regionalFees.embarkationFee + regionalFees.jardineiraFee,
-      isCardPayment(payment),
-    );
+    const extraFees = embarkation.amount + regionalFees.embarkationFee + regionalFees.jardineiraFee;
+    // Cupons ADM descontam exatamente o valor nominal do total do passeio,
+    // inclusive no cartão. Taxas de embarque e jardineira não recebem desconto.
+    const amountsFor = (card: boolean) => {
+      const base = calculateBookingAmounts(fixedDiscount != null ? original : fareFinal, extraFees, card);
+      if (fixedDiscount == null) return base;
+      const applied = Math.min(base.fareForPayment, fixedDiscount);
+      return {
+        ...base,
+        fareForPayment: roundMoney(base.fareForPayment - applied),
+        subtotal: roundMoney(base.subtotal - Math.min(original, fixedDiscount)),
+        total: roundMoney(base.total - applied),
+      };
+    };
+    const amounts = amountsFor(isCardPayment(payment));
+    const cashPixTotal = amountsFor(false).total;
+    const cardTotal = amountsFor(true).total;
     return {
-      original, discount, fareFinal, unitPriceCashPix, unitPriceBeforeCoupon, ...amounts, final: amounts.total,
+      original, discount, fareFinal, unitPriceCashPix, unitPriceBeforeCoupon, cashPixTotal, cardTotal, ...amounts, final: amounts.total,
       embarkationPassengerCount: embarkation.passengerCount,
       embarkationFee: embarkation.amount,
       embarkationFeePerPerson: cruiseFeePerPerson,
@@ -469,7 +506,7 @@ export const StandardForm = ({
       setName(""); setCpf(""); setPhone({ ddi: "+55", number: "" }); setPax("");
       setDate(undefined); setPousada(""); setRoom(""); setAddress("");
       setHasKids(""); setKidsCount(""); setAges([]); setPayment(""); setManualCode("");
-      setAppliedCoupon(null); setAppliedSpecial(null); setErrors({});
+      setAppliedCoupon(null); setAppliedSpecial(null); setAppliedAdmin(null); setErrors({});
       setTermsAccepted(false); termsRequest.current = null;
       toast.info(lang === "pt" ? "Os dados da reserva expiraram após 10 minutos. Preencha novamente." : "Booking details expired after 10 minutes. Please fill them in again.");
     }, BOOKING_DRAFT_TTL_MS);
@@ -581,7 +618,7 @@ export const StandardForm = ({
     rows.push({ label: t.sumPay, value: paymentLabel(payment as PaymentMethod) });
 
     for (const item of priceLines) {
-      if (item.kind === "coupon") rows.push({ label: "Cupom", value: `${item.code} (-${item.percent}%)` });
+      if (item.kind === "coupon") rows.push({ label: "Cupom", value: item.fixedAmount != null ? `${item.code} (-${formatBRL(Math.min(priceInfo.original, item.fixedAmount))})` : `${item.code} (-${item.percent}%)` });
       if (item.kind === "qr") rows.push({ label: "Desconto QR Code", value: `-${item.percent}%` });
       if (item.kind === "fare" && itemizeFare) rows.push({ label: isCardPayment(payment) ? PAYMENT_PRICE_LABELS[lang].tourFareCard : PAYMENT_PRICE_LABELS[lang].tourFareCashPix, value: formatBRL(item.amount) });
       if (item.kind === "embarkation") {
@@ -643,7 +680,7 @@ export const StandardForm = ({
     if (priceInfo) {
       lines.push("💰 VALORES DA RESERVA");
       for (const item of priceLines) {
-        if (item.kind === "coupon") lines.push(`Cupom aplicado: ${item.code} (−${item.percent}%)`);
+        if (item.kind === "coupon") lines.push(item.fixedAmount != null ? `Cupom aplicado: ${item.code} (−${formatBRL(Math.min(priceInfo.original, item.fixedAmount))})` : `Cupom aplicado: ${item.code} (−${item.percent}%)`);
         if (item.kind === "qr") lines.push(`Desconto QR Code: −${item.percent}%`);
         if (item.kind === "fare" && itemizeFare) lines.push(`Passeio (${isCardPayment(payment) ? "no cartão" : "dinheiro/Pix"}, após descontos): ${formatBRL(item.amount)}`);
         if (item.kind === "embarkation") {
@@ -819,7 +856,7 @@ export const StandardForm = ({
     if (appliedSpecial) markSpecialUsed(appliedSpecial.code, name, fullPhone(phone));
     if (appliedCoupon) markCouponUsed();
     const cupomAplicado = effectiveCoupon?.code ?? null;
-    if (cupomAplicado) markCouponUsedInDb(cupomAplicado);
+    if (cupomAplicado && !appliedAdmin) markCouponUsedInDb(cupomAplicado);
   };
 
   const clearErr = (k: string) => {
@@ -829,7 +866,7 @@ export const StandardForm = ({
   const reset = () => {
     setName(""); setCpf(""); setPhone({ ddi: "+55", number: "" }); setPax("");
     setDate(undefined); setPousada(""); setRoom(""); setAddress(""); setManualCode("");
-    setAppliedCoupon(null); setAppliedSpecial(null);
+    setAppliedCoupon(null); setAppliedSpecial(null); setAppliedAdmin(null);
     setHasKids(""); setKidsCount(""); setAges([]); setPayment(""); setOutput(null);
     setPendingVoucher(null); voucherCredentials.current = null;
     setTermsAccepted(false); termsRequest.current = null;
@@ -898,7 +935,7 @@ export const StandardForm = ({
                         {formatBRL(priceInfo.qrApplied ? priceInfo.meta.value : priceInfo.unitPriceBeforeCoupon)}
                       </div>
                     )}
-                    {effectiveCoupon && <div className="mt-1 text-[11px] text-emerald-300 font-semibold">{effectiveCoupon.code} · -{effectiveCoupon.percent}%</div>}
+                    {effectiveCoupon && <div className="mt-1 text-[11px] text-emerald-300 font-semibold">{effectiveCoupon.code} · {"fixedAmount" in effectiveCoupon ? `-${formatBRL(Math.min(priceInfo.original, effectiveCoupon.fixedAmount))}` : `-${effectiveCoupon.percent ?? 0}%`}</div>}
                     {priceInfo.qrApplied && <div className="mt-1 text-[11px] text-emerald-300 font-semibold">-{priceInfo.qrPercent}% via QR Code</div>}
                   </>
                 ) : (
@@ -952,7 +989,7 @@ export const StandardForm = ({
                     type="button"
                     variant="ghost"
                     aria-label={lang === "pt" ? "Remover cupom" : lang === "es" ? "Quitar cupón" : lang === "fr" ? "Retirer le coupon" : lang === "it" ? "Rimuovi coupon" : "Remove coupon"}
-                    onClick={() => { setAppliedCoupon(null); setAppliedSpecial(null); setManualCode(""); }}
+                    onClick={() => { setAppliedCoupon(null); setAppliedSpecial(null); setAppliedAdmin(null); setManualCode(""); }}
                     className="h-10 px-3 text-emerald-300 hover:text-foreground"
                   >
                     <X className="h-4 w-4" />
@@ -1092,16 +1129,8 @@ export const StandardForm = ({
               payment={payment as PaymentMethod | ""}
               onChange={(method) => { setPayment(method); clearErr("payment"); }}
               cashPixUnitPrice={priceInfo?.unitPriceCashPix ?? null}
-              cashPixTotal={priceInfo ? calculateBookingAmounts(
-                priceInfo.fareFinal,
-                priceInfo.embarkationFee + priceInfo.localEmbarkationFee + priceInfo.jardineiraFee,
-                false,
-              ).total : null}
-              cardTotal={priceInfo ? calculateBookingAmounts(
-                priceInfo.fareFinal,
-                priceInfo.embarkationFee + priceInfo.localEmbarkationFee + priceInfo.jardineiraFee,
-                true,
-              ).total : null}
+              cashPixTotal={priceInfo?.cashPixTotal ?? null}
+              cardTotal={priceInfo?.cardTotal ?? null}
               fromPrice={!!priceInfo?.meta.from}
             />
           </Field>
