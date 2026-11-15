@@ -47,8 +47,6 @@ import { BookingTermsConsent } from "@/components/BookingTermsConsent";
 import { BOOKING_TERMS_VERSION } from "@/lib/bookingTerms";
 import type { BookingTermsAcceptance } from "@/lib/db";
 import { adminCouponAmount, applyFixedCoupon } from "@/lib/adminFixedCoupons";
-import { getAdminToken, refreshAdminStatus } from "@/lib/adminAuth";
-import { supabase } from "@/integrations/supabase/client";
 
 /** Rótulos de pagamento em PT fixo para a mensagem do WhatsApp. */
 const PAYMENT_PT: Record<PaymentMethod, string> = {
@@ -288,17 +286,8 @@ export const StandardForm = ({
     if (!eligible) { toast.error(ineligibleMsg); return; }
     const fixedAmount = adminCouponAmount(code);
     if (fixedAmount !== null || /^ADM\d+$/i.test(code)) {
-      if (fixedAmount === null || !(await refreshAdminStatus())) {
-        toast.error(lang === "pt" ? "Cupom exclusivo do administrador. Entre no painel ADM para utilizá-lo." : "Admin-only coupon. Sign in as an administrator.");
-        return;
-      }
-      const { data, error } = await supabase.functions.invoke("admin-auth", {
-        body: { action: "validate_admin_coupon", code, token: getAdminToken() },
-      });
-      if (error || data?.ok !== true || data?.code !== code || data?.amount !== fixedAmount) {
-        toast.error(couponText.notFound);
-        return;
-      }
+      if (fixedAmount === null) { toast.error(couponText.notFound); return; }
+      // Cupom manual de valor fixo: não depende de login ADM nem de Edge Functions.
       setAppliedAdmin({ code, fixedAmount });
       setAppliedSpecial(null);
       setAppliedCoupon(null);
