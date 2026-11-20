@@ -26,7 +26,7 @@ export const calculateRegionalBookingFees = (
 
   return {
     passengerCount,
-    embarkationFee: passengerCount * REGIONAL_EMBARKATION_FEE_PER_PERSON,
+    embarkationFee: tourKey === "arraial" ? 0 : passengerCount * REGIONAL_EMBARKATION_FEE_PER_PERSON,
     jardineiraFee: passengerCount * JARDINEIRA_FEE_PER_PERSON,
   };
 };
